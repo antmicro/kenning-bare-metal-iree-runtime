@@ -1,0 +1,27 @@
+cpu: CPU.SpringbokRiscV32 @ sysbus
+    hartId: 0
+    timeProvider: clint
+
+//RAM_VEC_IMEM      [‘h3200_0000 - ‘h320F_FFFF) 1MB RAM for Vector core Instruction
+ram_vec_imem: Memory.MappedMemory @ sysbus 0x32000000
+    size: 0x00100000
+
+//RAM_VEC_DMEM      [‘h3400_0000 - ‘h34FF_FFFF)   16MB RAM for Vector core Data
+ram_vec_dmem: Memory.MappedMemory @ sysbus 0x34000000
+    size: 0x01000000
+
+//RAM_VEC_CSR       [‘h3800_0000 - ‘h3800_0FFF)   4KB RAM for Vector Core CSRs
+ram_vec_csr: Memory.MappedMemory @ sysbus 0x38000000
+    size: 0x00001000
+
+//UART
+uart0: UART.PL011 @ sysbus 0x40000000
+
+vec_controlblock : CPU.SpringbokRiscV32_ControlBlock @ sysbus 0x47000000
+    core: cpu
+    imem: ram_vec_imem
+    dmem: ram_vec_dmem
+
+clint: IRQControllers.CoreLevelInterruptor  @ sysbus 0x02000000
+    [0,1] -> cpu@[3,7]
+    frequency: 24000000
