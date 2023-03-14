@@ -1,0 +1,3 @@
+[submodule "third-party/iree-rv32-springbok"]
+	path = third-party/iree-rv32-springbok
+	url = https://github.com/antmicro/iree-rv32-springbok.git
