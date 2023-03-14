@@ -37,11 +37,11 @@ add_definitions(-DIREE_FILE_IO_ENABLE=0)
 add_definitions(-DIREE_USER_CONFIG_H="${SPRINGBOK_CONFIG_HEADER}")
 add_definitions(-DIREE_VM_EXECUTION_TRACING_ENABLE=1)
 
+message("Include IREE source at ${IREE_SOURCE_DIR}")
+add_subdirectory(${IREE_SOURCE_DIR} iree)
+
 message("Include Springbok source at ${SPRINGBOK_SOURCE_DIR}")
 add_subdirectory(${SPRINGBOK_SOURCE_DIR} iree-riscv32)
-
-message("Include IREE source at ${IREE_SOURCE_DIR}")
-link_directories(${IREE_SOURCE_DIR} iree)
 
 set(SPRINGBOK_ROOT_DIR "${SPRINGBOK_SOURCE_DIR}" CACHE PATH "Springbok Root directory")
 
