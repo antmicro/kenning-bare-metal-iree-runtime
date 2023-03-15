@@ -1,4 +1,4 @@
-image: ubuntu:latest
+image: $CI_IMAGE
 
 variables:
     GIT_STRATEGY: clone
@@ -8,26 +8,21 @@ stages:
     - lint
     - build
 
+before_script:
+    - mkdir -p build
+    - ln -s /build/toolchain_iree_rv32imf ./build/toolchain_iree_rv32imf
+    - ln -s /build/iree_compiler ./build/iree_compiler
+    - export PATH=${HOME}/.local/bin:${PATH}
+
+
 format:
     stage: lint
     script:
-        - apt-get update
-        - apt-get install -y git xxd cmake ninja-build wget python3 python3-pip clang-format
-        - python3 -m pip install requests wget numpy pillow
-        - third-party/iree-rv32-springbok/build_tools/install_toolchain.sh
-        - python3 third-party/iree-rv32-springbok/build_tools/download_iree_compiler.py
-        - export PATH=${HOME}/.local/bin:${PATH}
         - build_tools/format.sh
     allow_failure: false
 
 build:
     stage: build
     script:
-        - apt-get update
-        - apt-get install -y git xxd cmake ninja-build wget python3 python3-pip
-        - python3 -m pip install requests wget numpy pillow
-        - third-party/iree-rv32-springbok/build_tools/install_toolchain.sh
-        - python3 third-party/iree-rv32-springbok/build_tools/download_iree_compiler.py
-        - export PATH=${HOME}/.local/bin:${PATH}
         - build_tools/build.sh
     allow_failure: false
