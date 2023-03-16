@@ -4,6 +4,9 @@ const char *RUNTIME_STATUS_STR[] = {RUNTIME_STATUSES(GENERATE_STR)};
 extern const char *MESSAGE_TYPE_STR[];
 extern const char *MODEL_STATUS_STR[];
 
+/**
+ * Main Runtime function. It initializes UART and then handles messages in an infinite loop.
+ */
 int main()
 {
     int ret = 0;
@@ -56,6 +59,13 @@ int main()
     return ret;
 }
 
+/**
+ * Handles OK message
+ *
+ * @param request incoming message. It is overwritten with NULL as there is no response
+ *
+ * @returns error status of the runtime
+ */
 RUNTIME_STATUS ok_callback(message **request)
 {
     LOG_WARN("Unexpected message received: MESSAGE_TYPE_OK");
@@ -63,6 +73,13 @@ RUNTIME_STATUS ok_callback(message **request)
     return RUNTIME_STATUS_OK;
 }
 
+/**
+ * Handles ERROR message
+ *
+ * @param request incoming message. It is overwritten with NULL as there is no response
+ *
+ * @returns error status of the runtime
+ */
 RUNTIME_STATUS error_callback(message **request)
 {
     LOG_WARN("Unexpected message received: MESSAGE_TYPE_ERROR");
@@ -70,6 +87,13 @@ RUNTIME_STATUS error_callback(message **request)
     return RUNTIME_STATUS_OK;
 }
 
+/**
+ * Handles DATA message that contains model input. It calls model's function that loads it.
+ *
+ * @param request incoming message. It is overwritten by the response message (OK/ERROR message)
+ *
+ * @returns error status of the runtime
+ */
 RUNTIME_STATUS data_callback(message **request)
 {
     MODEL_STATUS m_status = MODEL_STATUS_OK;
@@ -90,6 +114,13 @@ RUNTIME_STATUS data_callback(message **request)
     return RUNTIME_STATUS_OK;
 }
 
+/**
+ * Handles MODEL message that contains model data. It calls model's function that loads the model.
+ *
+ * @param request incoming message. It is overwritten by the response message (OK/ERROR message)
+ *
+ * @returns error status of the runtime
+ */
 RUNTIME_STATUS model_callback(message **request)
 {
     MODEL_STATUS m_status = MODEL_STATUS_OK;
@@ -110,6 +141,13 @@ RUNTIME_STATUS model_callback(message **request)
     return RUNTIME_STATUS_OK;
 }
 
+/**
+ * Handles PROCESS message. It calls model's function that runs it
+ *
+ * @param request incoming message. It is overwritten by the response message (OK/ERROR message)
+ *
+ * @returns error status of the runtime
+ */
 RUNTIME_STATUS process_callback(message **request)
 {
     MODEL_STATUS m_status = MODEL_STATUS_OK;
@@ -129,6 +167,14 @@ RUNTIME_STATUS process_callback(message **request)
     return RUNTIME_STATUS_OK;
 }
 
+/**
+ * Handles OUTPUT message. It retrieves model inference output and sends it back
+ *
+ * @param request incoming message. It is overwritten by the response message (DATA message containig model output or
+ *                ERROR message)
+ *
+ * @returns error status of the runtime
+ */
 RUNTIME_STATUS output_callback(message **request)
 {
     MODEL_STATUS m_status = MODEL_STATUS_OK;
@@ -149,6 +195,14 @@ RUNTIME_STATUS output_callback(message **request)
     return RUNTIME_STATUS_OK;
 }
 
+/**
+ * Handles STATS message. It retrieves model statistics
+ *
+ * @param request incoming message. It is overwritten by the response message (STATS message containig model
+ *                statistics or ERROR message)
+ *
+ * @returns error status of the runtime
+ */
 RUNTIME_STATUS stats_callback(message **request)
 {
     MODEL_STATUS m_status = MODEL_STATUS_OK;
@@ -169,6 +223,13 @@ RUNTIME_STATUS stats_callback(message **request)
     return RUNTIME_STATUS_OK;
 }
 
+/**
+ * Handles IOSPEC message. It loads model IO specification
+ *
+ * @param request incoming message. It is overwritten by the response message (OK/ERROR message)
+ *
+ * @returns error status of the runtime
+ */
 RUNTIME_STATUS iospec_callback(message **request)
 {
     MODEL_STATUS m_status = MODEL_STATUS_OK;
