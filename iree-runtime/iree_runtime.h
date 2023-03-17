@@ -9,10 +9,10 @@
 /**
  * An enum that describes runtime status
  */
-#define RUNTIME_STATUSES(STATUS)                                                                                       \
-    STATUS(RUNTIME_STATUS_OK)                                                                                          \
-    STATUS(RUNTIME_STATUS_ERROR)                                                                                       \
-    STATUS(RUNTIME_STATUS_SERVER_ERROR)                                                                                \
+#define RUNTIME_STATUSES(STATUS)        \
+    STATUS(RUNTIME_STATUS_OK)           \
+    STATUS(RUNTIME_STATUS_ERROR)        \
+    STATUS(RUNTIME_STATUS_SERVER_ERROR) \
     STATUS(RUNTIME_STATUS_MODEL_ERROR)
 
 typedef enum
@@ -28,15 +28,15 @@ typedef RUNTIME_STATUS (*callback_ptr)(message **);
 /**
  * List of callbacks for each message type
  */
-#define CALLBACKS                                                                                                      \
-    /*    MessageType           Callback_function */                                                                   \
-    ENTRY(MESSAGE_TYPE_OK, ok_callback)                                                                                \
-    ENTRY(MESSAGE_TYPE_ERROR, error_callback)                                                                          \
-    ENTRY(MESSAGE_TYPE_DATA, data_callback)                                                                            \
-    ENTRY(MESSAGE_TYPE_MODEL, model_callback)                                                                          \
-    ENTRY(MESSAGE_TYPE_PROCESS, process_callback)                                                                      \
-    ENTRY(MESSAGE_TYPE_OUTPUT, output_callback)                                                                        \
-    ENTRY(MESSAGE_TYPE_STATS, stats_callback)                                                                          \
+#define CALLBACKS                                    \
+    /*    MessageType           Callback_function */ \
+    ENTRY(MESSAGE_TYPE_OK, ok_callback)              \
+    ENTRY(MESSAGE_TYPE_ERROR, error_callback)        \
+    ENTRY(MESSAGE_TYPE_DATA, data_callback)          \
+    ENTRY(MESSAGE_TYPE_MODEL, model_callback)        \
+    ENTRY(MESSAGE_TYPE_PROCESS, process_callback)    \
+    ENTRY(MESSAGE_TYPE_OUTPUT, output_callback)      \
+    ENTRY(MESSAGE_TYPE_STATS, stats_callback)        \
     ENTRY(MESSAGE_TYPE_IOSPEC, iospec_callback)
 
 #define ENTRY(msg_type, callback_func) RUNTIME_STATUS callback_func(message **);

@@ -1,8 +1,8 @@
 #include "iree_runtime.h"
 
-const char *RUNTIME_STATUS_STR[] = {RUNTIME_STATUSES(GENERATE_STR)};
-extern const char *MESSAGE_TYPE_STR[];
-extern const char *MODEL_STATUS_STR[];
+const char *const RUNTIME_STATUS_STR[] = {RUNTIME_STATUSES(GENERATE_STR)};
+extern const char *const MESSAGE_TYPE_STR[];
+extern const char *const MODEL_STATUS_STR[];
 
 /**
  * Main Runtime function. It initializes UART and then handles messages in an infinite loop.
@@ -10,13 +10,13 @@ extern const char *MODEL_STATUS_STR[];
 int main()
 {
     int ret = 0;
-    UART_STATUS uart_status = UART_OK;
+    UART_STATUS uart_status = UART_STATUS_OK;
     RUNTIME_STATUS runtime_status = RUNTIME_STATUS_OK;
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
 
     uart_config config = {.data_bits = 8, .stop_bits = 1, .parity = false, .baudrate = 115200};
     uart_status = uart_init(&config);
-    if (UART_OK != uart_status)
+    if (UART_STATUS_OK != uart_status)
     {
         LOG_ERROR("UART error");
         return 1;
@@ -191,6 +191,7 @@ RUNTIME_STATUS output_callback(message **request)
         return RUNTIME_STATUS_MODEL_ERROR;
     }
     (*request)->message_size = model_output_size + sizeof(((message *)0)->message_type);
+    (*request)->message_type = MESSAGE_TYPE_OK;
 
     return RUNTIME_STATUS_OK;
 }
@@ -219,6 +220,7 @@ RUNTIME_STATUS stats_callback(message **request)
     }
 
     (*request)->message_size = sizeof(iree_hal_allocator_statistics_t) + sizeof(((message *)0)->message_type);
+    (*request)->message_type = MESSAGE_TYPE_OK;
 
     return RUNTIME_STATUS_OK;
 }
