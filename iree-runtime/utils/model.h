@@ -20,19 +20,19 @@
 #define MAX_LENGTH_ENTRY_FUNC_NAME 20
 #define MAX_LENGTH_MODEL_NAME 20
 
-#define CHECK_IREE_STATUS(status)                                                                                      \
-    if (!iree_status_is_ok(iree_status))                                                                               \
-    {                                                                                                                  \
-        return MODEL_STATUS_IREE_ERROR;                                                                                \
+#define CHECK_IREE_STATUS(status)        \
+    if (!iree_status_is_ok(iree_status)) \
+    {                                    \
+        return MODEL_STATUS_IREE_ERROR;  \
     }
 
 /**
  * An enum that describes server status
  */
-#define MODEL_STATUSES(STATUS)                                                                                         \
-    STATUS(MODEL_STATUS_OK)                                                                                            \
-    STATUS(MODEL_STATUS_INVALID_ARGUMENT)                                                                              \
-    STATUS(MODEL_STATUS_INVALID_STATE)                                                                                 \
+#define MODEL_STATUSES(STATUS)            \
+    STATUS(MODEL_STATUS_OK)               \
+    STATUS(MODEL_STATUS_INVALID_ARGUMENT) \
+    STATUS(MODEL_STATUS_INVALID_STATE)    \
     STATUS(MODEL_STATUS_IREE_ERROR)
 
 typedef enum
@@ -51,6 +51,19 @@ typedef enum
     MODEL_STATE_INPUT_LOADED = 3,
     MODEL_STATE_INFERENCE_DONE = 4,
 } MODEL_STATE;
+
+#define IREE_HAL_ELEMENT_TYPES(X)            \
+    X("i8", IREE_HAL_ELEMENT_TYPE_INT_8)     \
+    X("u8", IREE_HAL_ELEMENT_TYPE_UINT_8)    \
+    X("i16", IREE_HAL_ELEMENT_TYPE_INT_16)   \
+    X("u16", IREE_HAL_ELEMENT_TYPE_UINT_16)  \
+    X("i32", IREE_HAL_ELEMENT_TYPE_INT_32)   \
+    X("u32", IREE_HAL_ELEMENT_TYPE_UINT_32)  \
+    X("i64", IREE_HAL_ELEMENT_TYPE_INT_64)   \
+    X("u64", IREE_HAL_ELEMENT_TYPE_UINT_64)  \
+    X("f16", IREE_HAL_ELEMENT_TYPE_FLOAT_16) \
+    X("f32", IREE_HAL_ELEMENT_TYPE_FLOAT_32) \
+    X("f64", IREE_HAL_ELEMENT_TYPE_FLOAT_64)
 
 /**
  * A struct that contains model parameters

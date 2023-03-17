@@ -1,6 +1,6 @@
 #include "model.h"
 
-const char *MODEL_STATUS_STR[] = {MODEL_STATUSES(GENERATE_STR)};
+const char *const MODEL_STATUS_STR[] = {MODEL_STATUSES(GENERATE_STR)};
 
 static MlModel g_model_struct;
 static MODEL_STATE g_model_state = MODEL_STATE_UNINITIALIZED;
@@ -186,27 +186,19 @@ MODEL_STATUS load_model_struct(const uint8_t *model_struct_data, const size_t da
     g_model_struct = *((MlModel *)model_struct_data);
 
     char *dtype = (char *)&g_model_struct.hal_element_type;
-    if (0 == strncmp(dtype, "f32", 4))
-    {
-        g_model_struct.hal_element_type = IREE_HAL_ELEMENT_TYPE_FLOAT_32;
-    }
-    else if (0 == strncmp(dtype, "f64", 4))
-    {
-        g_model_struct.hal_element_type = IREE_HAL_ELEMENT_TYPE_FLOAT_64;
-    }
-    else if (0 == strncmp(dtype, "u8", 4))
-    {
-        g_model_struct.hal_element_type = IREE_HAL_ELEMENT_TYPE_UINT_8;
-    }
-    else if (0 == strncmp(dtype, "u16", 4))
-    {
-        g_model_struct.hal_element_type = IREE_HAL_ELEMENT_TYPE_UINT_16;
-    }
+
+#define CHECK_HAL_ELEM_TYPE(label, element_type)        \
+    if (0 == strncmp(dtype, label, 4))                  \
+    {                                                   \
+        g_model_struct.hal_element_type = element_type; \
+    }                                                   \
     else
+    IREE_HAL_ELEMENT_TYPES(CHECK_HAL_ELEM_TYPE)
     {
         LOG_ERROR("Wrong dtype %s", dtype);
         return MODEL_STATUS_INVALID_ARGUMENT;
     }
+#undef CHECK_TYPE
 
     LOG_INFO("Loaded model struct. Model name: %s", g_model_struct.model_name);
 
