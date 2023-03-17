@@ -3,17 +3,17 @@
 
 #include "uart.h"
 
-#define CHECK_UART_STATUS(status)                                                                                      \
-    if (UART_TIMEOUT == status)                                                                                        \
-    {                                                                                                                  \
-        return SERVER_STATUS_TIMEOUT;                                                                                  \
-    }                                                                                                                  \
-    if (UART_OK != status)                                                                                             \
-    {                                                                                                                  \
-        return SERVER_STATUS_CLIENT_DISCONNECTED;                                                                      \
+#define CHECK_UART_STATUS(status)                 \
+    if (UART_STATUS_TIMEOUT == status)            \
+    {                                             \
+        return SERVER_STATUS_TIMEOUT;             \
+    }                                             \
+    if (UART_STATUS_OK != status)                 \
+    {                                             \
+        return SERVER_STATUS_CLIENT_DISCONNECTED; \
     }
 
-#define MAX_MESSAGE_SIZE_BYTES (2 * 1024 * 1024) // 2MB
+#define MAX_MESSAGE_SIZE_BYTES (3 * 1024 * 1024) // 3MB
 
 #define MESSAGE_SIZE_PAYLOAD(msg_size) (msg_size - sizeof(((message *)0)->message_type))
 #define MESSAGE_SIZE_FULL(msg_size) (sizeof(message) + MESSAGE_SIZE_PAYLOAD(msg_size))
@@ -21,15 +21,15 @@
 /**
  * An enum that describes message type
  */
-#define MESSAGE_TYPES(TYPE)                                                                                            \
-    TYPE(MESSAGE_TYPE_OK)                                                                                              \
-    TYPE(MESSAGE_TYPE_ERROR)                                                                                           \
-    TYPE(MESSAGE_TYPE_DATA)                                                                                            \
-    TYPE(MESSAGE_TYPE_MODEL)                                                                                           \
-    TYPE(MESSAGE_TYPE_PROCESS)                                                                                         \
-    TYPE(MESSAGE_TYPE_OUTPUT)                                                                                          \
-    TYPE(MESSAGE_TYPE_STATS)                                                                                           \
-    TYPE(MESSAGE_TYPE_IOSPEC)                                                                                          \
+#define MESSAGE_TYPES(TYPE)    \
+    TYPE(MESSAGE_TYPE_OK)      \
+    TYPE(MESSAGE_TYPE_ERROR)   \
+    TYPE(MESSAGE_TYPE_DATA)    \
+    TYPE(MESSAGE_TYPE_MODEL)   \
+    TYPE(MESSAGE_TYPE_PROCESS) \
+    TYPE(MESSAGE_TYPE_OUTPUT)  \
+    TYPE(MESSAGE_TYPE_STATS)   \
+    TYPE(MESSAGE_TYPE_IOSPEC)  \
     TYPE(NUM_MESSAGE_TYPES)
 
 typedef enum

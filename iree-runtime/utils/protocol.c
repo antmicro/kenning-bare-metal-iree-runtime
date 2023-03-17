@@ -1,6 +1,6 @@
 #include "protocol.h"
 
-const char *MESSAGE_TYPE_STR[] = {MESSAGE_TYPES(GENERATE_STR)};
+const char *const MESSAGE_TYPE_STR[] = {MESSAGE_TYPES(GENERATE_STR)};
 
 static uint8_t __attribute__((aligned(4))) g_message_buffer[MAX_MESSAGE_SIZE_BYTES + 2];
 
@@ -18,9 +18,9 @@ static message *get_message_buffer()
 
 SERVER_STATUS receive_message(message **msg)
 {
-    UART_STATUS status;
-    uint32_t msg_size;
-    MESSAGE_TYPE msg_type;
+    UART_STATUS status = UART_STATUS_OK;
+    uint32_t msg_size = 0;
+    MESSAGE_TYPE msg_type = MESSAGE_TYPE_OK;
     uint8_t data[4];
 
     // read size of the message
@@ -50,7 +50,7 @@ SERVER_STATUS receive_message(message **msg)
 
     // read the payload
     status = uart_read((*msg)->payload, MESSAGE_SIZE_PAYLOAD(msg_size));
-    if (UART_OK != status)
+    if (UART_STATUS_OK != status)
     {
         *msg = NULL;
     }
