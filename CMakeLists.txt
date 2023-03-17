@@ -8,6 +8,8 @@ include_guard(GLOBAL)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(SPRINGBOK_SOURCE_DIR "third-party/iree-rv32-springbok" CACHE PATH
     "Springbok source code path.")
 set(IREE_SOURCE_DIR "third-party/iree-rv32-springbok/third_party/iree" CACHE PATH
@@ -47,7 +49,17 @@ set(SPRINGBOK_ROOT_DIR "${SPRINGBOK_SOURCE_DIR}" CACHE PATH "Springbok Root dire
 
 add_subdirectory(iree-runtime iree-runtime)
 
+set(FIND_SOURCE_FILES "find ${CMAKE_CURRENT_SOURCE_DIR}/iree-runtime -iname \"*.c\" -o -iname \"*.h\"")
+
+add_custom_target(check-tidy
+    COMMAND bash -c "${FIND_SOURCE_FILES} | xargs clang-tidy -format-style=file -header-filter=. -p ${CMAKE_BINARY_DIR}"
+    VERBATIM
+)
 add_custom_target(format
-    COMMAND bash -c "find ${CMAKE_CURRENT_SOURCE_DIR}/iree-runtime -iname \"*.c\" -o -iname \"*.h\" | xargs clang-format --dry-run --Werror --style=file -i"
+    COMMAND bash -c "${FIND_SOURCE_FILES} | xargs clang-format --style=file -i"
+    VERBATIM
+)
+add_custom_target(check-format
+    COMMAND bash -c "${FIND_SOURCE_FILES} | xargs clang-format --dry-run --Werror --style=file -i"
     VERBATIM
 )
