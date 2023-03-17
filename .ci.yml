@@ -18,7 +18,7 @@ before_script:
 format:
     stage: lint
     script:
-        - cmake --build build/build-riscv --target format
+        - cmake --build build/build-riscv --target check-format
     allow_failure: false
 
 build:
