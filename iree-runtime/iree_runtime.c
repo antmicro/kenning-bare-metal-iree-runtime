@@ -101,13 +101,9 @@ RUNTIME_STATUS data_callback(message **request)
 
     m_status = load_model_input((*request)->payload, MESSAGE_SIZE_PAYLOAD((*request)->message_size));
 
-    if (MODEL_STATUS_OK != m_status)
-    {
-        LOG_ERROR("load_model_input returned %d (%s)", m_status, MODEL_STATUS_STR[m_status]);
-        s_status = prepare_failure_response(request);
-        RETURN_ON_ERROR(s_status, RUNTIME_STATUS_SERVER_ERROR);
-        return RUNTIME_STATUS_MODEL_ERROR;
-    }
+    CHECK_MODEL_STATUS_LOG(m_status, request, "load_model_input returned %d (%s)", m_status,
+                           MODEL_STATUS_STR[m_status]);
+
     s_status = prepare_success_response(request);
     RETURN_ON_ERROR(s_status, RUNTIME_STATUS_SERVER_ERROR);
 
@@ -128,13 +124,9 @@ RUNTIME_STATUS model_callback(message **request)
 
     m_status = load_model_weights((*request)->payload, MESSAGE_SIZE_PAYLOAD((*request)->message_size));
 
-    if (MODEL_STATUS_OK != m_status)
-    {
-        LOG_ERROR("load_model_weights returned %d (%s)", m_status, MODEL_STATUS_STR[m_status]);
-        s_status = prepare_failure_response(request);
-        RETURN_ON_ERROR(s_status, RUNTIME_STATUS_SERVER_ERROR);
-        return RUNTIME_STATUS_MODEL_ERROR;
-    }
+    CHECK_MODEL_STATUS_LOG(m_status, request, "load_model_weights returned %d (%s)", m_status,
+                           MODEL_STATUS_STR[m_status]);
+
     s_status = prepare_success_response(request);
     RETURN_ON_ERROR(s_status, RUNTIME_STATUS_SERVER_ERROR);
 
@@ -155,15 +147,11 @@ RUNTIME_STATUS process_callback(message **request)
 
     m_status = run_model();
 
-    if (MODEL_STATUS_OK != m_status)
-    {
-        LOG_ERROR("run_model returned %d (%s)", m_status, MODEL_STATUS_STR[m_status]);
-        s_status = prepare_failure_response(request);
-        RETURN_ON_ERROR(s_status, RUNTIME_STATUS_SERVER_ERROR);
-        return RUNTIME_STATUS_MODEL_ERROR;
-    }
+    CHECK_MODEL_STATUS_LOG(m_status, request, "run_model returned %d (%s)", m_status, MODEL_STATUS_STR[m_status]);
+
     s_status = prepare_success_response(request);
     RETURN_ON_ERROR(s_status, RUNTIME_STATUS_SERVER_ERROR);
+
     return RUNTIME_STATUS_OK;
 }
 
@@ -178,19 +166,14 @@ RUNTIME_STATUS process_callback(message **request)
 RUNTIME_STATUS output_callback(message **request)
 {
     MODEL_STATUS m_status = MODEL_STATUS_OK;
-    SERVER_STATUS s_status = SERVER_STATUS_NOTHING;
     size_t model_output_size = 0;
 
     m_status = get_model_output(MAX_MESSAGE_SIZE_BYTES - sizeof(message), (*request)->payload, &model_output_size);
 
-    if (MODEL_STATUS_OK != m_status)
-    {
-        LOG_ERROR("get_model_output returned %d (%s)", m_status, MODEL_STATUS_STR[m_status]);
-        s_status = prepare_failure_response(request);
-        RETURN_ON_ERROR(s_status, RUNTIME_STATUS_SERVER_ERROR);
-        return RUNTIME_STATUS_MODEL_ERROR;
-    }
-    (*request)->message_size = model_output_size + sizeof(((message *)0)->message_type);
+    CHECK_MODEL_STATUS_LOG(m_status, request, "get_model_output returned %d (%s)", m_status,
+                           MODEL_STATUS_STR[m_status]);
+
+    (*request)->message_size = model_output_size + sizeof(message_type_t);
     (*request)->message_type = MESSAGE_TYPE_OK;
 
     return RUNTIME_STATUS_OK;
@@ -207,19 +190,12 @@ RUNTIME_STATUS output_callback(message **request)
 RUNTIME_STATUS stats_callback(message **request)
 {
     MODEL_STATUS m_status = MODEL_STATUS_OK;
-    SERVER_STATUS s_status = SERVER_STATUS_NOTHING;
 
     m_status = get_statistics((iree_hal_allocator_statistics_t *)&(*request)->payload);
 
-    if (MODEL_STATUS_OK != m_status)
-    {
-        LOG_ERROR("get_statistics returned %d (%s)", m_status, MODEL_STATUS_STR[m_status]);
-        s_status = prepare_failure_response(request);
-        RETURN_ON_ERROR(s_status, RUNTIME_STATUS_SERVER_ERROR);
-        return RUNTIME_STATUS_MODEL_ERROR;
-    }
+    CHECK_MODEL_STATUS_LOG(m_status, request, "get_statistics returned %d (%s)", m_status, MODEL_STATUS_STR[m_status]);
 
-    (*request)->message_size = sizeof(iree_hal_allocator_statistics_t) + sizeof(((message *)0)->message_type);
+    (*request)->message_size = sizeof(iree_hal_allocator_statistics_t) + sizeof(message_type_t);
     (*request)->message_type = MESSAGE_TYPE_OK;
 
     return RUNTIME_STATUS_OK;
@@ -239,14 +215,11 @@ RUNTIME_STATUS iospec_callback(message **request)
 
     m_status = load_model_struct((*request)->payload, MESSAGE_SIZE_PAYLOAD((*request)->message_size));
 
-    if (MODEL_STATUS_OK != m_status)
-    {
-        LOG_ERROR("load_model_struct returned %d (%s)", m_status, MODEL_STATUS_STR[m_status]);
-        s_status = prepare_failure_response(request);
-        RETURN_ON_ERROR(s_status, RUNTIME_STATUS_SERVER_ERROR);
-        return RUNTIME_STATUS_MODEL_ERROR;
-    }
+    CHECK_MODEL_STATUS_LOG(m_status, request, "load_model_struct returned %d (%s)", m_status,
+                           MODEL_STATUS_STR[m_status]);
+
     s_status = prepare_success_response(request);
     RETURN_ON_ERROR(s_status, RUNTIME_STATUS_SERVER_ERROR);
+
     return RUNTIME_STATUS_OK;
 }

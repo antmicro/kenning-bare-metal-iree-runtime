@@ -6,6 +6,18 @@
 #include "utils/protocol.h"
 #include "utils/uart.h"
 
+#define CHECK_MODEL_STATUS_LOG(status, response, log_format, log_args...)                \
+    if (MODEL_STATUS_OK != status)                                                       \
+    {                                                                                    \
+        LOG_ERROR(log_format, ##log_args);                                               \
+        RETURN_ON_ERROR(prepare_failure_response(request), RUNTIME_STATUS_SERVER_ERROR); \
+        return RUNTIME_STATUS_MODEL_ERROR;                                               \
+    }                                                                                    \
+    else                                                                                 \
+    {                                                                                    \
+        LOG_INFO(log_format, ##log_args);                                                \
+    }
+
 /**
  * An enum that describes runtime status
  */
