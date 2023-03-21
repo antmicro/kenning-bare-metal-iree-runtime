@@ -60,30 +60,30 @@ typedef struct
     uint32_t baudrate;
 } uart_config;
 
-#define UART_TIMEOUT_S (1) /* 1 second */
+#define UART_TIMEOUT_S (1) /* UART read timeout (1 second) */
 
-#define UART_ADDRESS (0x40000000)
-#define REF_CLOCK (24000000u) /* 24 MHz */
+#define UART_ADDRESS (0x40000000) /* address of UART registers */
+#define REF_CLOCK (24000000u)     /* UART reference clock (24 MHz) */
 
-#define DR_DATA_MASK (0xFFu)
+#define DR_DATA_MASK (0xFFu) /* mask of the data register */
 
-#define FR_BUSY (1 << 3u)
-#define FR_RXFE (1 << 4u)
-#define FR_TXFF (1 << 5u)
+#define FR_BUSY (1 << 3u) /* busy flag */
+#define FR_RXFE (1 << 4u) /* receive FIFO empty flag  */
+#define FR_TXFF (1 << 5u) /* transmit FIFO full flag  */
 
-#define RSRECR_ERR_MASK (0xFu)
+#define RSRECR_ERR_MASK (0xFu) /* receive status error mask */
 
-#define LCRH_FEN (1 << 4u)
-#define LCRH_PEN (1 << 1u)
-#define LCRH_EPS (1 << 2u)
-#define LCRH_STP2 (1 << 3u)
-#define LCRH_SPS (1 << 7u)
-#define CR_UARTEN (1 << 0u)
+#define LCRH_FEN (1 << 4u)  /* FIFO enable */
+#define LCRH_PEN (1 << 1u)  /* parity enable */
+#define LCRH_EPS (1 << 2u)  /* even parity select */
+#define LCRH_STP2 (1 << 3u) /* two stop bits select */
+#define LCRH_SPS (1 << 7u)  /* stick parity select */
+#define CR_UARTEN (1 << 0u) /* UART enable */
 
-#define LCRH_WLEN_5BITS (0u << 5u)
-#define LCRH_WLEN_6BITS (1u << 5u)
-#define LCRH_WLEN_7BITS (2u << 5u)
-#define LCRH_WLEN_8BITS (3u << 5u)
+#define LCRH_WLEN_5BITS (0u << 5u) /* 5 bit word length */
+#define LCRH_WLEN_6BITS (1u << 5u) /* 6 bit word length */
+#define LCRH_WLEN_7BITS (2u << 5u) /* 7 bit word length */
+#define LCRH_WLEN_8BITS (3u << 5u) /* 8 bit word length */
 
 /**
  * Initializes UART
