@@ -26,6 +26,12 @@
         return MODEL_STATUS_IREE_ERROR;  \
     }
 
+#define BREAK_ON_IREE_ERROR(status)      \
+    if (!iree_status_is_ok(iree_status)) \
+    {                                    \
+        break;                           \
+    }
+
 /**
  * An enum that describes server status
  */
@@ -52,18 +58,18 @@ typedef enum
     MODEL_STATE_INFERENCE_DONE = 4,
 } MODEL_STATE;
 
-#define IREE_HAL_ELEMENT_TYPES(X)            \
-    X("i8", IREE_HAL_ELEMENT_TYPE_INT_8)     \
-    X("u8", IREE_HAL_ELEMENT_TYPE_UINT_8)    \
-    X("i16", IREE_HAL_ELEMENT_TYPE_INT_16)   \
-    X("u16", IREE_HAL_ELEMENT_TYPE_UINT_16)  \
-    X("i32", IREE_HAL_ELEMENT_TYPE_INT_32)   \
-    X("u32", IREE_HAL_ELEMENT_TYPE_UINT_32)  \
-    X("i64", IREE_HAL_ELEMENT_TYPE_INT_64)   \
-    X("u64", IREE_HAL_ELEMENT_TYPE_UINT_64)  \
-    X("f16", IREE_HAL_ELEMENT_TYPE_FLOAT_16) \
-    X("f32", IREE_HAL_ELEMENT_TYPE_FLOAT_32) \
-    X("f64", IREE_HAL_ELEMENT_TYPE_FLOAT_64)
+#define IREE_HAL_ELEMENT_TYPES(HAL_ELEMENT_TYPE)            \
+    HAL_ELEMENT_TYPE("i8", IREE_HAL_ELEMENT_TYPE_INT_8)     \
+    HAL_ELEMENT_TYPE("u8", IREE_HAL_ELEMENT_TYPE_UINT_8)    \
+    HAL_ELEMENT_TYPE("i16", IREE_HAL_ELEMENT_TYPE_INT_16)   \
+    HAL_ELEMENT_TYPE("u16", IREE_HAL_ELEMENT_TYPE_UINT_16)  \
+    HAL_ELEMENT_TYPE("i32", IREE_HAL_ELEMENT_TYPE_INT_32)   \
+    HAL_ELEMENT_TYPE("u32", IREE_HAL_ELEMENT_TYPE_UINT_32)  \
+    HAL_ELEMENT_TYPE("i64", IREE_HAL_ELEMENT_TYPE_INT_64)   \
+    HAL_ELEMENT_TYPE("u64", IREE_HAL_ELEMENT_TYPE_UINT_64)  \
+    HAL_ELEMENT_TYPE("f16", IREE_HAL_ELEMENT_TYPE_FLOAT_16) \
+    HAL_ELEMENT_TYPE("f32", IREE_HAL_ELEMENT_TYPE_FLOAT_32) \
+    HAL_ELEMENT_TYPE("f64", IREE_HAL_ELEMENT_TYPE_FLOAT_64)
 
 /**
  * A struct that contains model parameters

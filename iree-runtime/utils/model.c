@@ -24,49 +24,54 @@ static uint8_t *gp_model_weights = NULL;
 static iree_status_t create_device(iree_allocator_t host_allocator, iree_hal_device_t **out_device)
 {
     iree_status_t iree_status = iree_ok_status();
-
     iree_hal_executable_loader_t *loader = NULL;
-    // prepare params
-    iree_hal_sync_device_params_t params;
-    iree_hal_sync_device_params_initialize(&params);
-
-    iree_vm_instance_t *instance = NULL;
-    iree_status = iree_vm_instance_create(host_allocator, &instance);
-    IREE_RETURN_IF_ERROR(iree_status);
-
-    iree_status = iree_hal_vmvx_module_loader_create(instance, /*user_module_count=*/0, /*user_modules=*/NULL,
-                                                     host_allocator, &loader);
-    iree_vm_instance_release(instance);
-    IREE_RETURN_IF_ERROR(iree_status);
-
-    // allocate buffers
-    iree_string_view_t identifier = iree_make_cstring_view("vmvx");
     iree_hal_allocator_t *device_allocator = NULL;
-    iree_status = iree_hal_allocator_create_heap(identifier, host_allocator, host_allocator, &device_allocator);
-    IREE_RETURN_IF_ERROR(iree_status);
 
-    // create device
-    iree_status = iree_hal_sync_device_create(identifier, &params, /*loader_count=*/1, &loader, device_allocator,
-                                              host_allocator, out_device);
-    IREE_RETURN_IF_ERROR(iree_status);
+    do
+    {
+        // prepare params
+        iree_hal_sync_device_params_t params;
+        iree_hal_sync_device_params_initialize(&params);
 
-    iree_hal_executable_loader_release(loader);
-    iree_hal_allocator_release(device_allocator);
+        // create vm instance
+        iree_vm_instance_t *instance = NULL;
+        iree_status = iree_vm_instance_create(host_allocator, &instance);
+        BREAK_ON_IREE_ERROR(iree_status);
+
+        // create loader
+        iree_status = iree_hal_vmvx_module_loader_create(instance, /*user_module_count=*/0, /*user_modules=*/NULL,
+                                                         host_allocator, &loader);
+        iree_vm_instance_release(instance);
+        BREAK_ON_IREE_ERROR(iree_status);
+
+        // allocate buffers
+        iree_string_view_t identifier = iree_make_cstring_view("vmvx");
+        iree_status = iree_hal_allocator_create_heap(identifier, host_allocator, host_allocator, &device_allocator);
+        BREAK_ON_IREE_ERROR(iree_status);
+
+        // create device
+        iree_status = iree_hal_sync_device_create(identifier, &params, /*loader_count=*/1, &loader, device_allocator,
+                                                  host_allocator, out_device);
+    } while (0);
+
+    // cleanup
+    if (NULL != loader)
+    {
+        iree_hal_executable_loader_release(loader);
+    }
+    if (NULL != device_allocator)
+    {
+        iree_hal_allocator_release(device_allocator);
+    }
+
     return iree_status;
 }
 
 /**
- * Creates context that hold modules' state
- *
- * @param model_data compiled model data
- * @param model_data_size size of compiled model data
- *
- * @returns error status
+ * Clears context that hold modules' state
  */
-static iree_status_t create_context(const uint8_t *model_data, const size_t model_data_size)
+static void release_context()
 {
-    iree_status_t iree_status = iree_ok_status();
-
     // release resources if already allocated
     if (NULL != gp_context)
     {
@@ -83,47 +88,71 @@ static iree_status_t create_context(const uint8_t *model_data, const size_t mode
         free(gp_model_weights);
         gp_model_weights = NULL;
     }
+}
 
-    // prepare model weights
-    gp_model_weights = aligned_alloc(4, model_data_size);
-    memcpy(gp_model_weights, model_data, model_data_size);
-
-    iree_allocator_t host_allocator = iree_allocator_system();
-    iree_status = iree_vm_instance_create(host_allocator, &gp_instance);
-    IREE_RETURN_IF_ERROR(iree_status);
-
-    iree_status = iree_hal_module_register_all_types(gp_instance);
-    IREE_RETURN_IF_ERROR(iree_status);
-
-    // create device if not already created
-    if (NULL == gp_device)
-    {
-        iree_status = create_device(host_allocator, &gp_device);
-        IREE_RETURN_IF_ERROR(iree_status);
-    }
-
-    // create bytecode module
-    iree_vm_module_t *module = NULL;
-    iree_status =
-        iree_vm_bytecode_module_create(gp_instance, iree_make_const_byte_span(gp_model_weights, model_data_size),
-                                       iree_allocator_null(), host_allocator, &module);
-    IREE_RETURN_IF_ERROR(iree_status);
-
-    // create hal_module
+/**
+ * Creates context that hold modules' state
+ *
+ * @param model_data compiled model data
+ * @param model_data_size size of compiled model data
+ *
+ * @returns error status
+ */
+static iree_status_t create_context(const uint8_t *model_data, const size_t model_data_size)
+{
+    iree_status_t iree_status = iree_ok_status();
     iree_vm_module_t *hal_module = NULL;
-    iree_status =
-        iree_hal_module_create(gp_instance, gp_device, IREE_HAL_MODULE_FLAG_NONE, host_allocator, &hal_module);
-    IREE_RETURN_IF_ERROR(iree_status);
+    iree_vm_module_t *module = NULL;
 
-    iree_vm_module_t *modules[] = {hal_module, module};
+    release_context();
 
-    // allocate context
-    iree_status = iree_vm_context_create_with_modules(gp_instance, IREE_VM_CONTEXT_FLAG_NONE, IREE_ARRAYSIZE(modules),
-                                                      &modules[0], host_allocator, &gp_context);
-    IREE_RETURN_IF_ERROR(iree_status);
+    do
+    {
+        // prepare model weights
+        gp_model_weights = aligned_alloc(4, model_data_size);
+        memcpy(gp_model_weights, model_data, model_data_size);
 
-    iree_vm_module_release(hal_module);
-    iree_vm_module_release(module);
+        iree_allocator_t host_allocator = iree_allocator_system();
+        iree_status = iree_vm_instance_create(host_allocator, &gp_instance);
+        BREAK_ON_IREE_ERROR(iree_status);
+
+        iree_status = iree_hal_module_register_all_types(gp_instance);
+        BREAK_ON_IREE_ERROR(iree_status);
+
+        // create device if not already created
+        if (NULL == gp_device)
+        {
+            iree_status = create_device(host_allocator, &gp_device);
+            BREAK_ON_IREE_ERROR(iree_status);
+        }
+
+        // create bytecode module
+        iree_status =
+            iree_vm_bytecode_module_create(gp_instance, iree_make_const_byte_span(gp_model_weights, model_data_size),
+                                           iree_allocator_null(), host_allocator, &module);
+        BREAK_ON_IREE_ERROR(iree_status);
+
+        // create hal_module
+        iree_status =
+            iree_hal_module_create(gp_instance, gp_device, IREE_HAL_MODULE_FLAG_NONE, host_allocator, &hal_module);
+        BREAK_ON_IREE_ERROR(iree_status);
+
+        iree_vm_module_t *modules[] = {hal_module, module};
+
+        // allocate context
+        iree_status = iree_vm_context_create_with_modules(
+            gp_instance, IREE_VM_CONTEXT_FLAG_NONE, IREE_ARRAYSIZE(modules), &modules[0], host_allocator, &gp_context);
+    } while (0);
+
+    // cleanup
+    if (NULL != hal_module)
+    {
+        iree_vm_module_release(hal_module);
+    }
+    if (NULL != module)
+    {
+        iree_vm_module_release(module);
+    }
 
     return iree_status;
 }
@@ -162,12 +191,16 @@ static iree_status_t prepare_input_hal_buffer_views(const uint8_t *model_input,
             iree_hal_device_allocator(gp_device), g_model_struct.num_input_dim[i], g_model_struct.input_shape[i],
             g_model_struct.hal_element_type, IREE_HAL_ENCODING_TYPE_DENSE_ROW_MAJOR, buffer_params, *byte_span[i],
             &(arg_buffer_views[i]));
+        BREAK_ON_IREE_ERROR(iree_status);
+    }
+
+    for (int i = 0; i < g_model_struct.num_input; ++i)
+    {
         if (NULL != byte_span[i])
         {
             free(byte_span[i]);
             byte_span[i] = NULL;
         }
-        IREE_RETURN_IF_ERROR(iree_status);
     }
 
     return iree_status;
@@ -187,6 +220,10 @@ MODEL_STATUS load_model_struct(const uint8_t *model_struct_data, const size_t da
 
     char *dtype = (char *)&g_model_struct.hal_element_type;
 
+    // this x-macro retrieves string label and HAL element enum value from IREE_HAL_ELEMENT_TYPES table and
+    // compares this label with the string received with the struct. If label is equal to this string then the
+    // relevand enum value is assigned. If none of the labels is equal to this string then the final else is
+    // hit and error is returned
 #define CHECK_HAL_ELEM_TYPE(label, element_type)        \
     if (0 == strncmp(dtype, label, 4))                  \
     {                                                   \
@@ -198,7 +235,7 @@ MODEL_STATUS load_model_struct(const uint8_t *model_struct_data, const size_t da
         LOG_ERROR("Wrong dtype %s", dtype);
         return MODEL_STATUS_INVALID_ARGUMENT;
     }
-#undef CHECK_TYPE
+#undef CHECK_HAL_ELEM_TYPE
 
     LOG_INFO("Loaded model struct. Model name: %s", g_model_struct.model_name);
 
