@@ -24,7 +24,7 @@ SERVER_STATUS receive_message(message **msg)
     uint8_t data[4];
 
     // read size of the message
-    status = uart_read(data, sizeof(((message *)0)->message_size));
+    status = uart_read(data, sizeof(message_size_t));
     CHECK_UART_STATUS(status);
 
     msg_size = *((uint32_t *)data);
@@ -35,11 +35,11 @@ SERVER_STATUS receive_message(message **msg)
     }
 
     // read type of the message
-    status = uart_read(data, sizeof(((message *)0)->message_type));
+    status = uart_read(data, sizeof(message_type_t));
     CHECK_UART_STATUS(status);
     msg_type = *((uint16_t *)data);
 
-    // allocate memory for the message
+    // get pointer to the message buffer
     *msg = get_message_buffer();
     if (*msg == NULL)
     {
@@ -72,7 +72,7 @@ SERVER_STATUS prepare_success_response(message **response)
     {
         return SERVER_STATUS_INTERNAL_ERROR;
     }
-    (*response)->message_size = sizeof(((message *)0)->message_type);
+    (*response)->message_size = sizeof(message_type_t);
     (*response)->message_type = MESSAGE_TYPE_OK;
     return SERVER_STATUS_NOTHING;
 }
@@ -83,7 +83,7 @@ SERVER_STATUS prepare_failure_response(message **response)
     {
         return SERVER_STATUS_INTERNAL_ERROR;
     }
-    (*response)->message_size = sizeof(((message *)0)->message_type);
+    (*response)->message_size = sizeof(message_type_t);
     (*response)->message_type = MESSAGE_TYPE_ERROR;
     return SERVER_STATUS_NOTHING;
 }

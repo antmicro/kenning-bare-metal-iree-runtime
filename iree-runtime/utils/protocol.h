@@ -15,7 +15,7 @@
 
 #define MAX_MESSAGE_SIZE_BYTES (3 * 1024 * 1024) // 3MB
 
-#define MESSAGE_SIZE_PAYLOAD(msg_size) (msg_size - sizeof(((message *)0)->message_type))
+#define MESSAGE_SIZE_PAYLOAD(msg_size) (msg_size - sizeof(message_type_t))
 #define MESSAGE_SIZE_FULL(msg_size) (sizeof(message) + MESSAGE_SIZE_PAYLOAD(msg_size))
 
 /**
@@ -52,13 +52,16 @@ typedef enum
     SERVER_STATUS_TIMEOUT,
 } SERVER_STATUS;
 
+typedef uint32_t message_size_t;
+typedef uint16_t message_type_t;
+
 /**
  * A struct that contains all parameters describing single message
  */
 typedef struct __attribute__((packed))
 {
-    uint32_t message_size;
-    uint16_t message_type;
+    message_size_t message_size;
+    message_type_t message_type;
     uint8_t payload[0];
 } message;
 
