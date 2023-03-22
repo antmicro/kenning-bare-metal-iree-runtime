@@ -153,6 +153,10 @@ static iree_status_t create_context(const uint8_t *model_data, const size_t mode
     {
         iree_vm_module_release(module);
     }
+    if (!iree_status_is_ok(iree_status))
+    {
+        release_context();
+    }
 
     return iree_status;
 }
