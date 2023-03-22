@@ -7,8 +7,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "springbok.h"
-
 /**
  * An enum that describes UART status
  */
