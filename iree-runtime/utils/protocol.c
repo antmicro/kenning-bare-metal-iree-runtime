@@ -1,6 +1,7 @@
 #include "protocol.h"
 
 const char *const MESSAGE_TYPE_STR[] = {MESSAGE_TYPES(GENERATE_STR)};
+const char *const SERVER_STATUS_STR[] = {SERVER_STATUSES(GENERATE_STR)};
 
 static uint8_t __attribute__((aligned(4))) g_message_buffer[MAX_MESSAGE_SIZE_BYTES + 2];
 
@@ -31,7 +32,7 @@ SERVER_STATUS receive_message(message **msg)
 
     if (msg_size > MAX_MESSAGE_SIZE_BYTES)
     {
-        LOG_ERROR("Received message is too big: %d. Max message size: %d", msg_size, MAX_MESSAGE_SIZE_BYTES);
+        return SERVER_STATUS_MESSAGE_TOO_BIG;
     }
 
     // read type of the message
