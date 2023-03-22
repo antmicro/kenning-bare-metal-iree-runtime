@@ -3,6 +3,7 @@
 const char *const RUNTIME_STATUS_STR[] = {RUNTIME_STATUSES(GENERATE_STR)};
 extern const char *const MESSAGE_TYPE_STR[];
 extern const char *const MODEL_STATUS_STR[];
+extern const char *const SERVER_STATUS_STR[];
 
 /**
  * Main Runtime function. It initializes UART and then handles messages in an infinite loop.
@@ -35,7 +36,7 @@ int main()
         }
         if (SERVER_STATUS_DATA_READY != server_status)
         {
-            LOG_ERROR("Error receiving message: %d", server_status);
+            LOG_ERROR("Error receiving message: %d (%s)", server_status, SERVER_STATUS_STR[server_status]);
             continue;
         }
         LOG_INFO("Received message. Size: %d, type: %d (%s)", msg->message_size, msg->message_type,
@@ -52,7 +53,7 @@ int main()
             server_status = send_message(msg);
             if (SERVER_STATUS_NOTHING != server_status)
             {
-                LOG_ERROR("Error sending message: %d", server_status);
+                LOG_ERROR("Error sending message: %d (%s)", server_status, SERVER_STATUS_STR[server_status]);
             }
         }
     }
