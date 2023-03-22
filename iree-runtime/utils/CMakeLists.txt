@@ -32,6 +32,4 @@ iree_cc_library(
     "uart.h"
   SRCS
     "uart.c"
-  DEPS
-    springbok
 )
