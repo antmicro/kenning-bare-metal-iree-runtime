@@ -2,8 +2,13 @@
 
 const char *const MODEL_STATUS_STR[] = {MODEL_STATUSES(GENERATE_STR)};
 
+#ifndef __UNIT__TEST__
 static MlModel g_model_struct;
 static MODEL_STATE g_model_state = MODEL_STATE_UNINITIALIZED;
+#else  // __UNIT_TEST__
+MlModel g_model_struct;
+MODEL_STATE g_model_state = MODEL_STATE_UNINITIALIZED;
+#endif // __UNIT_TEST__
 static iree_vm_instance_t *gp_instance = NULL;
 static iree_hal_device_t *gp_device = NULL;
 static iree_vm_context_t *gp_context = NULL;
@@ -214,6 +219,10 @@ MODEL_STATUS load_model_struct(const uint8_t *model_struct_data, const size_t da
 {
     MODEL_STATUS status = MODEL_STATUS_OK;
 
+    if (!IS_VALID_POINTER(model_struct_data))
+    {
+        return MODEL_STATUS_INVALID_POINTER;
+    }
     if (sizeof(MlModel) != data_size)
     {
         LOG_ERROR("Wrong model struct size: %d. Should be: %d.", data_size, sizeof(MlModel));
