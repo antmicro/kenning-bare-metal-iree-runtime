@@ -5,61 +5,91 @@ extern const char *const MESSAGE_TYPE_STR[];
 extern const char *const MODEL_STATUS_STR[];
 extern const char *const SERVER_STATUS_STR[];
 
+static bool init_server();
+static bool wait_for_message(message **msg);
+static void handle_message(message *msg);
+
 /**
  * Main Runtime function. It initializes UART and then handles messages in an infinite loop.
  */
 int main()
 {
     int ret = 0;
+    if (!init_server())
+    {
+        LOG_ERROR("Init server failed");
+        return 1;
+    }
+    // main runtime loop
+    while (1)
+    {
+        message *msg = NULL;
+        if (wait_for_message(&msg))
+        {
+            handle_message(msg);
+        }
+    }
+    return ret;
+}
+
+static bool init_server()
+{
     UART_STATUS uart_status = UART_STATUS_OK;
-    RUNTIME_STATUS runtime_status = RUNTIME_STATUS_OK;
-    SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
 
     uart_config config = {.data_bits = 8, .stop_bits = 1, .parity = false, .baudrate = 115200};
     uart_status = uart_init(&config);
     if (UART_STATUS_OK != uart_status)
     {
         LOG_ERROR("UART error");
-        return 1;
+        return false;
     }
     LOG_INFO("UART initialized");
     LOG_INFO("Runtime started");
-    // main runtime loop
-    while (1)
-    {
-        message *msg = NULL;
-        server_status = receive_message(&msg);
-        if (SERVER_STATUS_TIMEOUT == server_status)
-        {
-            LOG_WARN("Receive message timeout");
-            continue;
-        }
-        if (SERVER_STATUS_DATA_READY != server_status)
-        {
-            LOG_ERROR("Error receiving message: %d (%s)", server_status, SERVER_STATUS_STR[server_status]);
-            continue;
-        }
-        LOG_INFO("Received message. Size: %d, type: %d (%s)", msg->message_size, msg->message_type,
-                 MESSAGE_TYPE_STR[msg->message_type]);
-        runtime_status = msg_callback[msg->message_type](&msg);
-        if (RUNTIME_STATUS_OK != runtime_status)
-        {
-            LOG_ERROR("Runtime error: %d (%s)", runtime_status, RUNTIME_STATUS_STR[runtime_status]);
-        }
-        if (NULL != msg)
-        {
-            LOG_INFO("Sending reponse. Size: %d, type: %d (%s)", msg->message_size, msg->message_type,
-                     MESSAGE_TYPE_STR[msg->message_type]);
-            server_status = send_message(msg);
-            if (SERVER_STATUS_NOTHING != server_status)
-            {
-                LOG_ERROR("Error sending message: %d (%s)", server_status, SERVER_STATUS_STR[server_status]);
-            }
-        }
-    }
-    return ret;
+    return true;
 }
 
+static bool wait_for_message(message **msg)
+{
+    SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
+
+    server_status = receive_message(msg);
+    if (SERVER_STATUS_TIMEOUT == server_status)
+    {
+        LOG_WARN("Receive message timeout");
+        return false;
+    }
+    if (SERVER_STATUS_DATA_READY != server_status)
+    {
+        LOG_ERROR("Error receiving message: %d (%s)", server_status, SERVER_STATUS_STR[server_status]);
+        return false;
+    }
+    LOG_INFO("Received message. Size: %d, type: %d (%s)", (*msg)->message_size, (*msg)->message_type,
+             MESSAGE_TYPE_STR[(*msg)->message_type]);
+
+    return true;
+}
+
+static void handle_message(message *msg)
+{
+    RUNTIME_STATUS runtime_status = RUNTIME_STATUS_OK;
+    SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
+
+    runtime_status = msg_callback[msg->message_type](&msg);
+    if (RUNTIME_STATUS_OK != runtime_status)
+    {
+        LOG_ERROR("Runtime error: %d (%s)", runtime_status, RUNTIME_STATUS_STR[runtime_status]);
+    }
+    if (NULL != msg)
+    {
+        LOG_INFO("Sending reponse. Size: %d, type: %d (%s)", msg->message_size, msg->message_type,
+                 MESSAGE_TYPE_STR[msg->message_type]);
+        server_status = send_message(msg);
+        if (SERVER_STATUS_NOTHING != server_status)
+        {
+            LOG_ERROR("Error sending message: %d (%s)", server_status, SERVER_STATUS_STR[server_status]);
+        }
+    }
+}
 /**
  * Handles OK message
  *
@@ -69,6 +99,14 @@ int main()
  */
 RUNTIME_STATUS ok_callback(message **request)
 {
+    if (!IS_VALID_POINTER(request))
+    {
+        return RUNTIME_STATUS_INVALID_POINTER;
+    }
+    if (MESSAGE_TYPE_OK != (*request)->message_type)
+    {
+        return RUNTIME_STATUS_INVALID_MESSAGE_TYPE;
+    }
     LOG_WARN("Unexpected message received: MESSAGE_TYPE_OK");
     *request = NULL;
     return RUNTIME_STATUS_OK;
@@ -83,6 +121,14 @@ RUNTIME_STATUS ok_callback(message **request)
  */
 RUNTIME_STATUS error_callback(message **request)
 {
+    if (!IS_VALID_POINTER(request))
+    {
+        return RUNTIME_STATUS_INVALID_POINTER;
+    }
+    if (MESSAGE_TYPE_ERROR != (*request)->message_type)
+    {
+        return RUNTIME_STATUS_INVALID_MESSAGE_TYPE;
+    }
     LOG_WARN("Unexpected message received: MESSAGE_TYPE_ERROR");
     *request = NULL;
     return RUNTIME_STATUS_OK;
@@ -99,6 +145,15 @@ RUNTIME_STATUS data_callback(message **request)
 {
     MODEL_STATUS m_status = MODEL_STATUS_OK;
     SERVER_STATUS s_status = SERVER_STATUS_NOTHING;
+
+    if (!IS_VALID_POINTER(request))
+    {
+        return RUNTIME_STATUS_INVALID_POINTER;
+    }
+    if (MESSAGE_TYPE_DATA != (*request)->message_type)
+    {
+        return RUNTIME_STATUS_INVALID_MESSAGE_TYPE;
+    }
 
     m_status = load_model_input((*request)->payload, MESSAGE_SIZE_PAYLOAD((*request)->message_size));
 
@@ -123,6 +178,14 @@ RUNTIME_STATUS model_callback(message **request)
     MODEL_STATUS m_status = MODEL_STATUS_OK;
     SERVER_STATUS s_status = SERVER_STATUS_NOTHING;
 
+    if (!IS_VALID_POINTER(request))
+    {
+        return RUNTIME_STATUS_INVALID_POINTER;
+    }
+    if (MESSAGE_TYPE_MODEL != (*request)->message_type)
+    {
+        return RUNTIME_STATUS_INVALID_MESSAGE_TYPE;
+    }
     m_status = load_model_weights((*request)->payload, MESSAGE_SIZE_PAYLOAD((*request)->message_size));
 
     CHECK_MODEL_STATUS_LOG(m_status, request, "load_model_weights returned %d (%s)", m_status,
@@ -145,6 +208,15 @@ RUNTIME_STATUS process_callback(message **request)
 {
     MODEL_STATUS m_status = MODEL_STATUS_OK;
     SERVER_STATUS s_status = SERVER_STATUS_NOTHING;
+
+    if (!IS_VALID_POINTER(request))
+    {
+        return RUNTIME_STATUS_INVALID_POINTER;
+    }
+    if (MESSAGE_TYPE_PROCESS != (*request)->message_type)
+    {
+        return RUNTIME_STATUS_INVALID_MESSAGE_TYPE;
+    }
 
     m_status = run_model();
 
@@ -169,6 +241,15 @@ RUNTIME_STATUS output_callback(message **request)
     MODEL_STATUS m_status = MODEL_STATUS_OK;
     size_t model_output_size = 0;
 
+    if (!IS_VALID_POINTER(request))
+    {
+        return RUNTIME_STATUS_INVALID_POINTER;
+    }
+    if (MESSAGE_TYPE_OUTPUT != (*request)->message_type)
+    {
+        return RUNTIME_STATUS_INVALID_MESSAGE_TYPE;
+    }
+
     m_status = get_model_output(MAX_MESSAGE_SIZE_BYTES - sizeof(message), (*request)->payload, &model_output_size);
 
     CHECK_MODEL_STATUS_LOG(m_status, request, "get_model_output returned %d (%s)", m_status,
@@ -192,6 +273,15 @@ RUNTIME_STATUS stats_callback(message **request)
 {
     MODEL_STATUS m_status = MODEL_STATUS_OK;
 
+    if (!IS_VALID_POINTER(request))
+    {
+        return RUNTIME_STATUS_INVALID_POINTER;
+    }
+    if (MESSAGE_TYPE_STATS != (*request)->message_type)
+    {
+        return RUNTIME_STATUS_INVALID_MESSAGE_TYPE;
+    }
+
     m_status = get_statistics((iree_hal_allocator_statistics_t *)&(*request)->payload);
 
     CHECK_MODEL_STATUS_LOG(m_status, request, "get_statistics returned %d (%s)", m_status, MODEL_STATUS_STR[m_status]);
@@ -214,6 +304,14 @@ RUNTIME_STATUS iospec_callback(message **request)
     MODEL_STATUS m_status = MODEL_STATUS_OK;
     SERVER_STATUS s_status = SERVER_STATUS_NOTHING;
 
+    if (!IS_VALID_POINTER(request))
+    {
+        return RUNTIME_STATUS_INVALID_POINTER;
+    }
+    if (MESSAGE_TYPE_IOSPEC != (*request)->message_type)
+    {
+        return RUNTIME_STATUS_INVALID_MESSAGE_TYPE;
+    }
     m_status = load_model_struct((*request)->payload, MESSAGE_SIZE_PAYLOAD((*request)->message_size));
 
     CHECK_MODEL_STATUS_LOG(m_status, request, "load_model_struct returned %d (%s)", m_status,

@@ -4,7 +4,6 @@
 #include "springbok.h"
 #include "utils/model.h"
 #include "utils/protocol.h"
-#include "utils/uart.h"
 
 #define CHECK_MODEL_STATUS_LOG(status, response, log_format, log_args...)                \
     if (MODEL_STATUS_OK != status)                                                       \
@@ -21,11 +20,13 @@
 /**
  * An enum that describes runtime status
  */
-#define RUNTIME_STATUSES(STATUS)        \
-    STATUS(RUNTIME_STATUS_OK)           \
-    STATUS(RUNTIME_STATUS_ERROR)        \
-    STATUS(RUNTIME_STATUS_SERVER_ERROR) \
-    STATUS(RUNTIME_STATUS_MODEL_ERROR)
+#define RUNTIME_STATUSES(STATUS)           \
+    STATUS(RUNTIME_STATUS_OK)              \
+    STATUS(RUNTIME_STATUS_ERROR)           \
+    STATUS(RUNTIME_STATUS_SERVER_ERROR)    \
+    STATUS(RUNTIME_STATUS_MODEL_ERROR)     \
+    STATUS(RUNTIME_STATUS_INVALID_POINTER) \
+    STATUS(RUNTIME_STATUS_INVALID_MESSAGE_TYPE)
 
 typedef enum
 {
