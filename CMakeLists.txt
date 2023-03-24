@@ -12,8 +12,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(SPRINGBOK_SOURCE_DIR "third-party/iree-rv32-springbok" CACHE PATH
     "Springbok source code path.")
-set(IREE_SOURCE_DIR "third-party/iree-rv32-springbok/third_party/iree" CACHE PATH
+set(IREE_SOURCE_DIR "${SPRINGBOK_SOURCE_DIR}/third_party/iree" CACHE PATH
     "IREE source code path.")
+set(UNIT_TESTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/unittests" CACHE PATH
+    "Unit tests directory.")
 
 include_directories(BEFORE SYSTEM ${CMAKE_CURRENT_LIST_DIR})
 include_directories(BEFORE SYSTEM ${CMAKE_CURRENT_BINARY_DIR})
@@ -49,7 +51,7 @@ set(SPRINGBOK_ROOT_DIR "${SPRINGBOK_SOURCE_DIR}" CACHE PATH "Springbok Root dire
 
 add_subdirectory(iree-runtime iree-runtime)
 
-set(FIND_SOURCE_FILES "find ${CMAKE_CURRENT_SOURCE_DIR}/iree-runtime -iname \"*.c\" -o -iname \"*.h\"")
+set(FIND_SOURCE_FILES "find ${CMAKE_CURRENT_SOURCE_DIR}/iree-runtime ${UNIT_TESTS_DIR}/tests -iname \"*.c\" -o -iname \"*.h\"")
 
 add_custom_target(check-tidy
     COMMAND bash -c "${FIND_SOURCE_FILES} | xargs clang-tidy -format-style=file -header-filter=. -p ${CMAKE_BINARY_DIR}"
@@ -62,4 +64,9 @@ add_custom_target(format
 add_custom_target(check-format
     COMMAND bash -c "${FIND_SOURCE_FILES} | xargs clang-format --dry-run --Werror --style=file -i"
     VERBATIM
+)
+add_custom_target(unit-tests
+    COMMAND bash -c "ceedling test:all"
+    VERBATIM
+    WORKING_DIRECTORY ${UNIT_TESTS_DIR}
 )
