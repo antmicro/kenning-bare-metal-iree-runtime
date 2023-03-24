@@ -1,12 +1,21 @@
 #include "uart.h"
+#include <stdio.h>
 
+#ifndef __UNIT_TEST__
 static uart_t g_uart = {.initialized = false};
+#else  // __UNIT_TEST__
+uart_t g_uart = {.initialized = false};
+#endif // __UNIT_TEST__
 
 UART_STATUS uart_init(const uart_config *config)
 {
     if (g_uart.initialized)
     {
         return UART_STATUS_OK;
+    }
+    if (!IS_VALID_POINTER(config))
+    {
+        return UART_STATUS_INVALID_POINTER;
     }
 
     g_uart.registers = (uart_registers *)UART_ADDRESS;
@@ -89,24 +98,54 @@ UART_STATUS uart_init(const uart_config *config)
     return UART_STATUS_OK;
 }
 
-void uart_putchar(uint8_t c)
+UART_STATUS uart_putchar(const uint8_t c)
 {
+    if (!g_uart.initialized)
+    {
+        return UART_STATUS_UNINITIALIZED;
+    }
     while (g_uart.registers->FR & FR_TXFF)
     {
     }
     g_uart.registers->DR = c;
+
+    return UART_STATUS_OK;
 }
 
-void uart_write(const uint8_t *data, size_t data_length)
+UART_STATUS uart_write(const uint8_t *data, size_t data_length)
 {
+    if (!g_uart.initialized)
+    {
+        return UART_STATUS_UNINITIALIZED;
+    }
+    if (!IS_VALID_POINTER(data))
+    {
+        return UART_STATUS_INVALID_POINTER;
+    }
+
+    UART_STATUS status = UART_STATUS_OK;
+
     for (int i = 0; i < data_length; ++i)
     {
         uart_putchar(data[i]);
+        if (UART_STATUS_OK != status)
+        {
+            return status;
+        }
     }
+    return status;
 }
 
 UART_STATUS uart_getchar(uint8_t *c)
 {
+    if (!IS_VALID_POINTER(c))
+    {
+        return UART_STATUS_INVALID_POINTER;
+    }
+    if (!g_uart.initialized)
+    {
+        return UART_STATUS_UNINITIALIZED;
+    }
     if (g_uart.registers->FR & FR_RXFE)
     {
         return UART_STATUS_NO_DATA;
@@ -127,11 +166,21 @@ UART_STATUS uart_read(uint8_t *data, size_t data_length)
     register uint32_t start_timer;
     register uint32_t end_timer;
 
+    if (!IS_VALID_POINTER(data))
+    {
+        return UART_STATUS_INVALID_POINTER;
+    }
+    if (!g_uart.initialized)
+    {
+        return UART_STATUS_UNINITIALIZED;
+    }
+
     CSR_READ(start_timer, CSR_TIME);
     while (i < data_length)
     {
         uint8_t c = 0;
         UART_STATUS status = uart_getchar(&c);
+        CSR_READ(end_timer, CSR_TIME);
         if (UART_STATUS_OK == status)
         {
             CSR_READ(start_timer, CSR_TIME);
@@ -142,8 +191,7 @@ UART_STATUS uart_read(uint8_t *data, size_t data_length)
         {
             return UART_STATUS_RECEIVE_ERROR;
         }
-        CSR_READ(end_timer, CSR_TIME);
-        if (end_timer - start_timer > UART_TIMEOUT_S * TIMER_CLOCK_FREQ)
+        else if (end_timer - start_timer > UART_TIMEOUT_S * TIMER_CLOCK_FREQ)
         {
             return UART_STATUS_TIMEOUT;
         }

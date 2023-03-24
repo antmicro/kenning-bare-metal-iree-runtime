@@ -19,6 +19,8 @@ typedef enum
     UART_STATUS_RECEIVE_ERROR,
     UART_STATUS_NO_DATA,
     UART_STATUS_TIMEOUT,
+    UART_STATUS_UNINITIALIZED,
+    UART_STATUS_INVALID_POINTER,
 } UART_STATUS;
 
 /**
@@ -60,8 +62,13 @@ typedef struct
 
 #define UART_TIMEOUT_S (1) /* UART read timeout (1 second) */
 
+#ifndef __UNIT_TEST__
 #define UART_ADDRESS (0x40000000) /* address of UART registers */
-#define REF_CLOCK (24000000u)     /* UART reference clock (24 MHz) */
+#else                             // __UNIT_TEST_
+extern uart_registers mock_uart_registers;
+#define UART_ADDRESS (&mock_uart_registers)
+#endif                        // __UNIT_TEST_
+#define REF_CLOCK (24000000u) /* UART reference clock (24 MHz) */
 
 #define DR_DATA_MASK (0xFFu) /* mask of the data register */
 
@@ -95,15 +102,19 @@ UART_STATUS uart_init(const uart_config *config);
  * Writes single byte to UART
  *
  * @param c byte to be written
+ *
+ * @returns error status of write
  */
-void uart_putchar(uint8_t c);
+UART_STATUS uart_putchar(const uint8_t c);
 /**
  * Write buffer of bytes to UART
  *
  * @param data buffer to be written
  * @param data_length length of the buffer
+ *
+ * @returns error status of write
  */
-void uart_write(const uint8_t *data, size_t data_length);
+UART_STATUS uart_write(const uint8_t *data, size_t data_length);
 /**
  * Reads single byte from UART
  *
