@@ -7,6 +7,7 @@ variables:
 stages:
     - lint
     - build
+    - tests
 
 before_script:
     - mkdir -p build
@@ -25,4 +26,10 @@ build:
     stage: build
     script:
         - cmake --build build/build-riscv
+    allow_failure: false
+
+unit_tests:
+    stage: tests
+    script:
+        - cmake --build build/build-riscv --target unit-tests
     allow_failure: false
