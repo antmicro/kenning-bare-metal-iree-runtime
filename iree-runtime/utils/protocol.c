@@ -20,15 +20,20 @@ static message *get_message_buffer()
 SERVER_STATUS receive_message(message **msg)
 {
     UART_STATUS status = UART_STATUS_OK;
-    uint32_t msg_size = 0;
+    message_size_t msg_size = 0;
     MESSAGE_TYPE msg_type = MESSAGE_TYPE_OK;
     uint8_t data[4];
+
+    if (!IS_VALID_POINTER(msg))
+    {
+        return SERVER_STATUS_INVALID_POINTER;
+    }
 
     // read size of the message
     status = uart_read(data, sizeof(message_size_t));
     CHECK_UART_STATUS(status);
 
-    msg_size = *((uint32_t *)data);
+    msg_size = *((message_size_t *)data);
 
     if (msg_size > MAX_MESSAGE_SIZE_BYTES)
     {
@@ -38,13 +43,13 @@ SERVER_STATUS receive_message(message **msg)
     // read type of the message
     status = uart_read(data, sizeof(message_type_t));
     CHECK_UART_STATUS(status);
-    msg_type = *((uint16_t *)data);
+    msg_type = *((message_type_t *)data);
 
     // get pointer to the message buffer
     *msg = get_message_buffer();
-    if (*msg == NULL)
+    if (!IS_VALID_POINTER(*msg))
     {
-        return SERVER_STATUS_INTERNAL_ERROR;
+        return SERVER_STATUS_INVALID_POINTER;
     }
     (*msg)->message_size = msg_size;
     (*msg)->message_type = msg_type;
@@ -62,14 +67,29 @@ SERVER_STATUS receive_message(message **msg)
 
 SERVER_STATUS send_message(const message *msg)
 {
-    uart_write((uint8_t *)msg, MESSAGE_SIZE_FULL(msg->message_size));
+    UART_STATUS status = UART_STATUS_OK;
+
+    if (!IS_VALID_POINTER(msg))
+    {
+        return SERVER_STATUS_INVALID_POINTER;
+    }
+
+    status = uart_write((uint8_t *)msg, MESSAGE_SIZE_FULL(msg->message_size));
+
+    CHECK_UART_STATUS(status);
+
     return SERVER_STATUS_NOTHING;
 }
 
 SERVER_STATUS prepare_success_response(message **response)
 {
+    if (!IS_VALID_POINTER(response))
+    {
+        return SERVER_STATUS_INVALID_POINTER;
+    }
+
     *response = get_message_buffer();
-    if (*response == NULL)
+    if (!IS_VALID_POINTER(*response))
     {
         return SERVER_STATUS_INTERNAL_ERROR;
     }
@@ -79,8 +99,13 @@ SERVER_STATUS prepare_success_response(message **response)
 }
 SERVER_STATUS prepare_failure_response(message **response)
 {
+    if (!IS_VALID_POINTER(response))
+    {
+        return SERVER_STATUS_INVALID_POINTER;
+    }
+
     *response = get_message_buffer();
-    if (*response == NULL)
+    if (!IS_VALID_POINTER(*response))
     {
         return SERVER_STATUS_INTERNAL_ERROR;
     }
