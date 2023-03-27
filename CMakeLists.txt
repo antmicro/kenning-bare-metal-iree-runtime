@@ -10,12 +10,12 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(SPRINGBOK_SOURCE_DIR "third-party/iree-rv32-springbok" CACHE PATH
-    "Springbok source code path.")
+set(SPRINGBOK_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third-party/iree-rv32-springbok" CACHE PATH
+    "Springbok source code path." FORCE)
 set(IREE_SOURCE_DIR "${SPRINGBOK_SOURCE_DIR}/third_party/iree" CACHE PATH
-    "IREE source code path.")
+    "IREE source code path." FORCE)
 set(UNIT_TESTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/unittests" CACHE PATH
-    "Unit tests directory.")
+    "Unit tests directory." FORCE)
 
 include_directories(BEFORE SYSTEM ${CMAKE_CURRENT_LIST_DIR})
 include_directories(BEFORE SYSTEM ${CMAKE_CURRENT_BINARY_DIR})
@@ -33,7 +33,7 @@ set(IREE_HAL_EXECUTABLE_LOADER_VMVX_MODULE ON CACHE BOOL "" FORCE)
 set(IREE_HAL_DRIVER_DEFAULTS OFF CACHE BOOL "" FORCE)
 
 # IREE-specific definitions
-set(SPRINGBOK_CONFIG_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/third-party/iree-rv32-springbok/springbok_config.h")
+set(SPRINGBOK_CONFIG_HEADER "${SPRINGBOK_SOURCE_DIR}/springbok_config.h")
 add_definitions(-DFLATCC_USE_GENERIC_ALIGNED_ALLOC)
 add_definitions(-DIREE_PLATFORM_GENERIC)
 add_definitions(-DIREE_SYNCHRONIZATION_DISABLE_UNSAFE=1)
