@@ -7,6 +7,18 @@ iree_cc_library(
   SRCS
     "model.c"
   DEPS
+    ::iree_wrapper
+    springbok
+)
+
+iree_cc_library(
+  NAME
+    iree_wrapper
+  HDRS
+    "iree_wrapper.h"
+  SRCS
+    "iree_wrapper.c"
+  DEPS
     iree::hal::drivers::local_sync::sync_driver
     iree::hal::local::loaders::vmvx_module_loader
     iree::modules::hal
