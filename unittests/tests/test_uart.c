@@ -24,11 +24,13 @@ void setUp(void)
 
 void tearDown(void) {}
 
-void test_UARTInitSouldSucceedForValidConfig(void)
+// ========================================================
+// uart_init
+// ========================================================
+void test_UARTInitShouldSucceedForValidConfig(void)
 {
-
-    uart_config config = get_valid_uart_config();
     UART_STATUS uart_status = UART_STATUS_OK;
+    uart_config config = get_valid_uart_config();
 
     g_uart.initialized = false;
 
@@ -50,11 +52,10 @@ void test_UARTInitShouldFailForInvalidConfigPointer(void)
     TEST_ASSERT_FALSE(g_uart.initialized);
 }
 
-void test_UARTInitSouldFailForInvalidDataBitsInConfig(void)
+void test_UARTInitShouldFailForInvalidDataBitsInConfig(void)
 {
-
-    uart_config config = get_valid_uart_config();
     UART_STATUS uart_status = UART_STATUS_OK;
+    uart_config config = get_valid_uart_config();
 
     g_uart.initialized = false;
     config.data_bits = 4;
@@ -81,11 +82,10 @@ void test_UARTInitSouldFailForInvalidDataBitsInConfig(void)
     TEST_ASSERT_FALSE(g_uart.initialized);
 }
 
-void test_UARTInitSouldFailForInvalidStopBitsInConfig(void)
+void test_UARTInitShouldFailForInvalidStopBitsInConfig(void)
 {
-
-    uart_config config = get_valid_uart_config();
     UART_STATUS uart_status = UART_STATUS_OK;
+    uart_config config = get_valid_uart_config();
 
     g_uart.initialized = false;
     config.stop_bits = 0;
@@ -106,8 +106,8 @@ void test_UARTInitSouldFailForInvalidStopBitsInConfig(void)
 
 void test_UARTInitShouldFailForInvalidBaudrateConfig(void)
 {
-    uart_config config = get_valid_uart_config();
     UART_STATUS uart_status = UART_STATUS_OK;
+    uart_config config = get_valid_uart_config();
 
     g_uart.initialized = false;
     config.baudrate = 0u;
@@ -126,6 +126,9 @@ void test_UARTInitShouldFailForInvalidBaudrateConfig(void)
     TEST_ASSERT_FALSE(g_uart.initialized);
 }
 
+// ========================================================
+// uart_putchar
+// ========================================================
 void test_UARTPutCharShouldWriteToDataRegister(void)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -154,6 +157,9 @@ void test_UARTPutCharShouldFailAndDontWriteToDRIfUARTIsNotInitialized(void)
     TEST_ASSERT_EQUAL_UINT32(dr, mock_uart_registers.DR);
 }
 
+// ========================================================
+// uart_write
+// ========================================================
 void test_UARTWriteShouldWriteStringToDataRegister(void)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -208,6 +214,9 @@ void test_UARTWriteShouldFailAndDontWriteToDRIfUARTIsNotInitialized(void)
     TEST_ASSERT_EQUAL_UINT32(dr, mock_uart_registers.DR);
 }
 
+// ========================================================
+// uart_getchar
+// ========================================================
 void test_UARTGetCharShouldReadDataFromDR(void)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -287,6 +296,9 @@ void test_UARTGetCharShouldFailForInvalidPointer(void)
     TEST_ASSERT_EQUAL_UINT(uart_status, UART_STATUS_INVALID_POINTER);
 }
 
+// ========================================================
+// uart_read
+// ========================================================
 void test_UARTReadShouldReadDataFromDR(void)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -366,8 +378,14 @@ void test_UARTReadShouldReturnTimeoutIfNoData(void)
     TEST_ASSERT_EQUAL_UINT(UART_STATUS_TIMEOUT, uart_status);
 }
 
+// ========================================================
+// mocks
+// ========================================================
 void mock_csr_read_callback() { mock_csr += TIMER_CLOCK_FREQ >> 4; }
 
+// ========================================================
+// helper functions
+// ========================================================
 static uart_config get_valid_uart_config()
 {
     uart_config ret = {.data_bits = 8, .stop_bits = 1, .parity = false, .baudrate = 115200};
