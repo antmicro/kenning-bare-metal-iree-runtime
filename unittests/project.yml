@@ -35,8 +35,11 @@
   :source:
     - ../iree-runtime/*
     - ../iree-runtime/utils/*
-    - ../third-party/iree-rv32-springbok/springbok/include/*
-    - ../third-party/iree-rv32-springbok/third_party/iree/runtime/src/**
+    - -:../iree-runtime/utils/iree_wrapper.c
+    - -:../iree-runtime/utils/iree_wrapper.h
+  :include:
+    - ./tests/mocks/iree_wrapper.c
+    - ./tests/mocks/iree_wrapper.h
   :libraries: []
 
 :defines:
