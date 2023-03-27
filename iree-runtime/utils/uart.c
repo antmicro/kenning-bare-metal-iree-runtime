@@ -1,5 +1,4 @@
 #include "uart.h"
-#include <stdio.h>
 
 #ifndef __UNIT_TEST__
 static uart_t g_uart = {.initialized = false};
