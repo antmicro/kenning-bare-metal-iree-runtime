@@ -32,6 +32,9 @@ void tearDown(void)
     }
 }
 
+// ========================================================
+// receive_message
+// ========================================================
 void test_ProtocolReceiveMessageShouldReadMessageWithoutPayloadFromUART(void)
 {
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
@@ -114,6 +117,9 @@ void test_ProtocolReceiveMessageShouldFailWhenUARTReadTimeout(void)
     TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_TIMEOUT, server_status);
 }
 
+// ========================================================
+// send_message
+// ========================================================
 void test_ProtocolSendMessageShouldWriteToUART(void)
 {
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
@@ -152,6 +158,9 @@ void test_ProtocolSendMessageShouldFailIfUARTWriteFails(void)
     TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_TIMEOUT, server_status);
 }
 
+// ========================================================
+// prepare_success_response
+// ========================================================
 void test_ProtocolPrepareSuccessResponseShouldPrepareEmptyOKMessage(void)
 {
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
@@ -173,6 +182,9 @@ void test_ProtocolPrepareSuccessResponseShouldFailIfThePointerIsInvalid(void)
     TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_INVALID_POINTER, server_status);
 }
 
+// ========================================================
+// prepare_failure_response
+// ========================================================
 void test_ProtocolPrepareFailureResponseShouldPrepareEmptyERRORMessage(void)
 {
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
@@ -194,21 +206,29 @@ void test_ProtocolPrepareFailureResponseShouldFailfThePointerIsInvalid(void)
     TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_INVALID_POINTER, server_status);
 }
 
+// ========================================================
+// mocks
+// ========================================================
 UART_STATUS mock_uart_read(uint8_t *data, size_t data_length, int num_calls)
 {
-    num_calls %= 3;
+    static size_t data_read = 0;
 
-    switch (num_calls)
+    switch (data_read)
     {
     case 0:
         memcpy(data, &g_message->message_size, sizeof(message_size_t));
+        data_read += data_length;
         break;
-    case 1:
+    case sizeof(message_size_t):
         memcpy(data, &g_message->message_type, sizeof(message_type_t));
+        data_read += data_length;
         break;
-    case 2:
+    case sizeof(message):
         memcpy(data, &g_message->payload, g_message->message_size);
+        data_read = 0;
         break;
+    default:
+        return UART_STATUS_RECEIVE_ERROR;
     }
 
     return UART_STATUS_OK;
@@ -228,6 +248,9 @@ UART_STATUS mock_uart_write(const uint8_t *data, size_t data_length, int num_cal
     return UART_STATUS_OK;
 }
 
+// ========================================================
+// helper functions
+// ========================================================
 void prepare_message(message_type_t msg_type, uint8_t *payload, size_t payload_size)
 {
     if (IS_VALID_POINTER(g_message))
