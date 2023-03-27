@@ -1,7 +1,12 @@
 #ifndef IREE_RUNTIME_IREE_RUNTIME_H_
 #define IREE_RUNTIME_IREE_RUNTIME_H_
 
+#ifndef __UNIT_TEST__
 #include "springbok.h"
+#else // __UNIT_TEST__
+#include "mocks/springbok.h"
+#endif // __UNIT_TEST__
+
 #include "utils/model.h"
 #include "utils/protocol.h"
 
@@ -55,11 +60,5 @@ typedef RUNTIME_STATUS (*callback_ptr)(message **);
 #define ENTRY(msg_type, callback_func) RUNTIME_STATUS callback_func(message **);
 CALLBACKS
 #undef ENTRY
-
-callback_ptr msg_callback[NUM_MESSAGE_TYPES] = {
-#define ENTRY(msg_type, callback_func) callback_func,
-    CALLBACKS
-#undef ENTRY
-};
 
 #endif // IREE_RUNTIME_IREE_RUNTIME_H_

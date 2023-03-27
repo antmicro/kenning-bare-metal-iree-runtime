@@ -5,10 +5,17 @@ extern const char *const MESSAGE_TYPE_STR[];
 extern const char *const MODEL_STATUS_STR[];
 extern const char *const SERVER_STATUS_STR[];
 
+callback_ptr msg_callback[NUM_MESSAGE_TYPES] = {
+#define ENTRY(msg_type, callback_func) callback_func,
+    CALLBACKS
+#undef ENTRY
+};
+
 static bool init_server();
 static bool wait_for_message(message **msg);
 static void handle_message(message *msg);
 
+#ifndef __UNIT_TEST__
 /**
  * Main Runtime function. It initializes UART and then handles messages in an infinite loop.
  */
@@ -31,6 +38,7 @@ int main()
     }
     return ret;
 }
+#endif // __UNIT_TEST__
 
 static bool init_server()
 {
@@ -272,6 +280,7 @@ RUNTIME_STATUS output_callback(message **request)
 RUNTIME_STATUS stats_callback(message **request)
 {
     MODEL_STATUS m_status = MODEL_STATUS_OK;
+    size_t statistics_length = 0;
 
     if (!IS_VALID_POINTER(request))
     {
@@ -282,11 +291,11 @@ RUNTIME_STATUS stats_callback(message **request)
         return RUNTIME_STATUS_INVALID_MESSAGE_TYPE;
     }
 
-    m_status = get_statistics((iree_hal_allocator_statistics_t *)&(*request)->payload);
+    m_status = get_statistics((uint8_t *)&(*request)->payload, &statistics_length);
 
     CHECK_MODEL_STATUS_LOG(m_status, request, "get_statistics returned %d (%s)", m_status, MODEL_STATUS_STR[m_status]);
 
-    (*request)->message_size = sizeof(iree_hal_allocator_statistics_t) + sizeof(message_type_t);
+    (*request)->message_size = statistics_length + sizeof(message_type_t);
     (*request)->message_type = MESSAGE_TYPE_OK;
 
     return RUNTIME_STATUS_OK;
