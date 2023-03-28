@@ -26,6 +26,19 @@ MODEL_STATUS load_model_struct(const uint8_t *model_struct_data, const size_t da
 
     g_model_struct = *((MlModel *)model_struct_data);
 
+    // validate struct
+    if (g_model_struct.num_input > MAX_MODEL_INPUT_NUM || g_model_struct.num_output > MAX_MODEL_OUTPUTS)
+    {
+        return MODEL_STATUS_INVALID_ARGUMENT;
+    }
+    for (int i = 0; i < g_model_struct.num_input; ++i)
+    {
+        if (g_model_struct.num_input_dim[i] > MAX_MODEL_INPUT_DIM)
+        {
+            return MODEL_STATUS_INVALID_ARGUMENT;
+        }
+    }
+
     char *dtype = (char *)&g_model_struct.hal_element_type;
 
     // this x-macro retrieves string label and HAL element enum value from IREE_HAL_ELEMENT_TYPES table and
@@ -85,6 +98,10 @@ MODEL_STATUS load_model_input(const uint8_t *model_input, const size_t model_inp
     MODEL_STATUS status = MODEL_STATUS_OK;
     IREE_WRAPPER_STATUS iree_status = IREE_WRAPPER_STATUS_OK;
 
+    if (!IS_VALID_POINTER(model_input))
+    {
+        return MODEL_STATUS_INVALID_POINTER;
+    }
     if (g_model_state < MODEL_STATE_WEIGHTS_LOADED)
     {
         return MODEL_STATUS_INVALID_STATE;
@@ -149,6 +166,10 @@ MODEL_STATUS get_model_output(const size_t buffer_size, uint8_t *model_output, s
     MODEL_STATUS status = MODEL_STATUS_OK;
     IREE_WRAPPER_STATUS iree_status = IREE_WRAPPER_STATUS_OK;
 
+    if (!IS_VALID_POINTER(model_output) || !IS_VALID_POINTER(model_output_size))
+    {
+        return MODEL_STATUS_INVALID_POINTER;
+    }
     if (g_model_state < MODEL_STATE_INFERENCE_DONE)
     {
         return MODEL_STATUS_INVALID_STATE;
@@ -174,16 +195,22 @@ MODEL_STATUS get_model_output(const size_t buffer_size, uint8_t *model_output, s
     return status;
 }
 
-MODEL_STATUS get_statistics(uint8_t *statistics, size_t *statistics_size)
+MODEL_STATUS get_statistics(const size_t statistics_buffer_size, uint8_t *statistics_buffer, size_t *statistics_size)
 {
     MODEL_STATUS status = MODEL_STATUS_OK;
+    IREE_WRAPPER_STATUS iree_status = IREE_WRAPPER_STATUS_OK;
 
+    if (!IS_VALID_POINTER(statistics_buffer) || !IS_VALID_POINTER(statistics_size))
+    {
+        return MODEL_STATUS_INVALID_POINTER;
+    }
     if (g_model_state < MODEL_STATE_WEIGHTS_LOADED)
     {
         return MODEL_STATUS_INVALID_STATE;
     }
 
-    get_model_stats(statistics, statistics_size);
+    iree_status = get_model_stats(statistics_buffer_size, statistics_buffer, statistics_size);
+    CHECK_IREE_WRAPPER_STATUS(iree_status);
 
     LOG_INFO("Model statistics retrieved");
 

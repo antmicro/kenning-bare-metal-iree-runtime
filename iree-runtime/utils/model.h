@@ -100,6 +100,6 @@ MODEL_STATUS get_model_output(const size_t buffer_size, uint8_t *model_output, s
  *
  * @returns status of the model
  */
-MODEL_STATUS get_statistics(uint8_t *statistics, size_t *statistics_size);
+MODEL_STATUS get_statistics(const size_t statistics_buffer_size, uint8_t *statistics_buffer, size_t *statistics_size);
 
 #endif // IREE_RUNTIME_UTIL_MODEL_H_
