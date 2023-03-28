@@ -291,7 +291,8 @@ RUNTIME_STATUS stats_callback(message **request)
         return RUNTIME_STATUS_INVALID_MESSAGE_TYPE;
     }
 
-    m_status = get_statistics((uint8_t *)&(*request)->payload, &statistics_length);
+    m_status =
+        get_statistics(MAX_MESSAGE_SIZE_BYTES - sizeof(message), (uint8_t *)&(*request)->payload, &statistics_length);
 
     CHECK_MODEL_STATUS_LOG(m_status, request, "get_statistics returned %d (%s)", m_status, MODEL_STATUS_STR[m_status]);
 
