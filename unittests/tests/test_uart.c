@@ -3,6 +3,8 @@
 
 #include <string.h>
 
+#define TEST_CASE(...)
+
 uart_registers mock_uart_registers;
 uint32_t mock_csr = 0;
 extern uart_t g_uart;
@@ -27,12 +29,20 @@ void tearDown(void) {}
 // ========================================================
 // uart_init
 // ========================================================
-void test_UARTInitShouldSucceedForValidConfig(void)
+TEST_CASE(8, 1, 110)
+TEST_CASE(7, 2, 600)
+TEST_CASE(6, 1, 9600)
+TEST_CASE(5, 2, 38400)
+TEST_CASE(6, 2, 115200)
+void test_UARTInitShouldSucceedForValidConfig(uint8_t data_bits, uint8_t stop_bits, uint32_t baudrate)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
     uart_config config = get_valid_uart_config();
 
     g_uart.initialized = false;
+    config.data_bits = data_bits;
+    config.stop_bits = stop_bits;
+    config.baudrate = baudrate;
 
     uart_status = uart_init(&config);
 
@@ -52,29 +62,18 @@ void test_UARTInitShouldFailForInvalidConfigPointer(void)
     TEST_ASSERT_FALSE(g_uart.initialized);
 }
 
-void test_UARTInitShouldFailForInvalidDataBitsInConfig(void)
+TEST_CASE(0)
+TEST_CASE(4)
+TEST_CASE(9)
+TEST_CASE(100)
+TEST_CASE(-1)
+void test_UARTInitShouldFailForInvalidDataBitsInConfig(uint8_t data_bits)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
     uart_config config = get_valid_uart_config();
 
     g_uart.initialized = false;
-    config.data_bits = 4;
-
-    uart_status = uart_init(&config);
-
-    TEST_ASSERT_EQUAL_UINT(UART_STATUS_INVALID_ARGUMENT_WORDSIZE, uart_status);
-    TEST_ASSERT_FALSE(g_uart.initialized);
-
-    g_uart.initialized = false;
-    config.data_bits = 9;
-
-    uart_status = uart_init(&config);
-
-    TEST_ASSERT_EQUAL_UINT(UART_STATUS_INVALID_ARGUMENT_WORDSIZE, uart_status);
-    TEST_ASSERT_FALSE(g_uart.initialized);
-
-    g_uart.initialized = false;
-    config.data_bits = 100;
+    config.data_bits = data_bits;
 
     uart_status = uart_init(&config);
 
@@ -82,21 +81,18 @@ void test_UARTInitShouldFailForInvalidDataBitsInConfig(void)
     TEST_ASSERT_FALSE(g_uart.initialized);
 }
 
-void test_UARTInitShouldFailForInvalidStopBitsInConfig(void)
+TEST_CASE(0)
+TEST_CASE(3)
+TEST_CASE(100)
+TEST_CASE(10000)
+TEST_CASE(-1)
+void test_UARTInitShouldFailForInvalidStopBitsInConfig(uint8_t stop_bits)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
     uart_config config = get_valid_uart_config();
 
     g_uart.initialized = false;
-    config.stop_bits = 0;
-
-    uart_status = uart_init(&config);
-
-    TEST_ASSERT_EQUAL_UINT(UART_STATUS_INVALID_ARGUMENT_STOP_BITS, uart_status);
-    TEST_ASSERT_FALSE(g_uart.initialized);
-
-    g_uart.initialized = false;
-    config.stop_bits = 3;
+    config.stop_bits = stop_bits;
 
     uart_status = uart_init(&config);
 
@@ -104,21 +100,16 @@ void test_UARTInitShouldFailForInvalidStopBitsInConfig(void)
     TEST_ASSERT_FALSE(g_uart.initialized);
 }
 
-void test_UARTInitShouldFailForInvalidBaudrateConfig(void)
+TEST_CASE(0u)
+TEST_CASE(500000u)
+TEST_CASE(-1)
+void test_UARTInitShouldFailForInvalidBaudrateConfig(uint32_t baudrate)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
     uart_config config = get_valid_uart_config();
 
     g_uart.initialized = false;
-    config.baudrate = 0u;
-
-    uart_status = uart_init(&config);
-
-    TEST_ASSERT_EQUAL_UINT(UART_STATUS_INVALID_ARGUMENT_BAUDRATE, uart_status);
-    TEST_ASSERT_FALSE(g_uart.initialized);
-
-    g_uart.initialized = false;
-    config.baudrate = 500000u;
+    config.baudrate = baudrate;
 
     uart_status = uart_init(&config);
 
@@ -129,10 +120,12 @@ void test_UARTInitShouldFailForInvalidBaudrateConfig(void)
 // ========================================================
 // uart_putchar
 // ========================================================
-void test_UARTPutCharShouldWriteToDataRegister(void)
+TEST_CASE('x')
+TEST_CASE('\0')
+TEST_CASE('\b')
+void test_UARTPutCharShouldWriteToDataRegister(uint8_t c)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
-    const uint8_t c = 'x';
 
     g_uart.initialized = true;
 
@@ -160,10 +153,12 @@ void test_UARTPutCharShouldFailAndDontWriteToDRIfUARTIsNotInitialized(void)
 // ========================================================
 // uart_write
 // ========================================================
-void test_UARTWriteShouldWriteStringToDataRegister(void)
+TEST_CASE("some data")
+TEST_CASE("\b")
+TEST_CASE("\0")
+void test_UARTWriteShouldWriteStringToDataRegister(char *data)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
-    const uint8_t data[] = "some data";
 
     g_uart.initialized = true;
 
@@ -217,11 +212,13 @@ void test_UARTWriteShouldFailAndDontWriteToDRIfUARTIsNotInitialized(void)
 // ========================================================
 // uart_getchar
 // ========================================================
-void test_UARTGetCharShouldReadDataFromDR(void)
+TEST_CASE('x')
+TEST_CASE('\0')
+TEST_CASE('\b')
+void test_UARTGetCharShouldReadDataFromDR(char c)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
     const uint32_t dr = 0xABCD;
-    uint8_t c = 'c';
 
     g_uart.initialized = true;
 
