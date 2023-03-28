@@ -27,10 +27,12 @@ UART_STATUS uart_init(const uart_config *config)
     {
         return UART_STATUS_INVALID_ARGUMENT_STOP_BITS;
     }
-    if (config->baudrate < 110u || config->baudrate > 460800u)
+#define CHECK_UART(baudrate_value) (baudrate_value == config->baudrate) ||
+    if (!(BAUDRATE_VALUES(CHECK_UART) false))
     {
         return UART_STATUS_INVALID_ARGUMENT_BAUDRATE;
     }
+#undef CHECK_UART
 
     g_uart.registers->CR &= ~CR_UARTEN;
     while (g_uart.registers->FR & FR_BUSY)

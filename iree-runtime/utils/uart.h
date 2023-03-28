@@ -9,6 +9,23 @@
 #include <stdlib.h>
 
 /**
+ * Supported baudrate values
+ */
+#define BAUDRATE_VALUES(BAUDRATE) \
+    BAUDRATE(110u)                \
+    BAUDRATE(300u)                \
+    BAUDRATE(600u)                \
+    BAUDRATE(1200u)               \
+    BAUDRATE(2400u)               \
+    BAUDRATE(4800u)               \
+    BAUDRATE(9600u)               \
+    BAUDRATE(14400u)              \
+    BAUDRATE(19200u)              \
+    BAUDRATE(38400u)              \
+    BAUDRATE(57600u)              \
+    BAUDRATE(115200u)
+
+/**
  * An enum that describes UART status
  */
 typedef enum
