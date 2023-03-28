@@ -8,6 +8,7 @@
 :project:
   :use_exceptions: FALSE
   :use_test_preprocessor: TRUE
+  :use_preprocessor_directives: TRUE
   :use_auxiliary_dependencies: TRUE
   :build_root: build
 #  :release_build: TRUE
@@ -53,6 +54,9 @@
   :test_preprocess:
     - *common_defines
     - __UNIT_TEST__
+
+:unity:
+  :use_param_tests: true
 
 :cmock:
   :mock_prefix: mock_
