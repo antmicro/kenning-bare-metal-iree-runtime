@@ -4,6 +4,8 @@
 
 #include <string.h>
 
+#define TEST_CASE(...)
+
 message *g_message = NULL;
 uint8_t *g_uart_buffer = NULL;
 
@@ -35,12 +37,16 @@ void tearDown(void)
 // ========================================================
 // receive_message
 // ========================================================
-void test_ProtocolReceiveMessageShouldReadMessageWithoutPayloadFromUART(void)
+TEST_CASE(0) // MESSAGE_TYPE_OK
+TEST_CASE(1) // MESSAGE_TYPE_ERROR
+TEST_CASE(4) // MESSAGE_TYPE_PROCESS
+TEST_CASE(5) // MESSAGE_TYPE_OUTPUT
+void test_ProtocolReceiveMessageShouldReadMessageWithoutPayloadFromUART(uint32_t message_type)
 {
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
     message *msg;
 
-    prepare_message(MESSAGE_TYPE_OK, NULL, 0);
+    prepare_message(message_type, NULL, 0);
 
     server_status = receive_message(&msg);
 
@@ -49,13 +55,17 @@ void test_ProtocolReceiveMessageShouldReadMessageWithoutPayloadFromUART(void)
     TEST_ASSERT_EQUAL_UINT(g_message->message_type, msg->message_type);
 }
 
-void test_ProtocolReceiveMessageShouldReadMessageWithPayloadFromUART(void)
+TEST_CASE(2) // MESSAGE_TYPE_DATA
+TEST_CASE(3) // MESSAGE_TYPE_MODEL
+TEST_CASE(6) // MESSAGE_TYPE_STATS
+TEST_CASE(7) // MESSAGE_TYPE_IOSPEC
+void test_ProtocolReceiveMessageShouldReadMessageWithPayloadFromUART(uint32_t message_type)
 {
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
     uint8_t message_data[] = "some data";
     message *msg;
 
-    prepare_message(MESSAGE_TYPE_DATA, message_data, sizeof(message_data));
+    prepare_message(message_type, message_data, sizeof(message_data));
 
     server_status = receive_message(&msg);
 
@@ -120,11 +130,37 @@ void test_ProtocolReceiveMessageShouldFailWhenUARTReadTimeout(void)
 // ========================================================
 // send_message
 // ========================================================
-void test_ProtocolSendMessageShouldWriteToUART(void)
+TEST_CASE(0) // MESSAGE_TYPE_OK
+TEST_CASE(1) // MESSAGE_TYPE_ERROR
+TEST_CASE(4) // MESSAGE_TYPE_PROCESS
+TEST_CASE(5) // MESSAGE_TYPE_OUTPUT
+void test_ProtocolSendMessageShouldWriteMessageWithourPayloadToUART(uint32_t message_type)
 {
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
 
-    prepare_message(MESSAGE_TYPE_OK, NULL, 0);
+    prepare_message(message_type, NULL, 0);
+
+    server_status = send_message(g_message);
+
+    message test;
+    message *msg_from_buffer = (message *)g_uart_buffer;
+
+    TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_NOTHING, server_status);
+    TEST_ASSERT_EQUAL_UINT(g_message->message_size, msg_from_buffer->message_size);
+    TEST_ASSERT_EQUAL_UINT(g_message->message_type, msg_from_buffer->message_type);
+    TEST_ASSERT_EQUAL_UINT8_ARRAY(g_message->payload, msg_from_buffer->payload, g_message->message_size);
+}
+
+TEST_CASE(2) // MESSAGE_TYPE_DATA
+TEST_CASE(3) // MESSAGE_TYPE_MODEL
+TEST_CASE(6) // MESSAGE_TYPE_STATS
+TEST_CASE(7) // MESSAGE_TYPE_IOSPEC
+void test_ProtocolSendMessageShouldWriteMessageWithPayloadToUART(uint32_t message_type)
+{
+    SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
+    uint8_t message_payload[128];
+
+    prepare_message(message_type, message_payload, sizeof(message_payload));
 
     server_status = send_message(g_message);
 
