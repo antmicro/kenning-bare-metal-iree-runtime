@@ -18,6 +18,10 @@ before_script:
 
 format:
     stage: lint
+    variables:
+        GIT_SUBMODULE_STRATEGY: none
+    before_script:
+        - cmake -B build/build-riscv -G Ninja -DMINIMAL_BUILD=True
     script:
         - cmake --build build/build-riscv --target check-format
     allow_failure: false
@@ -30,6 +34,10 @@ build:
 
 unit_tests:
     stage: tests
+    variables:
+        GIT_SUBMODULE_STRATEGY: none
+    before_script:
+        - cmake -B build/build-riscv -G Ninja -DMINIMAL_BUILD=True
     script:
         - cmake --build build/build-riscv --target unit-tests
     allow_failure: false
