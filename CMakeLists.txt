@@ -20,36 +20,38 @@ set(UNIT_TESTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/unittests" CACHE PATH
 include_directories(BEFORE SYSTEM ${CMAKE_CURRENT_LIST_DIR})
 include_directories(BEFORE SYSTEM ${CMAKE_CURRENT_BINARY_DIR})
 
-# IREE-specific settings
-set(IREE_BUILD_COMPILER OFF)
-set(IREE_ENABLE_MLIR OFF)
-set(IREE_BUILD_SAMPLES OFF)
-set(IREE_ENABLE_THREADING OFF)
-set(IREE_BUILD_TESTS OFF)
-set(IREE_BUILD_BINDINGS_TFLITE OFF)
-set(IREE_HAL_DRIVER_LOCAL_SYNC ON CACHE BOOL "" FORCE)
-set(IREE_HAL_EXECUTABLE_LOADER_DEFAULTS OFF CACHE BOOL "" FORCE)
-set(IREE_HAL_EXECUTABLE_LOADER_VMVX_MODULE ON CACHE BOOL "" FORCE)
-set(IREE_HAL_DRIVER_DEFAULTS OFF CACHE BOOL "" FORCE)
+if (NOT MINIMAL_BUILD)
+    # IREE-specific settings
+    set(IREE_BUILD_COMPILER OFF)
+    set(IREE_ENABLE_MLIR OFF)
+    set(IREE_BUILD_SAMPLES OFF)
+    set(IREE_ENABLE_THREADING OFF)
+    set(IREE_BUILD_TESTS OFF)
+    set(IREE_BUILD_BINDINGS_TFLITE OFF)
+    set(IREE_HAL_DRIVER_LOCAL_SYNC ON CACHE BOOL "" FORCE)
+    set(IREE_HAL_EXECUTABLE_LOADER_DEFAULTS OFF CACHE BOOL "" FORCE)
+    set(IREE_HAL_EXECUTABLE_LOADER_VMVX_MODULE ON CACHE BOOL "" FORCE)
+    set(IREE_HAL_DRIVER_DEFAULTS OFF CACHE BOOL "" FORCE)
 
-# IREE-specific definitions
-set(SPRINGBOK_CONFIG_HEADER "${SPRINGBOK_SOURCE_DIR}/springbok_config.h")
-add_definitions(-DFLATCC_USE_GENERIC_ALIGNED_ALLOC)
-add_definitions(-DIREE_PLATFORM_GENERIC)
-add_definitions(-DIREE_SYNCHRONIZATION_DISABLE_UNSAFE=1)
-add_definitions(-DIREE_FILE_IO_ENABLE=0)
-add_definitions(-DIREE_USER_CONFIG_H="${SPRINGBOK_CONFIG_HEADER}")
-add_definitions(-DIREE_VM_EXECUTION_TRACING_ENABLE=1)
+    # IREE-specific definitions
+    set(SPRINGBOK_CONFIG_HEADER "${SPRINGBOK_SOURCE_DIR}/springbok_config.h")
+    add_definitions(-DFLATCC_USE_GENERIC_ALIGNED_ALLOC)
+    add_definitions(-DIREE_PLATFORM_GENERIC)
+    add_definitions(-DIREE_SYNCHRONIZATION_DISABLE_UNSAFE=1)
+    add_definitions(-DIREE_FILE_IO_ENABLE=0)
+    add_definitions(-DIREE_USER_CONFIG_H="${SPRINGBOK_CONFIG_HEADER}")
+    add_definitions(-DIREE_VM_EXECUTION_TRACING_ENABLE=1)
 
-message("Include IREE source at ${IREE_SOURCE_DIR}")
-add_subdirectory(${IREE_SOURCE_DIR} iree)
+    message("Include IREE source at ${IREE_SOURCE_DIR}")
+    add_subdirectory(${IREE_SOURCE_DIR} iree)
 
-message("Include Springbok source at ${SPRINGBOK_SOURCE_DIR}")
-add_subdirectory(${SPRINGBOK_SOURCE_DIR} iree-riscv32)
+    message("Include Springbok source at ${SPRINGBOK_SOURCE_DIR}")
+    add_subdirectory(${SPRINGBOK_SOURCE_DIR} iree-riscv32)
 
-set(SPRINGBOK_ROOT_DIR "${SPRINGBOK_SOURCE_DIR}" CACHE PATH "Springbok Root directory")
+    set(SPRINGBOK_ROOT_DIR "${SPRINGBOK_SOURCE_DIR}" CACHE PATH "Springbok Root directory")
 
-add_subdirectory(iree-runtime iree-runtime)
+    add_subdirectory(iree-runtime iree-runtime)
+endif (NOT MINIMAL_BUILD)
 
 set(FIND_SOURCE_FILES "find ${CMAKE_CURRENT_SOURCE_DIR}/iree-runtime ${UNIT_TESTS_DIR}/tests -iname \"*.c\" -o -iname \"*.h\"")
 
