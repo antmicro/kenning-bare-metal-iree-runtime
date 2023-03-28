@@ -4,6 +4,8 @@
 #include "mock_uart.h"
 #include "unity.h"
 
+#define TEST_CASE(...)
+
 message *g_message = NULL;
 
 const char *const MODEL_STATUS_STR[] = {MODEL_STATUSES(GENERATE_STR)};
@@ -47,11 +49,18 @@ void test_RuntimeOKCallbackShouldFailForInvalidPointer(void)
     TEST_ASSERT_EQUAL_UINT(RUNTIME_STATUS_INVALID_POINTER, runtime_status);
 }
 
-void test_RuntimeOkCallbackShouldFailForInvalidMessageType(void)
+TEST_CASE(MESSAGE_TYPE_ERROR)
+TEST_CASE(MESSAGE_TYPE_DATA)
+TEST_CASE(MESSAGE_TYPE_MODEL)
+TEST_CASE(MESSAGE_TYPE_PROCESS)
+TEST_CASE(MESSAGE_TYPE_OUTPUT)
+TEST_CASE(MESSAGE_TYPE_STATS)
+TEST_CASE(MESSAGE_TYPE_IOSPEC)
+void test_RuntimeOkCallbackShouldFailForInvalidMessageType(MESSAGE_TYPE message_type)
 {
     RUNTIME_STATUS runtime_status = RUNTIME_STATUS_OK;
 
-    prepare_message(MESSAGE_TYPE_ERROR, NULL, 0);
+    prepare_message(message_type, NULL, 0);
 
     runtime_status = ok_callback(&g_message);
 
@@ -82,11 +91,18 @@ void test_RuntimeErrorCallbackShouldFailForInvalidPointer(void)
     TEST_ASSERT_EQUAL_UINT(RUNTIME_STATUS_INVALID_POINTER, runtime_status);
 }
 
-void test_RuntimeErrorCallbackShouldFailForInvalidMessageType(void)
+TEST_CASE(MESSAGE_TYPE_OK)
+TEST_CASE(MESSAGE_TYPE_DATA)
+TEST_CASE(MESSAGE_TYPE_MODEL)
+TEST_CASE(MESSAGE_TYPE_PROCESS)
+TEST_CASE(MESSAGE_TYPE_OUTPUT)
+TEST_CASE(MESSAGE_TYPE_STATS)
+TEST_CASE(MESSAGE_TYPE_IOSPEC)
+void test_RuntimeErrorCallbackShouldFailForInvalidMessageType(MESSAGE_TYPE message_type)
 {
     RUNTIME_STATUS runtime_status = RUNTIME_STATUS_OK;
 
-    prepare_message(MESSAGE_TYPE_OK, NULL, 0);
+    prepare_message(message_type, NULL, 0);
 
     runtime_status = error_callback(&g_message);
 
@@ -137,11 +153,18 @@ void test_RuntimeDataCallbackShouldFailForInvalidPointer(void)
     TEST_ASSERT_EQUAL_UINT(RUNTIME_STATUS_INVALID_POINTER, runtime_status);
 }
 
-void test_RuntimeDataCallbackShouldFailForInvalidMessageType(void)
+TEST_CASE(MESSAGE_TYPE_OK)
+TEST_CASE(MESSAGE_TYPE_ERROR)
+TEST_CASE(MESSAGE_TYPE_MODEL)
+TEST_CASE(MESSAGE_TYPE_PROCESS)
+TEST_CASE(MESSAGE_TYPE_OUTPUT)
+TEST_CASE(MESSAGE_TYPE_STATS)
+TEST_CASE(MESSAGE_TYPE_IOSPEC)
+void test_RuntimeDataCallbackShouldFailForInvalidMessageType(MESSAGE_TYPE message_type)
 {
     RUNTIME_STATUS runtime_status = RUNTIME_STATUS_OK;
 
-    prepare_message(MESSAGE_TYPE_OK, NULL, 0);
+    prepare_message(message_type, NULL, 0);
 
     runtime_status = data_callback(&g_message);
 
@@ -192,11 +215,18 @@ void test_RuntimeModelCallbackShouldFailForInvalidPointer(void)
     TEST_ASSERT_EQUAL_UINT(RUNTIME_STATUS_INVALID_POINTER, runtime_status);
 }
 
-void test_RuntimeModelCallbackShouldFailForInvalidMessageType(void)
+TEST_CASE(MESSAGE_TYPE_OK)
+TEST_CASE(MESSAGE_TYPE_ERROR)
+TEST_CASE(MESSAGE_TYPE_DATA)
+TEST_CASE(MESSAGE_TYPE_PROCESS)
+TEST_CASE(MESSAGE_TYPE_OUTPUT)
+TEST_CASE(MESSAGE_TYPE_STATS)
+TEST_CASE(MESSAGE_TYPE_IOSPEC)
+void test_RuntimeModelCallbackShouldFailForInvalidMessageType(MESSAGE_TYPE message_type)
 {
     RUNTIME_STATUS runtime_status = RUNTIME_STATUS_OK;
 
-    prepare_message(MESSAGE_TYPE_OK, NULL, 0);
+    prepare_message(message_type, NULL, 0);
 
     runtime_status = model_callback(&g_message);
 
@@ -243,11 +273,18 @@ void test_RuntimeProcessCallbackShouldFailForInvalidPointer(void)
     TEST_ASSERT_EQUAL_UINT(RUNTIME_STATUS_INVALID_POINTER, runtime_status);
 }
 
-void test_RuntimeProcessCallbackShouldFailForInvalidMessageType(void)
+TEST_CASE(MESSAGE_TYPE_OK)
+TEST_CASE(MESSAGE_TYPE_ERROR)
+TEST_CASE(MESSAGE_TYPE_DATA)
+TEST_CASE(MESSAGE_TYPE_MODEL)
+TEST_CASE(MESSAGE_TYPE_OUTPUT)
+TEST_CASE(MESSAGE_TYPE_STATS)
+TEST_CASE(MESSAGE_TYPE_IOSPEC)
+void test_RuntimeProcessCallbackShouldFailForInvalidMessageType(MESSAGE_TYPE message_type)
 {
     RUNTIME_STATUS runtime_status = RUNTIME_STATUS_OK;
 
-    prepare_message(MESSAGE_TYPE_OK, NULL, 0);
+    prepare_message(message_type, NULL, 0);
 
     runtime_status = process_callback(&g_message);
 
@@ -294,11 +331,18 @@ void test_RuntimeOutputCallbackShouldFailForInvalidPointer(void)
     TEST_ASSERT_EQUAL_UINT(RUNTIME_STATUS_INVALID_POINTER, runtime_status);
 }
 
-void test_RuntimeOutputCallbackShouldFailForInvalidMessageType(void)
+TEST_CASE(MESSAGE_TYPE_OK)
+TEST_CASE(MESSAGE_TYPE_ERROR)
+TEST_CASE(MESSAGE_TYPE_DATA)
+TEST_CASE(MESSAGE_TYPE_MODEL)
+TEST_CASE(MESSAGE_TYPE_PROCESS)
+TEST_CASE(MESSAGE_TYPE_STATS)
+TEST_CASE(MESSAGE_TYPE_IOSPEC)
+void test_RuntimeOutputCallbackShouldFailForInvalidMessageType(MESSAGE_TYPE message_type)
 {
     RUNTIME_STATUS runtime_status = RUNTIME_STATUS_OK;
 
-    prepare_message(MESSAGE_TYPE_OK, NULL, 0);
+    prepare_message(message_type, NULL, 0);
 
     runtime_status = output_callback(&g_message);
 
@@ -346,11 +390,18 @@ void test_RuntimeStatsCallbackShouldFailForInvalidPointer(void)
     TEST_ASSERT_EQUAL_UINT(RUNTIME_STATUS_INVALID_POINTER, runtime_status);
 }
 
-void test_RuntimeStatsCallbackShouldFailForInvalidMessageType(void)
+TEST_CASE(MESSAGE_TYPE_OK)
+TEST_CASE(MESSAGE_TYPE_ERROR)
+TEST_CASE(MESSAGE_TYPE_DATA)
+TEST_CASE(MESSAGE_TYPE_MODEL)
+TEST_CASE(MESSAGE_TYPE_PROCESS)
+TEST_CASE(MESSAGE_TYPE_OUTPUT)
+TEST_CASE(MESSAGE_TYPE_IOSPEC)
+void test_RuntimeStatsCallbackShouldFailForInvalidMessageType(MESSAGE_TYPE message_type)
 {
     RUNTIME_STATUS runtime_status = RUNTIME_STATUS_OK;
 
-    prepare_message(MESSAGE_TYPE_OK, NULL, 0);
+    prepare_message(message_type, NULL, 0);
 
     runtime_status = stats_callback(&g_message);
 
@@ -401,11 +452,18 @@ void test_RuntimeIOSpecCallbackShouldFailForInvalidPointer(void)
     TEST_ASSERT_EQUAL_UINT(RUNTIME_STATUS_INVALID_POINTER, runtime_status);
 }
 
-void test_RuntimeIOSpecCallbackShouldFailForInvalidMessageType(void)
+TEST_CASE(MESSAGE_TYPE_OK)
+TEST_CASE(MESSAGE_TYPE_ERROR)
+TEST_CASE(MESSAGE_TYPE_DATA)
+TEST_CASE(MESSAGE_TYPE_MODEL)
+TEST_CASE(MESSAGE_TYPE_PROCESS)
+TEST_CASE(MESSAGE_TYPE_OUTPUT)
+TEST_CASE(MESSAGE_TYPE_STATS)
+void test_RuntimeIOSpecCallbackShouldFailForInvalidMessageType(MESSAGE_TYPE message_type)
 {
     RUNTIME_STATUS runtime_status = RUNTIME_STATUS_OK;
 
-    prepare_message(MESSAGE_TYPE_OK, NULL, 0);
+    prepare_message(message_type, NULL, 0);
 
     runtime_status = iospec_callback(&g_message);
 
