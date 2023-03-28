@@ -103,16 +103,23 @@ IREE_WRAPPER_STATUS run_inference();
 /**
  * Returns model output
  *
+ * @param model_output buffer to save model output into
+ *
  * @returns error status
  */
-IREE_WRAPPER_STATUS get_output();
+IREE_WRAPPER_STATUS get_output(uint8_t *model_output);
 
 /**
  * Returns model stats
  *
- * @param model_struct buffer to write statistics to
+ * @param statistics_buffer_size size of the passed buffer
+ * @param statistics_buffer buffer to save stats into
+ * @param statistics_size returned stats size
+ *
+ * @returns error status
  */
-void get_model_stats(uint8_t *statistics, size_t *statistics_size);
+IREE_WRAPPER_STATUS get_model_stats(const size_t statistics_buffer_size, uint8_t *statistics_buffer,
+                                    size_t *statistics_size);
 
 /**
  * Clears model input buffer

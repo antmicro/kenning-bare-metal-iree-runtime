@@ -284,11 +284,20 @@ IREE_WRAPPER_STATUS get_output(uint8_t *model_output)
     return (IREE_WRAPPER_STATUS)iree_status;
 }
 
-void get_model_stats(uint8_t *statistics, size_t *statistics_size)
+IREE_WRAPPER_STATUS get_model_stats(const size_t statistics_buffer_size, uint8_t *statistics_buffer,
+                                    size_t *statistics_size)
 {
+    iree_status_t iree_status = iree_ok_status();
+
+    if (statistics_buffer_size < sizeof(iree_hal_allocator_statistics_t))
+    {
+        return IREE_WRAPPER_STATUS_ERROR;
+    }
     iree_hal_allocator_query_statistics(iree_hal_device_allocator(gp_device),
-                                        (iree_hal_allocator_statistics_t *)statistics);
+                                        (iree_hal_allocator_statistics_t *)statistics_buffer);
     *statistics_size = sizeof(iree_hal_allocator_statistics_t);
+
+    return (IREE_WRAPPER_STATUS)iree_status;
 }
 
 void release_input_buffer()
