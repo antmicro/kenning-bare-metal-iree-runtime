@@ -15,8 +15,8 @@ Inference Test
                         Execute Command                 start
                         Execute Command                 sysbus.vec_controlblock WriteDoubleWord 0xc 0
     # crete testers for logs and UART
-    ${log_tester}       Create Log Tester               timeout=1.0
-    ${uart_tester}      Create Terminal Tester          ${UART}
+    ${log_tester}=      Create Log Tester               timeout=1.0
+    ${uart_tester}=     Create Terminal Tester          ${UART}
     # verify that UART is idle
                         Test If Uart Is Idle            timeout=1    testerId=${uart_tester}
     # start Kenning inference client
