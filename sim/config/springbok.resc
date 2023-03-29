@@ -1,9 +1,9 @@
 mach create "springbok"
 
 EnsureTypeIsLoaded "Antmicro.Renode.Peripherals.CPU.RiscV32"
-include @third-party/iree-rv32-springbok/sim/config/infrastructure/SpringbokRiscV32.cs
+include $ORIGIN/../../third-party/iree-rv32-springbok/sim/config/infrastructure/SpringbokRiscV32.cs
 
-$platformfile?=@sim/config/platforms/springbok.repl
+$platformfile?=$ORIGIN/platforms/springbok.repl
 
 machine LoadPlatformDescription $platformfile
 
