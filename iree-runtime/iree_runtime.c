@@ -11,8 +11,25 @@ callback_ptr msg_callback[NUM_MESSAGE_TYPES] = {
 #undef ENTRY
 };
 
+/**
+ * Initializes runtime server
+ *
+ * @returns true if severs is initialized successfully
+ */
 static bool init_server();
+/**
+ * Waits for incoming message
+ *
+ * @param msg pointer to the message
+ *
+ * @returns true if message is received, false otherwise
+ */
 static bool wait_for_message(message **msg);
+/**
+ * Handles received message
+ *
+ * @param msg pointer to the message
+ */
 static void handle_message(message *msg);
 
 #ifndef __UNIT_TEST__
