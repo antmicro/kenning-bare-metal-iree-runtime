@@ -53,3 +53,13 @@ unit_tests:
     script:
         - cmake --build build/build-riscv --target unit-tests
     allow_failure: false
+
+renode_tests:
+    stage: tests
+    script:
+        - ln -s /build/renode ./build/renode
+        - cmake --build build/build-riscv
+        - python3 -m pip install -r ./renodetests/kenning_requirements.txt
+        - python3 -m pip install -r ./build/renode/tests/requirements.txt
+        - cmake --build build/build-riscv --target renode-tests
+    allow_failure: false
