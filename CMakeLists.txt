@@ -16,6 +16,10 @@ set(IREE_SOURCE_DIR "${SPRINGBOK_SOURCE_DIR}/third_party/iree" CACHE PATH
     "IREE source code path." FORCE)
 set(UNIT_TESTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/unittests" CACHE PATH
     "Unit tests directory." FORCE)
+set(RENODE_TESTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/renodetests" CACHE PATH
+    "Renode tests directory." FORCE)
+set(RENODE_TEST_BIN_PATH "${CMAKE_CURRENT_SOURCE_DIR}/build/renode/renode-test" CACHE PATH
+    "Path to renode-test")
 
 include_directories(BEFORE SYSTEM ${CMAKE_CURRENT_LIST_DIR})
 include_directories(BEFORE SYSTEM ${CMAKE_CURRENT_BINARY_DIR})
@@ -100,3 +104,9 @@ add_custom_target(unit-tests
     VERBATIM
     WORKING_DIRECTORY ${UNIT_TESTS_DIR}
 )
+add_custom_target(renode-tests
+    COMMAND bash -c "find . -iname test_*.robot | xargs ${RENODE_TEST_BIN_PATH} --show-log -r ${RENODE_TESTS_DIR}/results"
+    VERBATIM
+    WORKING_DIRECTORY ${RENODE_TESTS_DIR}
+)
+
