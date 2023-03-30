@@ -11,9 +11,18 @@
 #define MODEL_STRUCT_OUTPUT_LEN 10
 #define MODEL_STRUCT_OUTPUT_SIZE 4
 
+#define VALID_HAL_ELEMENT_TYPE "f32"
+
 extern MlModel g_model_struct;
 extern MODEL_STATE g_model_state;
 
+/**
+ * Returns example model struct data with passed dtype.
+ *
+ * @param dtype dtype of model input
+ *
+ * @returns prepared model struct
+ */
 MlModel get_model_struct_data(char dtype[]);
 
 void setUp(void) {}
@@ -23,14 +32,18 @@ void tearDown(void) {}
 // ========================================================
 // load_model_struct
 // ========================================================
+
 TEST_CASE("f16", IREE_HAL_ELEMENT_TYPE_FLOAT_16)
 TEST_CASE("f32", IREE_HAL_ELEMENT_TYPE_FLOAT_32)
 TEST_CASE("f64", IREE_HAL_ELEMENT_TYPE_FLOAT_64)
 TEST_CASE("i8", IREE_HAL_ELEMENT_TYPE_INT_8)
 TEST_CASE("i32", IREE_HAL_ELEMENT_TYPE_INT_32)
 TEST_CASE("u32", IREE_HAL_ELEMENT_TYPE_UINT_32)
-void test_ModelLoadModelStructShouldParseValidStructAndChangeModelState(char *dtype,
-                                                                        iree_hal_element_types_t hal_element_type)
+/**
+ * Tests model struct parsing for valid HAL element types
+ */
+void test_ModelLoadModelStructShouldParseStructAndChangeModelStateForValidHALElementType(
+    char *dtype, iree_hal_element_type_t hal_element_type)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
 
@@ -43,63 +56,15 @@ void test_ModelLoadModelStructShouldParseValidStructAndChangeModelState(char *dt
     TEST_ASSERT_EQUAL_UINT(MODEL_STATE_STRUCT_LOADED, g_model_state);
 }
 
-TEST_CASE(MAX_MODEL_INPUT_NUM + 1)
-TEST_CASE(MAX_MODEL_INPUT_NUM + 100)
-TEST_CASE(-1)
-void test_ModelLoadModelStructShouldFailForInvalidInputNum(uint32_t num_input)
-{
-    MODEL_STATUS model_status = MODEL_STATUS_OK;
-
-    MlModel model_struct = get_model_struct_data("x");
-    g_model_state = MODEL_STATE_UNINITIALIZED;
-    model_struct.num_input = num_input;
-
-    model_status = load_model_struct((uint8_t *)&model_struct, sizeof(MlModel));
-
-    TEST_ASSERT_EQUAL_UINT(MODEL_STATUS_INVALID_ARGUMENT, model_status);
-    TEST_ASSERT_EQUAL_UINT(MODEL_STATE_UNINITIALIZED, g_model_state);
-}
-
-TEST_CASE(MAX_MODEL_OUTPUTS + 1)
-TEST_CASE(MAX_MODEL_OUTPUTS + 100)
-TEST_CASE(-1)
-void test_ModelLoadModelStructShouldFailForInvalidOutputNum(uint32_t num_output)
-{
-    MODEL_STATUS model_status = MODEL_STATUS_OK;
-
-    MlModel model_struct = get_model_struct_data("x");
-    g_model_state = MODEL_STATE_UNINITIALIZED;
-    model_struct.num_output = num_output;
-
-    model_status = load_model_struct((uint8_t *)&model_struct, sizeof(MlModel));
-
-    TEST_ASSERT_EQUAL_UINT(MODEL_STATUS_INVALID_ARGUMENT, model_status);
-    TEST_ASSERT_EQUAL_UINT(MODEL_STATE_UNINITIALIZED, g_model_state);
-}
-
-TEST_CASE(MAX_MODEL_INPUT_DIM + 1)
-TEST_CASE(MAX_MODEL_INPUT_DIM + 100)
-TEST_CASE(-1)
-void test_ModelLoadModelStructShouldFailForInvalidInputDim(uint32_t input_dim)
-{
-    MODEL_STATUS model_status = MODEL_STATUS_OK;
-
-    MlModel model_struct = get_model_struct_data("x");
-    g_model_state = MODEL_STATE_UNINITIALIZED;
-    model_struct.num_input_dim[0] = input_dim;
-
-    model_status = load_model_struct((uint8_t *)&model_struct, sizeof(MlModel));
-
-    TEST_ASSERT_EQUAL_UINT(MODEL_STATUS_INVALID_ARGUMENT, model_status);
-    TEST_ASSERT_EQUAL_UINT(MODEL_STATE_UNINITIALIZED, g_model_state);
-}
-
 TEST_CASE("")
 TEST_CASE("x")
 TEST_CASE("f15")
 TEST_CASE("i31")
 TEST_CASE("f32x")
 TEST_CASE("abcdefg")
+/**
+ * Tests model struct parsing for invalid HAL element types
+ */
 void test_ModelLoadModelStructShouldFailForInvalidHALElementType(char *dtype)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -113,6 +78,125 @@ void test_ModelLoadModelStructShouldFailForInvalidHALElementType(char *dtype)
     TEST_ASSERT_EQUAL_UINT(MODEL_STATE_UNINITIALIZED, g_model_state);
 }
 
+TEST_CASE(1)
+TEST_CASE(MAX_MODEL_INPUT_NUM)
+/**
+ * Tests model struct parsing for valid input_num values
+ */
+void test_ModelLoadModelStructShouldParseStructAndChangeModelStateForValidInputNum(uint32_t num_input)
+{
+    MODEL_STATUS model_status = MODEL_STATUS_OK;
+
+    MlModel model_struct = get_model_struct_data(VALID_HAL_ELEMENT_TYPE);
+
+    model_status = load_model_struct((uint8_t *)&model_struct, sizeof(MlModel));
+
+    TEST_ASSERT_EQUAL_UINT(MODEL_STATUS_OK, model_status);
+    TEST_ASSERT_EQUAL_UINT(MODEL_STATE_STRUCT_LOADED, g_model_state);
+}
+
+/**
+ * Tests model struct parsing for invalid input_num values
+ */
+TEST_CASE(0)
+TEST_CASE(MAX_MODEL_INPUT_NUM + 1)
+TEST_CASE(MAX_MODEL_INPUT_NUM + 100)
+TEST_CASE(-1)
+void test_ModelLoadModelStructShouldFailForInvalidInputNum(uint32_t num_input)
+{
+    MODEL_STATUS model_status = MODEL_STATUS_OK;
+
+    MlModel model_struct = get_model_struct_data(VALID_HAL_ELEMENT_TYPE);
+    g_model_state = MODEL_STATE_UNINITIALIZED;
+    model_struct.num_input = num_input;
+
+    model_status = load_model_struct((uint8_t *)&model_struct, sizeof(MlModel));
+
+    TEST_ASSERT_EQUAL_UINT(MODEL_STATUS_INVALID_ARGUMENT, model_status);
+    TEST_ASSERT_EQUAL_UINT(MODEL_STATE_UNINITIALIZED, g_model_state);
+}
+
+/**
+ * Tests model struct parsing for valid num_output values
+ */
+TEST_CASE(1)
+TEST_CASE(MAX_MODEL_OUTPUTS)
+void test_ModelLoadModelStructShouldParseStructAndChangeModelStateForValidOutputNum(uint32_t num_output)
+{
+    MODEL_STATUS model_status = MODEL_STATUS_OK;
+
+    MlModel model_struct = get_model_struct_data(VALID_HAL_ELEMENT_TYPE);
+    g_model_state = MODEL_STATE_UNINITIALIZED;
+    model_struct.num_output = num_output;
+
+    model_status = load_model_struct((uint8_t *)&model_struct, sizeof(MlModel));
+
+    TEST_ASSERT_EQUAL_UINT(MODEL_STATUS_OK, model_status);
+    TEST_ASSERT_EQUAL_UINT(MODEL_STATE_STRUCT_LOADED, g_model_state);
+}
+
+/**
+ * Tests model struct parsing for invalid num_output values
+ */
+TEST_CASE(MAX_MODEL_OUTPUTS + 1)
+TEST_CASE(MAX_MODEL_OUTPUTS + 100)
+TEST_CASE(-1)
+void test_ModelLoadModelStructShouldFailForInvalidOutputNum(uint32_t num_output)
+{
+    MODEL_STATUS model_status = MODEL_STATUS_OK;
+
+    MlModel model_struct = get_model_struct_data(VALID_HAL_ELEMENT_TYPE);
+    g_model_state = MODEL_STATE_UNINITIALIZED;
+    model_struct.num_output = num_output;
+
+    model_status = load_model_struct((uint8_t *)&model_struct, sizeof(MlModel));
+
+    TEST_ASSERT_EQUAL_UINT(MODEL_STATUS_INVALID_ARGUMENT, model_status);
+    TEST_ASSERT_EQUAL_UINT(MODEL_STATE_UNINITIALIZED, g_model_state);
+}
+
+/**
+ * Tests model struct parsing for valid input_dim values
+ */
+TEST_CASE(0)
+TEST_CASE(MAX_MODEL_INPUT_DIM)
+void test_ModelLoadModelStructShouldParseStructAndChangeModelStateForValidInputDim(uint32_t input_dim)
+{
+    MODEL_STATUS model_status = MODEL_STATUS_OK;
+
+    MlModel model_struct = get_model_struct_data(VALID_HAL_ELEMENT_TYPE);
+    g_model_state = MODEL_STATE_UNINITIALIZED;
+    model_struct.num_input_dim[0] = input_dim;
+
+    model_status = load_model_struct((uint8_t *)&model_struct, sizeof(MlModel));
+
+    TEST_ASSERT_EQUAL_UINT(MODEL_STATUS_OK, model_status);
+    TEST_ASSERT_EQUAL_UINT(MODEL_STATE_STRUCT_LOADED, g_model_state);
+}
+
+/**
+ * Tests model struct parsing for invalid input_dim values
+ */
+TEST_CASE(MAX_MODEL_INPUT_DIM + 1)
+TEST_CASE(MAX_MODEL_INPUT_DIM + 100)
+TEST_CASE(-1)
+void test_ModelLoadModelStructShouldFailForInvalidInputDim(uint32_t input_dim)
+{
+    MODEL_STATUS model_status = MODEL_STATUS_OK;
+
+    MlModel model_struct = get_model_struct_data(VALID_HAL_ELEMENT_TYPE);
+    g_model_state = MODEL_STATE_UNINITIALIZED;
+    model_struct.num_input_dim[0] = input_dim;
+
+    model_status = load_model_struct((uint8_t *)&model_struct, sizeof(MlModel));
+
+    TEST_ASSERT_EQUAL_UINT(MODEL_STATUS_INVALID_ARGUMENT, model_status);
+    TEST_ASSERT_EQUAL_UINT(MODEL_STATE_UNINITIALIZED, g_model_state);
+}
+
+/**
+ * Tests model struct parsing for data with invalid size
+ */
 TEST_CASE(sizeof(MlModel) - 1)
 TEST_CASE(sizeof(MlModel) + 1)
 TEST_CASE(0)
@@ -121,7 +205,7 @@ void test_ModeLoadModelStructShouldFailIfModelStructDataHasInvalidSize(size_t st
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
 
-    MlModel model_struct = get_model_struct_data("f32");
+    MlModel model_struct = get_model_struct_data(VALID_HAL_ELEMENT_TYPE);
     g_model_state = MODEL_STATE_UNINITIALIZED;
 
     model_status = load_model_struct((uint8_t *)&model_struct, struct_size);
@@ -130,6 +214,9 @@ void test_ModeLoadModelStructShouldFailIfModelStructDataHasInvalidSize(size_t st
     TEST_ASSERT_EQUAL_UINT(MODEL_STATE_UNINITIALIZED, g_model_state);
 }
 
+/**
+ * Tests model struct parsing for invalid pointer
+ */
 void test_ModelLoadModelStructShouldFailForInvalidPointer(void)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -145,10 +232,14 @@ void test_ModelLoadModelStructShouldFailForInvalidPointer(void)
 // ========================================================
 // load_model_weights
 // ========================================================
+
 TEST_CASE(1) // MODEL_STATE_STRUCT_LOADED
 TEST_CASE(2) // MODEL_STATE_WEIGHTS_LOADED
 TEST_CASE(3) // MODEL_STATE_INPUT_LOADED
 TEST_CASE(4) // MODEL_STATE_INFERENCE_DONE
+/**
+ * Tests model weights loading in valid model states
+ */
 void test_ModelLoadModelWeightsShouldCreateContextAndChangeModelState(uint32_t model_state)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -165,6 +256,9 @@ void test_ModelLoadModelWeightsShouldCreateContextAndChangeModelState(uint32_t m
     TEST_ASSERT_EQUAL_UINT(MODEL_STATE_WEIGHTS_LOADED, g_model_state);
 }
 
+/**
+ * Tests model weights loading for invalid pointer
+ */
 void test_ModelLoadModelWeightsShouldFailForInvalidPointer(void)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -177,6 +271,9 @@ void test_ModelLoadModelWeightsShouldFailForInvalidPointer(void)
     TEST_ASSERT_EQUAL_UINT(MODEL_STATE_STRUCT_LOADED, g_model_state);
 }
 
+/**
+ * Tests model weights loading when model is in invalid state
+ */
 void test_ModelLoadWeightsShouldFailInModelStateIsUninitialized(void)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -190,6 +287,9 @@ void test_ModelLoadWeightsShouldFailInModelStateIsUninitialized(void)
     TEST_ASSERT_EQUAL_UINT(MODEL_STATE_UNINITIALIZED, g_model_state);
 }
 
+/**
+ * Tests model weights loading when IREE context creation fails
+ */
 void test_ModelLoadModelWeightsShouldFailIfCreateContextFails(void)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -209,9 +309,13 @@ void test_ModelLoadModelWeightsShouldFailIfCreateContextFails(void)
 // ========================================================
 // load_model_input
 // ========================================================
+
 TEST_CASE(2) // MODEL_STATE_WEIGHTS_LOADED
 TEST_CASE(3) // MODEL_STATE_INPUT_LOADED
 TEST_CASE(4) // MODEL_STATE_INFERENCE_DONE
+/**
+ * Tests model input loading for valid model states
+ */
 void test_ModelLoadModelInputShouldPrepareInputBufferAndChangeModelState(uint32_t model_state)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -227,6 +331,9 @@ void test_ModelLoadModelInputShouldPrepareInputBufferAndChangeModelState(uint32_
     TEST_ASSERT_EQUAL_UINT(MODEL_STATE_INPUT_LOADED, g_model_state);
 }
 
+/**
+ * Tests model input loading when IREE buffer allocation fails
+ */
 void test_ModelLoadModelInputShouldFailIfPrepareInputBufferReturnsError(void)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -242,6 +349,9 @@ void test_ModelLoadModelInputShouldFailIfPrepareInputBufferReturnsError(void)
     TEST_ASSERT_EQUAL_UINT(MODEL_STATE_WEIGHTS_LOADED, g_model_state);
 }
 
+/**
+ * Tests model input loading for invalid pointer
+ */
 void test_ModelLoadModelInputShouldFailForInvalidInputPointer(void)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -256,6 +366,9 @@ void test_ModelLoadModelInputShouldFailForInvalidInputPointer(void)
 
 TEST_CASE(0) // MODEL_STATE_UNINITIALIZED
 TEST_CASE(1) // MODEL_STATE_STRUCT_LOADED
+/**
+ * Tests model input loading when model is in invalid state
+ */
 void test_ModelLoadModelInputShouldFailIfModelIsInInvalidState(uint32_t model_state)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -269,6 +382,9 @@ void test_ModelLoadModelInputShouldFailIfModelIsInInvalidState(uint32_t model_st
     TEST_ASSERT_EQUAL_UINT(model_state, g_model_state);
 }
 
+/**
+ * Tests model input loading when input size is invalid
+ */
 void test_ModelLoadModelInputShouldFailForInvalidInputSize(void)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -285,8 +401,12 @@ void test_ModelLoadModelInputShouldFailForInvalidInputSize(void)
 // ========================================================
 // run_model
 // ========================================================
+
 TEST_CASE(3) // MODEL_STATE_INPUT_LOADED
 TEST_CASE(4) // MODEL_STATE_INFERENCE_DONE
+/**
+ * Tests model execution for valid model states
+ */
 void test_ModelRunModelShouldPrepareOutputAndRunInference(uint32_t model_state)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -302,6 +422,9 @@ void test_ModelRunModelShouldPrepareOutputAndRunInference(uint32_t model_state)
     TEST_ASSERT_EQUAL_UINT(MODEL_STATE_INFERENCE_DONE, g_model_state);
 }
 
+/**
+ * Tests model execution when output buffer allocation fails
+ */
 void test_ModelRunModelShouldFailIfPrepareOutputFails(void)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -316,6 +439,9 @@ void test_ModelRunModelShouldFailIfPrepareOutputFails(void)
     TEST_ASSERT_EQUAL_UINT(MODEL_STATE_INPUT_LOADED, g_model_state);
 }
 
+/**
+ * Tests model execution when inference fails
+ */
 void test_ModelRunModelShouldFailIfRunInferenceFails(void)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -334,6 +460,9 @@ void test_ModelRunModelShouldFailIfRunInferenceFails(void)
 TEST_CASE(0) // MODEL_STATE_UNINITIALIZED
 TEST_CASE(1) // MODEL_STATE_STRUCT_LOADED
 TEST_CASE(2) // MODEL_STATE_WEIGHTS_LOADED
+/**
+ * Tests model execution when model is in invalid state
+ */
 void test_ModelRunModelShouldFailIfModelIsInInvalidState(uint32_t model_state)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -349,6 +478,10 @@ void test_ModelRunModelShouldFailIfModelIsInInvalidState(uint32_t model_state)
 // ========================================================
 // get_model_output
 // ========================================================
+
+/**
+ * Tests model get output for valid model states
+ */
 void test_ModelGetModelOutputShouldReturnModelOutput(void)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -365,6 +498,9 @@ void test_ModelGetModelOutputShouldReturnModelOutput(void)
     TEST_ASSERT_EQUAL_UINT(MODEL_STRUCT_OUTPUT_LEN * 4, model_output_size);
 }
 
+/**
+ * Tests model get output for invalid buffer pointer
+ */
 void test_ModelGetModelOutputShouldFailForInvalidModelOutputPointer(void)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -378,6 +514,9 @@ void test_ModelGetModelOutputShouldFailForInvalidModelOutputPointer(void)
     TEST_ASSERT_EQUAL_UINT(MODEL_STATE_INFERENCE_DONE, g_model_state);
 }
 
+/**
+ * Tests model get output for invalid buffer size
+ */
 void test_ModelGetModelOutputShouldFailForInvalidModelOutputSizePointer(void)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -395,6 +534,9 @@ TEST_CASE(0) // MODEL_STATE_UNINITIALIZED
 TEST_CASE(1) // MODEL_STATE_STRUCT_LOADED
 TEST_CASE(2) // MODEL_STATE_WEIGHTS_LOADED
 TEST_CASE(3) // MODEL_STATE_INPUT_LOADED
+/**
+ * Tests model get output when model is in invalid state
+ */
 void test_ModelGetModelOutputShouldFailIfModelIsInInvalidState(uint32_t model_state)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -412,9 +554,13 @@ void test_ModelGetModelOutputShouldFailIfModelIsInInvalidState(uint32_t model_st
 // ========================================================
 // get_statistics
 // ========================================================
+
 TEST_CASE(2) // MODEL_STATE_WEIGHTS_LOADED
 TEST_CASE(3) // MODEL_STATE_INPUT_LOADED
 TEST_CASE(4) // MODEL_STATE_INFERENCE_DONE
+/**
+ * Tests model get statistics for valid model states
+ */
 void test_ModelGetStatisticsShouldReturnModelStatistics(uint32_t model_state)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -431,6 +577,9 @@ void test_ModelGetStatisticsShouldReturnModelStatistics(uint32_t model_state)
     TEST_ASSERT_EQUAL_UINT(model_state, g_model_state);
 }
 
+/**
+ * Tests model get statistics for invalid buffer pointer
+ */
 void test_ModelGetStatisticsShouldFailForInvalidStatisticsBufferPointer(void)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -444,6 +593,9 @@ void test_ModelGetStatisticsShouldFailForInvalidStatisticsBufferPointer(void)
     TEST_ASSERT_EQUAL_UINT(MODEL_STATE_WEIGHTS_LOADED, g_model_state);
 }
 
+/**
+ * Tests model get statistics for invalid size pointer
+ */
 void test_ModelGetStatisticsShouldFailForInvalidStatisticsSizePointer(void)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -459,6 +611,9 @@ void test_ModelGetStatisticsShouldFailForInvalidStatisticsSizePointer(void)
 
 TEST_CASE(0) // MODEL_STATE_UNINITIALIZED
 TEST_CASE(1) // MODEL_STATE_STRUCT_LOADED
+/**
+ * Tests model get statistics when model is in invalid state
+ */
 void test_ModelGetStatisticsShouldFailIfModelInInvalidState(uint32_t model_state)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -473,6 +628,9 @@ void test_ModelGetStatisticsShouldFailIfModelInInvalidState(uint32_t model_state
     TEST_ASSERT_EQUAL_UINT(model_state, g_model_state);
 }
 
+/**
+ * Tests model get statistics when get model stats fails
+ */
 void test_ModelGetStatisticsShouldFailIfGetModelStatsFails(void)
 {
     MODEL_STATUS model_status = MODEL_STATUS_OK;
@@ -492,6 +650,7 @@ void test_ModelGetStatisticsShouldFailIfGetModelStatsFails(void)
 // ========================================================
 // helper functions
 // ========================================================
+
 MlModel get_model_struct_data(char dtype[])
 {
     MlModel model_struct = {
