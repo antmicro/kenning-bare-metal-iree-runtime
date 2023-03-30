@@ -1,14 +1,35 @@
 #include "iree_wrapper.h"
 
+/**
+ * IREE runtime instance
+ */
 static iree_vm_instance_t *gp_instance = NULL;
+/**
+ * IREE device
+ */
 static iree_hal_device_t *gp_device = NULL;
+/**
+ * IREE execution context where modules are loaded
+ */
 static iree_vm_context_t *gp_context = NULL;
 
+/**
+ * Buffer for model inputs
+ */
 static iree_vm_list_t *gp_model_inputs = NULL;
+/**
+ * Buffer for model outputs
+ */
 static iree_vm_list_t *gp_model_outputs = NULL;
 
+/**
+ * Buffer for model weights
+ */
 static uint8_t *gp_model_weights;
 
+/**
+ * Struct describing model IO
+ */
 extern MlModel g_model_struct;
 
 /**

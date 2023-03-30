@@ -3,10 +3,14 @@
 
 #include "utils.h"
 
+#ifndef __UNIT_TEST__
 #include "iree/hal/drivers/local_sync/sync_device.h"
 #include "iree/hal/local/loaders/vmvx_module_loader.h"
 #include "iree/modules/hal/module.h"
 #include "iree/vm/bytecode_module.h"
+#else // __UNIT_TEST__
+#include "partial_iree_wrapper.h"
+#endif // __UNIT_TEST__
 
 #define IREE_HAL_ELEMENT_TYPES(HAL_ELEMENT_TYPE)            \
     HAL_ELEMENT_TYPE("i8", IREE_HAL_ELEMENT_TYPE_INT_8)     \
