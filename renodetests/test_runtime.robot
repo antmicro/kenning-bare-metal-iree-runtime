@@ -8,6 +8,17 @@ Resource        ${RENODEKEYWORDS}
 ${UART}                 sysbus.uart0
 
 *** Test Cases ***
+Runtime Init Test
+    # start the IREE runtime
+                        Execute Command                 $bin=@${CURDIR}/../build/build-riscv/iree-runtime/iree_runtime
+                        Execute Command                 i @${CURDIR}/../sim/config/springbok.resc
+                        Execute Command                 start
+                        Execute Command                 sysbus.vec_controlblock WriteDoubleWord 0xc 0
+    # crete tester for logs
+    ${log_tester}=      Create Log Tester               timeout=1.0\
+    # verify that runtime started
+                        Wait For Log Entry              .*Runtime started.*    treatAsRegex=True
+
 Inference Test
     # start the IREE runtime
                         Execute Command                 $bin=@${CURDIR}/../build/build-riscv/iree-runtime/iree_runtime
