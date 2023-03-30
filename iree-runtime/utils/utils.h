@@ -3,6 +3,12 @@
 
 #define IS_VALID_POINTER(ptr) (NULL != ptr)
 
+#define VALIDATE_POINTER(ptr, error_status) \
+    if (!IS_VALID_POINTER(ptr))             \
+    {                                       \
+        return error_status;                \
+    }
+
 #define RETURN_ON_ERROR(status, err_code) \
     if (status)                           \
     {                                     \
