@@ -1,29 +1,16 @@
 ---
-
-# Notes:
-# Sample project C code is not presently written to produce a release artifact.
-# As such, release build options are disabled.
-# This sample, therefore, only demonstrates running a collection of unit tests.
-
 :project:
   :use_exceptions: FALSE
   :use_test_preprocessor: TRUE
   :use_preprocessor_directives: TRUE
   :use_auxiliary_dependencies: TRUE
   :build_root: build
-#  :release_build: TRUE
+  :release_build: TRUE
   :test_file_prefix: test_
   :which_ceedling: gem
   :ceedling_version: 0.31.1
   :default_tasks:
     - test:all
-
-#:test_build:
-#  :use_assembly: TRUE
-
-#:release_build:
-#  :output: MyApp.out
-#  :use_assembly: FALSE
 
 :environment:
 
@@ -37,16 +24,11 @@
     - ../iree-runtime/*
     - ../iree-runtime/utils/*
     - -:../iree-runtime/utils/iree_wrapper.c
-    - -:../iree-runtime/utils/iree_wrapper.h
   :include:
-    - ./tests/mocks/iree_wrapper.c
-    - ./tests/mocks/iree_wrapper.h
+    - ./tests/mocks/partial_iree_wrapper.h
   :libraries: []
 
 :defines:
-  # in order to add common defines:
-  #  1) remove the trailing [] from the :common: section
-  #  2) add entries to the :common: section (e.g. :test: has TEST defined)
   :common: &common_defines []
   :test:
     - *common_defines
@@ -72,9 +54,6 @@
     int8:     INT8
     bool:     UINT8
 
-# Add -gcov to the plugins list to make sure of the gcov plugin
-# You will need to have gcov and gcovr both installed to make it work.
-# For more information on these options, see docs in plugins/gcov
 :gcov:
   :reports:
     - HtmlDetailed
@@ -82,20 +61,11 @@
     :html_medium_threshold: 75
     :html_high_threshold: 90
 
-#:tools:
-# Ceedling defaults to using gcc for compiling, linking, etc.
-# As [:tools] is blank, gcc will be used (so long as it's in your system path)
-# See documentation to configure a given toolchain for use
-
-# LIBRARIES
-# These libraries are automatically injected into the build process. Those specified as
-# common will be used in all types of builds. Otherwise, libraries can be injected in just
-# tests or releases. These options are MERGED with the options in supplemental yaml files.
 :libraries:
   :placement: :end
   :flag: "-l${1}"
   :path_flag: "-L ${1}"
-  :system: []    # for example, you might list 'm' to grab the math library
+  :system: []
   :test: []
   :release: []
 
