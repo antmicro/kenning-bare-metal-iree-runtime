@@ -1,3 +1,4 @@
+// this
 #include "../iree-runtime/utils/uart.h"
 #include "unity.h"
 
@@ -9,12 +10,41 @@ uart_registers mock_uart_registers;
 uint32_t mock_csr = 0;
 extern uart_t g_uart;
 
+/**
+ * Callback that is called every read from timer register. It simulates time passing by incrementing this register.
+ */
 void mock_csr_read_callback();
+
+/**
+ * Prepares example valid UART config
+ *
+ * @returns valid UART config
+ */
 static uart_config get_valid_uart_config();
+
+/**
+ * Clears transmit FIFO full flag in UART flag register
+ */
 static void clear_FR_TXFF_flag();
+
+/**
+ * Clears receiver FIFO empty flag in UART flag register
+ */
 static void clear_FR_RXFE_flag();
+
+/**
+ * Sets receiver FIFO empty flag in UART flag register
+ */
 static void set_FR_RXFE_flag();
+
+/**
+ * Sets error flag in receive status / error clear register
+ */
 static void clear_RSRECR_ERR_flag();
+
+/**
+ * Clears error flag in receive status / error clear register
+ */
 static void set_RSRECR_ERR_flag();
 
 void setUp(void)
@@ -29,11 +59,15 @@ void tearDown(void) {}
 // ========================================================
 // uart_init
 // ========================================================
+
 TEST_CASE(8, 1, 110)
 TEST_CASE(7, 2, 600)
 TEST_CASE(6, 1, 9600)
 TEST_CASE(5, 2, 38400)
 TEST_CASE(6, 2, 115200)
+/**
+ * Tests UART initialization for valid parameters
+ */
 void test_UARTInitShouldSucceedForValidConfig(uint8_t data_bits, uint8_t stop_bits, uint32_t baudrate)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -50,6 +84,9 @@ void test_UARTInitShouldSucceedForValidConfig(uint8_t data_bits, uint8_t stop_bi
     TEST_ASSERT_TRUE(g_uart.initialized);
 }
 
+/**
+ * Tests UART initialization for invalid config pointer
+ */
 void test_UARTInitShouldFailForInvalidConfigPointer(void)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -67,6 +104,9 @@ TEST_CASE(4)
 TEST_CASE(9)
 TEST_CASE(100)
 TEST_CASE(-1)
+/**
+ * Tests UART initialization for invalid data bits config
+ */
 void test_UARTInitShouldFailForInvalidDataBitsInConfig(uint8_t data_bits)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -86,6 +126,9 @@ TEST_CASE(3)
 TEST_CASE(100)
 TEST_CASE(10000)
 TEST_CASE(-1)
+/**
+ * Tests UART initialization for invalid stop bits config
+ */
 void test_UARTInitShouldFailForInvalidStopBitsInConfig(uint8_t stop_bits)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -103,6 +146,9 @@ void test_UARTInitShouldFailForInvalidStopBitsInConfig(uint8_t stop_bits)
 TEST_CASE(0u)
 TEST_CASE(500000u)
 TEST_CASE(-1)
+/**
+ * Tests UART initialization for invalid baudrate bits config
+ */
 void test_UARTInitShouldFailForInvalidBaudrateConfig(uint32_t baudrate)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -120,9 +166,13 @@ void test_UARTInitShouldFailForInvalidBaudrateConfig(uint32_t baudrate)
 // ========================================================
 // uart_putchar
 // ========================================================
+
 TEST_CASE('x')
 TEST_CASE('\0')
 TEST_CASE('\b')
+/**
+ * Tests if UART put char writes to proper register
+ */
 void test_UARTPutCharShouldWriteToDataRegister(uint8_t c)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -135,6 +185,9 @@ void test_UARTPutCharShouldWriteToDataRegister(uint8_t c)
     TEST_ASSERT_EQUAL_UINT8(c, mock_uart_registers.DR & DR_DATA_MASK);
 }
 
+/**
+ * Tests if UART put char fails when UART is not initialized
+ */
 void test_UARTPutCharShouldFailAndDontWriteToDRIfUARTIsNotInitialized(void)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -153,9 +206,13 @@ void test_UARTPutCharShouldFailAndDontWriteToDRIfUARTIsNotInitialized(void)
 // ========================================================
 // uart_write
 // ========================================================
+
 TEST_CASE("some data")
 TEST_CASE("\b")
 TEST_CASE("\0")
+/**
+ * Tests if UART write writes to proper register
+ */
 void test_UARTWriteShouldWriteStringToDataRegister(char *data)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -168,6 +225,9 @@ void test_UARTWriteShouldWriteStringToDataRegister(char *data)
     TEST_ASSERT_EQUAL_UINT8(data[sizeof(data) - 1], mock_uart_registers.DR & DR_DATA_MASK);
 }
 
+/**
+ * Tests if UART write fails if data pointer is invalid
+ */
 void test_UARTWriteShouldFailIfDataPointerIsInvalid(void)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -179,6 +239,9 @@ void test_UARTWriteShouldFailIfDataPointerIsInvalid(void)
     TEST_ASSERT_EQUAL_UINT(UART_STATUS_INVALID_POINTER, uart_status);
 }
 
+/**
+ * Tests if UART write does nothing for no data
+ */
 void test_UARTWriteShouldSucceedAndDontWriteToDRForNoData(void)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -194,6 +257,9 @@ void test_UARTWriteShouldSucceedAndDontWriteToDRForNoData(void)
     TEST_ASSERT_EQUAL_UINT32(dr, mock_uart_registers.DR);
 }
 
+/**
+ * Tests if UART write fails when UART is not initalized
+ */
 void test_UARTWriteShouldFailAndDontWriteToDRIfUARTIsNotInitialized(void)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -212,9 +278,13 @@ void test_UARTWriteShouldFailAndDontWriteToDRIfUARTIsNotInitialized(void)
 // ========================================================
 // uart_getchar
 // ========================================================
+
 TEST_CASE('x')
 TEST_CASE('\0')
 TEST_CASE('\b')
+/**
+ * Tests if UART get char reads from proper register
+ */
 void test_UARTGetCharShouldReadDataFromDR(char c)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -228,6 +298,9 @@ void test_UARTGetCharShouldReadDataFromDR(char c)
     TEST_ASSERT_EQUAL_UINT8(dr & DR_DATA_MASK, c);
 }
 
+/**
+ * Tests if UART get char fails when UART is not initalized
+ */
 void test_UARTGetCharShouldFailIfUARTIsNotInitialized(void)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -241,6 +314,9 @@ void test_UARTGetCharShouldFailIfUARTIsNotInitialized(void)
     TEST_ASSERT_EQUAL_UINT(UART_STATUS_UNINITIALIZED, uart_status);
 }
 
+/**
+ * Tests if UART get char return no data when receive FIFO is empty
+ */
 void test_UARTGetCharShouldReturnNoDataIfRXFEFlagIsSet(void)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -255,6 +331,9 @@ void test_UARTGetCharShouldReturnNoDataIfRXFEFlagIsSet(void)
     TEST_ASSERT_EQUAL_UINT(UART_STATUS_NO_DATA, uart_status);
 }
 
+/**
+ * Tests if UART get char fails when UART is not initalized
+ */
 void test_UARTGetCharShouldFailWhenUARTIsNotInitializedAndRXFEFlagIsSet(void)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -269,6 +348,9 @@ void test_UARTGetCharShouldFailWhenUARTIsNotInitializedAndRXFEFlagIsSet(void)
     TEST_ASSERT_TRUE((uart_status & UART_STATUS_UNINITIALIZED) | (uart_status | UART_STATUS_NO_DATA));
 }
 
+/**
+ * Tests if UART get char fails if UART error occurs
+ */
 void test_UARTGetCharShouldReturnErrorIfRSRECRErrorFlagIsSet(void)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -282,6 +364,9 @@ void test_UARTGetCharShouldReturnErrorIfRSRECRErrorFlagIsSet(void)
     TEST_ASSERT_EQUAL_UINT(uart_status, UART_STATUS_RECEIVE_ERROR);
 }
 
+/**
+ * Tests if UART get char fails if char pointer is invalid
+ */
 void test_UARTGetCharShouldFailForInvalidPointer(void)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -296,6 +381,10 @@ void test_UARTGetCharShouldFailForInvalidPointer(void)
 // ========================================================
 // uart_read
 // ========================================================
+
+/**
+ * Tests if UART read reads from proper register
+ */
 void test_UARTReadShouldReadDataFromDR(void)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -311,6 +400,9 @@ void test_UARTReadShouldReadDataFromDR(void)
     TEST_ASSERT_EACH_EQUAL_UINT8(c, data, sizeof(data));
 }
 
+/**
+ * Tests if UART read fails if UART is not initalized
+ */
 void test_UARTReadShouldFailIfUARTIsNotInitialized(void)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -323,6 +415,9 @@ void test_UARTReadShouldFailIfUARTIsNotInitialized(void)
     TEST_ASSERT_EQUAL_UINT(UART_STATUS_UNINITIALIZED, uart_status);
 }
 
+/**
+ * Tests if UART read fails when data pointer is invalid
+ */
 void test_UARTReadShouldFailForInvalidPointer(void)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -334,6 +429,9 @@ void test_UARTReadShouldFailForInvalidPointer(void)
     TEST_ASSERT_EQUAL_UINT(UART_STATUS_INVALID_POINTER, uart_status);
 }
 
+/**
+ * Tests if UART read reads no data when length is 0
+ */
 void test_UARTReadShouldReadNothingForDataLengthZero(void)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -349,6 +447,9 @@ void test_UARTReadShouldReadNothingForDataLengthZero(void)
     TEST_ASSERT_EQUAL_UINT8_ARRAY(initial_data, data, sizeof(initial_data));
 }
 
+/**
+ * Tests if UART read fails when receive error occurs
+ */
 void test_UARTReadShouldFailIfReceiveErrorOccurs(void)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -362,6 +463,9 @@ void test_UARTReadShouldFailIfReceiveErrorOccurs(void)
     TEST_ASSERT_EQUAL_UINT(UART_STATUS_RECEIVE_ERROR, uart_status);
 }
 
+/**
+ * Tests if UART read hit timeout when there is no data
+ */
 void test_UARTReadShouldReturnTimeoutIfNoData(void)
 {
     UART_STATUS uart_status = UART_STATUS_OK;
@@ -378,11 +482,13 @@ void test_UARTReadShouldReturnTimeoutIfNoData(void)
 // ========================================================
 // mocks
 // ========================================================
+
 void mock_csr_read_callback() { mock_csr += TIMER_CLOCK_FREQ >> 4; }
 
 // ========================================================
 // helper functions
 // ========================================================
+
 static uart_config get_valid_uart_config()
 {
     uart_config ret = {.data_bits = 8, .stop_bits = 1, .parity = false, .baudrate = 115200};
