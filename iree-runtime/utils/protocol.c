@@ -24,10 +24,7 @@ SERVER_STATUS receive_message(message **msg)
     MESSAGE_TYPE msg_type = MESSAGE_TYPE_OK;
     uint8_t data[4];
 
-    if (!IS_VALID_POINTER(msg))
-    {
-        return SERVER_STATUS_INVALID_POINTER;
-    }
+    VALIDATE_POINTER(msg, SERVER_STATUS_INVALID_POINTER);
 
     // read size of the message
     status = uart_read(data, sizeof(message_size_t));
@@ -47,10 +44,8 @@ SERVER_STATUS receive_message(message **msg)
 
     // get pointer to the message buffer
     *msg = get_message_buffer();
-    if (!IS_VALID_POINTER(*msg))
-    {
-        return SERVER_STATUS_INVALID_POINTER;
-    }
+    VALIDATE_POINTER(*msg, SERVER_STATUS_INVALID_POINTER);
+
     (*msg)->message_size = msg_size;
     (*msg)->message_type = msg_type;
 
@@ -69,10 +64,7 @@ SERVER_STATUS send_message(const message *msg)
 {
     UART_STATUS status = UART_STATUS_OK;
 
-    if (!IS_VALID_POINTER(msg))
-    {
-        return SERVER_STATUS_INVALID_POINTER;
-    }
+    VALIDATE_POINTER(msg, SERVER_STATUS_INVALID_POINTER);
 
     status = uart_write((uint8_t *)msg, MESSAGE_SIZE_FULL(msg->message_size));
 
@@ -83,10 +75,7 @@ SERVER_STATUS send_message(const message *msg)
 
 SERVER_STATUS prepare_success_response(message **response)
 {
-    if (!IS_VALID_POINTER(response))
-    {
-        return SERVER_STATUS_INVALID_POINTER;
-    }
+    VALIDATE_POINTER(response, SERVER_STATUS_INVALID_POINTER);
 
     *response = get_message_buffer();
     if (!IS_VALID_POINTER(*response))
@@ -99,10 +88,7 @@ SERVER_STATUS prepare_success_response(message **response)
 }
 SERVER_STATUS prepare_failure_response(message **response)
 {
-    if (!IS_VALID_POINTER(response))
-    {
-        return SERVER_STATUS_INVALID_POINTER;
-    }
+    VALIDATE_POINTER(response, SERVER_STATUS_INVALID_POINTER);
 
     *response = get_message_buffer();
     if (!IS_VALID_POINTER(*response))
