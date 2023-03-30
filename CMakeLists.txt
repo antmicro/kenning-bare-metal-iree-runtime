@@ -102,11 +102,13 @@ add_custom_target(unit-tests
     COMMAND bash -c "ceedling test:all"
     USES_TERMINAL
     VERBATIM
+    USES_TERMINAL
     WORKING_DIRECTORY ${UNIT_TESTS_DIR}
 )
 add_custom_target(renode-tests
-    COMMAND bash -c "find . -iname test_*.robot | xargs ${RENODE_TEST_BIN_PATH} --show-log -r ${RENODE_TESTS_DIR}/results"
+    COMMAND bash -c "find . -iname test_*.robot | xargs ${RENODE_TEST_BIN_PATH} --show-log -r results"
     VERBATIM
+    USES_TERMINAL
     WORKING_DIRECTORY ${RENODE_TESTS_DIR}
 )
 
