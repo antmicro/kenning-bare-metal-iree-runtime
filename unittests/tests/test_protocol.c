@@ -9,9 +9,35 @@
 message *g_message = NULL;
 uint8_t *g_uart_buffer = NULL;
 
+/**
+ * Mocks UART read function
+ *
+ * @param data buffer for results
+ * @param data_length length of the buffer
+ * @param num_calls numver of mock calls
+ *
+ * @returns status of read action
+ */
 UART_STATUS mock_uart_read(uint8_t *data, size_t data_length, int num_calls);
+
+/**
+ * Mocks UART write function
+ *
+ * @param data buffer to be written
+ * @param data_length length of the buffer
+ * @param num_calls numver of mock calls
+ *
+ * @returns status of read action
+ */
 UART_STATUS mock_uart_write(const uint8_t *data, size_t data_length, int num_calls);
 
+/**
+ * Prepares message of given type and payload and store result in g_message
+ *
+ * @param msg_type type of the message
+ * @param payload payload of the message
+ * @param payload_size size of the payload
+ */
 void prepare_message(message_type_t msg_type, uint8_t *payload, size_t payload_size);
 
 void setUp(void)
@@ -37,10 +63,14 @@ void tearDown(void)
 // ========================================================
 // receive_message
 // ========================================================
+
 TEST_CASE(0) // MESSAGE_TYPE_OK
 TEST_CASE(1) // MESSAGE_TYPE_ERROR
 TEST_CASE(4) // MESSAGE_TYPE_PROCESS
 TEST_CASE(5) // MESSAGE_TYPE_OUTPUT
+/**
+ * Tests if protocol receive message reads message without payload properly from UART
+ */
 void test_ProtocolReceiveMessageShouldReadMessageWithoutPayloadFromUART(uint32_t message_type)
 {
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
@@ -59,6 +89,9 @@ TEST_CASE(2) // MESSAGE_TYPE_DATA
 TEST_CASE(3) // MESSAGE_TYPE_MODEL
 TEST_CASE(6) // MESSAGE_TYPE_STATS
 TEST_CASE(7) // MESSAGE_TYPE_IOSPEC
+/**
+ * Tests if protocol receive message reads message with payload properly from UART
+ */
 void test_ProtocolReceiveMessageShouldReadMessageWithPayloadFromUART(uint32_t message_type)
 {
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
@@ -75,6 +108,9 @@ void test_ProtocolReceiveMessageShouldReadMessageWithPayloadFromUART(uint32_t me
     TEST_ASSERT_EQUAL_UINT8_ARRAY(message_data, msg->payload, sizeof(message_data));
 }
 
+/**
+ * Tests if protocol receive message fails for invalid pointer
+ */
 void test_ProtocolReceiveMessageShouldFailWhenMsgPointerIsInvalid(void)
 {
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
@@ -87,6 +123,9 @@ void test_ProtocolReceiveMessageShouldFailWhenMsgPointerIsInvalid(void)
     TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_INVALID_POINTER, server_status);
 }
 
+/**
+ * Tests if protocol receive message fails if message size is too big
+ */
 void test_ProtocolReceiveMessageShouldFailIfMessageTooBig(void)
 {
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
@@ -101,6 +140,9 @@ void test_ProtocolReceiveMessageShouldFailIfMessageTooBig(void)
     TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_MESSAGE_TOO_BIG, server_status);
 }
 
+/**
+ * Tests if protocol receive message fails if UART read fails
+ */
 void test_ProtocolReceiveMessageShouldFailWhenUARTReadError(void)
 {
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
@@ -114,6 +156,9 @@ void test_ProtocolReceiveMessageShouldFailWhenUARTReadError(void)
     TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_CLIENT_DISCONNECTED, server_status);
 }
 
+/**
+ * Tests if protocol receive message hits timeout if UART read does so
+ */
 void test_ProtocolReceiveMessageShouldFailWhenUARTReadTimeout(void)
 {
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
@@ -130,10 +175,14 @@ void test_ProtocolReceiveMessageShouldFailWhenUARTReadTimeout(void)
 // ========================================================
 // send_message
 // ========================================================
+
 TEST_CASE(0) // MESSAGE_TYPE_OK
 TEST_CASE(1) // MESSAGE_TYPE_ERROR
 TEST_CASE(4) // MESSAGE_TYPE_PROCESS
 TEST_CASE(5) // MESSAGE_TYPE_OUTPUT
+/**
+ * Tests if protocol send message writes properly message without payload to UART
+ */
 void test_ProtocolSendMessageShouldWriteMessageWithourPayloadToUART(uint32_t message_type)
 {
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
@@ -155,6 +204,9 @@ TEST_CASE(2) // MESSAGE_TYPE_DATA
 TEST_CASE(3) // MESSAGE_TYPE_MODEL
 TEST_CASE(6) // MESSAGE_TYPE_STATS
 TEST_CASE(7) // MESSAGE_TYPE_IOSPEC
+/**
+ * Tests if protocol send message writes properly message with payload to UART
+ */
 void test_ProtocolSendMessageShouldWriteMessageWithPayloadToUART(uint32_t message_type)
 {
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
@@ -173,6 +225,9 @@ void test_ProtocolSendMessageShouldWriteMessageWithPayloadToUART(uint32_t messag
     TEST_ASSERT_EQUAL_UINT8_ARRAY(g_message->payload, msg_from_buffer->payload, g_message->message_size);
 }
 
+/**
+ * Tests if protocol send message fails if message pointer is invalid
+ */
 void test_ProtocolSendMessageShouldFailIfMessagePointerIsInvalid(void)
 {
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
@@ -182,6 +237,9 @@ void test_ProtocolSendMessageShouldFailIfMessagePointerIsInvalid(void)
     TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_INVALID_POINTER, server_status);
 }
 
+/**
+ * Tests if protocol send message fails if UART write fails
+ */
 void test_ProtocolSendMessageShouldFailIfUARTWriteFails(void)
 {
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
@@ -197,6 +255,10 @@ void test_ProtocolSendMessageShouldFailIfUARTWriteFails(void)
 // ========================================================
 // prepare_success_response
 // ========================================================
+
+/**
+ * Tests if protocol prepare success message properly creates empty OK message
+ */
 void test_ProtocolPrepareSuccessResponseShouldPrepareEmptyOKMessage(void)
 {
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
@@ -209,6 +271,9 @@ void test_ProtocolPrepareSuccessResponseShouldPrepareEmptyOKMessage(void)
     TEST_ASSERT_EQUAL_UINT(sizeof(message_type_t), msg->message_size);
 }
 
+/**
+ * Tests if protocol prepare success message fails if message pointer is invalid
+ */
 void test_ProtocolPrepareSuccessResponseShouldFailIfThePointerIsInvalid(void)
 {
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
@@ -221,6 +286,10 @@ void test_ProtocolPrepareSuccessResponseShouldFailIfThePointerIsInvalid(void)
 // ========================================================
 // prepare_failure_response
 // ========================================================
+
+/**
+ * Tests if protocol prepare failure message properly creates empty ERROR message
+ */
 void test_ProtocolPrepareFailureResponseShouldPrepareEmptyERRORMessage(void)
 {
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
@@ -233,6 +302,9 @@ void test_ProtocolPrepareFailureResponseShouldPrepareEmptyERRORMessage(void)
     TEST_ASSERT_EQUAL_UINT(sizeof(message_type_t), msg->message_size);
 }
 
+/**
+ * Tests if protocol prepare failure message fails if message pointer is invalid
+ */
 void test_ProtocolPrepareFailureResponseShouldFailfThePointerIsInvalid(void)
 {
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
@@ -245,6 +317,7 @@ void test_ProtocolPrepareFailureResponseShouldFailfThePointerIsInvalid(void)
 // ========================================================
 // mocks
 // ========================================================
+
 UART_STATUS mock_uart_read(uint8_t *data, size_t data_length, int num_calls)
 {
     static size_t data_read = 0;
@@ -287,6 +360,7 @@ UART_STATUS mock_uart_write(const uint8_t *data, size_t data_length, int num_cal
 // ========================================================
 // helper functions
 // ========================================================
+
 void prepare_message(message_type_t msg_type, uint8_t *payload, size_t payload_size)
 {
     if (IS_VALID_POINTER(g_message))
