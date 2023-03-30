@@ -21,6 +21,7 @@ Inference Test
                         Test If Uart Is Idle            timeout=1    testerId=${uart_tester}
     # start Kenning inference client
     ${kenning}=         Start Process                   bash    renodetests/run_kenning_inference_tester.sh   shell=True    cwd=${CURDIR}/..    alias='kenning-process'
+                        Sleep                           30s
     # verify that inference client is running and communicating via UART
                         Process Should Be Running       ${kenning}
                         Sleep                           60s
