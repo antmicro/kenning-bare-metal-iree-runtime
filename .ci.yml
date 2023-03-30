@@ -57,6 +57,11 @@ unit_tests:
 renode_tests:
     stage: tests
     script:
+        - cd ./third-party/kenning/
+        - apt-get update
+        - apt-get install -y git-lfs
+        - git lfs pull
+        - cd ../..
         - ln -s /build/renode ./build/renode
         - cmake --build build/build-riscv
         - python3 -m pip install -r ./renodetests/kenning_requirements.txt
