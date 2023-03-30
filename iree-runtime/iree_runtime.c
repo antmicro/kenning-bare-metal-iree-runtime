@@ -17,6 +17,7 @@ callback_ptr msg_callback[NUM_MESSAGE_TYPES] = {
  * @returns true if severs is initialized successfully
  */
 static bool init_server();
+
 /**
  * Waits for incoming message
  *
@@ -25,6 +26,7 @@ static bool init_server();
  * @returns true if message is received, false otherwise
  */
 static bool wait_for_message(message **msg);
+
 /**
  * Handles received message
  *
@@ -38,7 +40,6 @@ static void handle_message(message *msg);
  */
 int main()
 {
-    int ret = 0;
     if (!init_server())
     {
         LOG_ERROR("Init server failed");
@@ -53,7 +54,7 @@ int main()
             handle_message(msg);
         }
     }
-    return ret;
+    return 0;
 }
 #endif // __UNIT_TEST__
 
@@ -124,14 +125,8 @@ static void handle_message(message *msg)
  */
 RUNTIME_STATUS ok_callback(message **request)
 {
-    if (!IS_VALID_POINTER(request))
-    {
-        return RUNTIME_STATUS_INVALID_POINTER;
-    }
-    if (MESSAGE_TYPE_OK != (*request)->message_type)
-    {
-        return RUNTIME_STATUS_INVALID_MESSAGE_TYPE;
-    }
+    VALIDATE_REQUEST(MESSAGE_TYPE_OK, request);
+
     LOG_WARN("Unexpected message received: MESSAGE_TYPE_OK");
     *request = NULL;
     return RUNTIME_STATUS_OK;
@@ -146,14 +141,8 @@ RUNTIME_STATUS ok_callback(message **request)
  */
 RUNTIME_STATUS error_callback(message **request)
 {
-    if (!IS_VALID_POINTER(request))
-    {
-        return RUNTIME_STATUS_INVALID_POINTER;
-    }
-    if (MESSAGE_TYPE_ERROR != (*request)->message_type)
-    {
-        return RUNTIME_STATUS_INVALID_MESSAGE_TYPE;
-    }
+    VALIDATE_REQUEST(MESSAGE_TYPE_ERROR, request);
+
     LOG_WARN("Unexpected message received: MESSAGE_TYPE_ERROR");
     *request = NULL;
     return RUNTIME_STATUS_OK;
@@ -171,14 +160,7 @@ RUNTIME_STATUS data_callback(message **request)
     MODEL_STATUS m_status = MODEL_STATUS_OK;
     SERVER_STATUS s_status = SERVER_STATUS_NOTHING;
 
-    if (!IS_VALID_POINTER(request))
-    {
-        return RUNTIME_STATUS_INVALID_POINTER;
-    }
-    if (MESSAGE_TYPE_DATA != (*request)->message_type)
-    {
-        return RUNTIME_STATUS_INVALID_MESSAGE_TYPE;
-    }
+    VALIDATE_REQUEST(MESSAGE_TYPE_DATA, request);
 
     m_status = load_model_input((*request)->payload, MESSAGE_SIZE_PAYLOAD((*request)->message_size));
 
@@ -203,14 +185,8 @@ RUNTIME_STATUS model_callback(message **request)
     MODEL_STATUS m_status = MODEL_STATUS_OK;
     SERVER_STATUS s_status = SERVER_STATUS_NOTHING;
 
-    if (!IS_VALID_POINTER(request))
-    {
-        return RUNTIME_STATUS_INVALID_POINTER;
-    }
-    if (MESSAGE_TYPE_MODEL != (*request)->message_type)
-    {
-        return RUNTIME_STATUS_INVALID_MESSAGE_TYPE;
-    }
+    VALIDATE_REQUEST(MESSAGE_TYPE_MODEL, request);
+
     m_status = load_model_weights((*request)->payload, MESSAGE_SIZE_PAYLOAD((*request)->message_size));
 
     CHECK_MODEL_STATUS_LOG(m_status, request, "load_model_weights returned %d (%s)", m_status,
@@ -234,14 +210,7 @@ RUNTIME_STATUS process_callback(message **request)
     MODEL_STATUS m_status = MODEL_STATUS_OK;
     SERVER_STATUS s_status = SERVER_STATUS_NOTHING;
 
-    if (!IS_VALID_POINTER(request))
-    {
-        return RUNTIME_STATUS_INVALID_POINTER;
-    }
-    if (MESSAGE_TYPE_PROCESS != (*request)->message_type)
-    {
-        return RUNTIME_STATUS_INVALID_MESSAGE_TYPE;
-    }
+    VALIDATE_REQUEST(MESSAGE_TYPE_PROCESS, request);
 
     m_status = run_model();
 
@@ -266,14 +235,7 @@ RUNTIME_STATUS output_callback(message **request)
     MODEL_STATUS m_status = MODEL_STATUS_OK;
     size_t model_output_size = 0;
 
-    if (!IS_VALID_POINTER(request))
-    {
-        return RUNTIME_STATUS_INVALID_POINTER;
-    }
-    if (MESSAGE_TYPE_OUTPUT != (*request)->message_type)
-    {
-        return RUNTIME_STATUS_INVALID_MESSAGE_TYPE;
-    }
+    VALIDATE_REQUEST(MESSAGE_TYPE_OUTPUT, request);
 
     m_status = get_model_output(MAX_MESSAGE_SIZE_BYTES - sizeof(message), (*request)->payload, &model_output_size);
 
@@ -299,14 +261,7 @@ RUNTIME_STATUS stats_callback(message **request)
     MODEL_STATUS m_status = MODEL_STATUS_OK;
     size_t statistics_length = 0;
 
-    if (!IS_VALID_POINTER(request))
-    {
-        return RUNTIME_STATUS_INVALID_POINTER;
-    }
-    if (MESSAGE_TYPE_STATS != (*request)->message_type)
-    {
-        return RUNTIME_STATUS_INVALID_MESSAGE_TYPE;
-    }
+    VALIDATE_REQUEST(MESSAGE_TYPE_STATS, request);
 
     m_status =
         get_statistics(MAX_MESSAGE_SIZE_BYTES - sizeof(message), (uint8_t *)&(*request)->payload, &statistics_length);
@@ -331,14 +286,8 @@ RUNTIME_STATUS iospec_callback(message **request)
     MODEL_STATUS m_status = MODEL_STATUS_OK;
     SERVER_STATUS s_status = SERVER_STATUS_NOTHING;
 
-    if (!IS_VALID_POINTER(request))
-    {
-        return RUNTIME_STATUS_INVALID_POINTER;
-    }
-    if (MESSAGE_TYPE_IOSPEC != (*request)->message_type)
-    {
-        return RUNTIME_STATUS_INVALID_MESSAGE_TYPE;
-    }
+    VALIDATE_REQUEST(MESSAGE_TYPE_IOSPEC, request);
+
     m_status = load_model_struct((*request)->payload, MESSAGE_SIZE_PAYLOAD((*request)->message_size));
 
     CHECK_MODEL_STATUS_LOG(m_status, request, "load_model_struct returned %d (%s)", m_status,

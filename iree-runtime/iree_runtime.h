@@ -10,6 +10,16 @@
 #include "utils/model.h"
 #include "utils/protocol.h"
 
+#define VALIDATE_REQUEST(callback_message_type, request)   \
+    if (!IS_VALID_POINTER(request))                        \
+    {                                                      \
+        return RUNTIME_STATUS_INVALID_POINTER;             \
+    }                                                      \
+    if (callback_message_type != (*request)->message_type) \
+    {                                                      \
+        return RUNTIME_STATUS_INVALID_MESSAGE_TYPE;        \
+    }
+
 #define CHECK_MODEL_STATUS_LOG(status, response, log_format, log_args...)                \
     if (MODEL_STATUS_OK != status)                                                       \
     {                                                                                    \
