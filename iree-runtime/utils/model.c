@@ -14,10 +14,8 @@ MODEL_STATUS load_model_struct(const uint8_t *model_struct_data, const size_t da
 {
     MODEL_STATUS status = MODEL_STATUS_OK;
 
-    if (!IS_VALID_POINTER(model_struct_data))
-    {
-        return MODEL_STATUS_INVALID_POINTER;
-    }
+    VALIDATE_POINTER(model_struct_data, MODEL_STATUS_INVALID_POINTER);
+
     if (sizeof(MlModel) != data_size)
     {
         LOG_ERROR("Wrong model struct size: %d. Should be: %d.", data_size, sizeof(MlModel));
@@ -27,7 +25,8 @@ MODEL_STATUS load_model_struct(const uint8_t *model_struct_data, const size_t da
     g_model_struct = *((MlModel *)model_struct_data);
 
     // validate struct
-    if (g_model_struct.num_input > MAX_MODEL_INPUT_NUM || g_model_struct.num_output > MAX_MODEL_OUTPUTS)
+    if (g_model_struct.num_input < 1 || g_model_struct.num_input > MAX_MODEL_INPUT_NUM ||
+        g_model_struct.num_output < 1 || g_model_struct.num_output > MAX_MODEL_OUTPUTS)
     {
         return MODEL_STATUS_INVALID_ARGUMENT;
     }
@@ -70,10 +69,8 @@ MODEL_STATUS load_model_weights(const uint8_t *model_weights_data, const size_t 
     MODEL_STATUS status = MODEL_STATUS_OK;
     IREE_WRAPPER_STATUS iree_status = IREE_WRAPPER_STATUS_OK;
 
-    if (!IS_VALID_POINTER(model_weights_data))
-    {
-        return MODEL_STATUS_INVALID_POINTER;
-    }
+    VALIDATE_POINTER(model_weights_data, MODEL_STATUS_INVALID_POINTER);
+
     if (g_model_state < MODEL_STATE_STRUCT_LOADED)
     {
         return MODEL_STATUS_INVALID_STATE;
@@ -98,10 +95,8 @@ MODEL_STATUS load_model_input(const uint8_t *model_input, const size_t model_inp
     MODEL_STATUS status = MODEL_STATUS_OK;
     IREE_WRAPPER_STATUS iree_status = IREE_WRAPPER_STATUS_OK;
 
-    if (!IS_VALID_POINTER(model_input))
-    {
-        return MODEL_STATUS_INVALID_POINTER;
-    }
+    VALIDATE_POINTER(model_input, MODEL_STATUS_INVALID_POINTER);
+
     if (g_model_state < MODEL_STATE_WEIGHTS_LOADED)
     {
         return MODEL_STATUS_INVALID_STATE;
@@ -166,10 +161,9 @@ MODEL_STATUS get_model_output(const size_t buffer_size, uint8_t *model_output, s
     MODEL_STATUS status = MODEL_STATUS_OK;
     IREE_WRAPPER_STATUS iree_status = IREE_WRAPPER_STATUS_OK;
 
-    if (!IS_VALID_POINTER(model_output) || !IS_VALID_POINTER(model_output_size))
-    {
-        return MODEL_STATUS_INVALID_POINTER;
-    }
+    VALIDATE_POINTER(model_output, MODEL_STATUS_INVALID_POINTER);
+    VALIDATE_POINTER(model_output_size, MODEL_STATUS_INVALID_POINTER);
+
     if (g_model_state < MODEL_STATE_INFERENCE_DONE)
     {
         return MODEL_STATUS_INVALID_STATE;
@@ -200,10 +194,9 @@ MODEL_STATUS get_statistics(const size_t statistics_buffer_size, uint8_t *statis
     MODEL_STATUS status = MODEL_STATUS_OK;
     IREE_WRAPPER_STATUS iree_status = IREE_WRAPPER_STATUS_OK;
 
-    if (!IS_VALID_POINTER(statistics_buffer) || !IS_VALID_POINTER(statistics_size))
-    {
-        return MODEL_STATUS_INVALID_POINTER;
-    }
+    VALIDATE_POINTER(statistics_buffer, MODEL_STATUS_INVALID_POINTER);
+    VALIDATE_POINTER(statistics_size, MODEL_STATUS_INVALID_POINTER);
+
     if (g_model_state < MODEL_STATE_WEIGHTS_LOADED)
     {
         return MODEL_STATUS_INVALID_STATE;

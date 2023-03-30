@@ -6,11 +6,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef __UNIT_TEST__
 #include "iree_wrapper.h"
+#ifndef __UNIT_TEST__
 #include "springbok.h"
 #else // __UNIT_TEST__
-#include "mocks/iree_wrapper.h"
 #include "mocks/springbok.h"
 #endif // __UNIT_TEST__
 
