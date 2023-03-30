@@ -12,10 +12,8 @@ UART_STATUS uart_init(const uart_config *config)
     {
         return UART_STATUS_OK;
     }
-    if (!IS_VALID_POINTER(config))
-    {
-        return UART_STATUS_INVALID_POINTER;
-    }
+
+    VALIDATE_POINTER(config, UART_STATUS_INVALID_POINTER);
 
     g_uart.registers = (uart_registers *)UART_ADDRESS;
 
@@ -119,10 +117,8 @@ UART_STATUS uart_write(const uint8_t *data, size_t data_length)
     {
         return UART_STATUS_UNINITIALIZED;
     }
-    if (!IS_VALID_POINTER(data))
-    {
-        return UART_STATUS_INVALID_POINTER;
-    }
+
+    VALIDATE_POINTER(data, UART_STATUS_INVALID_POINTER);
 
     UART_STATUS status = UART_STATUS_OK;
 
@@ -139,10 +135,8 @@ UART_STATUS uart_write(const uint8_t *data, size_t data_length)
 
 UART_STATUS uart_getchar(uint8_t *c)
 {
-    if (!IS_VALID_POINTER(c))
-    {
-        return UART_STATUS_INVALID_POINTER;
-    }
+    VALIDATE_POINTER(c, UART_STATUS_INVALID_POINTER);
+
     if (!g_uart.initialized)
     {
         return UART_STATUS_UNINITIALIZED;
@@ -167,10 +161,8 @@ UART_STATUS uart_read(uint8_t *data, size_t data_length)
     register uint32_t start_timer;
     register uint32_t end_timer;
 
-    if (!IS_VALID_POINTER(data))
-    {
-        return UART_STATUS_INVALID_POINTER;
-    }
+    VALIDATE_POINTER(data, UART_STATUS_INVALID_POINTER);
+
     if (!g_uart.initialized)
     {
         return UART_STATUS_UNINITIALIZED;
