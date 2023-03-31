@@ -5,7 +5,7 @@ extern const char *const MESSAGE_TYPE_STR[];
 extern const char *const MODEL_STATUS_STR[];
 extern const char *const SERVER_STATUS_STR[];
 
-callback_ptr msg_callback[NUM_MESSAGE_TYPES] = {
+ut_static callback_ptr msg_callback[NUM_MESSAGE_TYPES] = {
 #define ENTRY(msg_type, callback_func) callback_func,
     CALLBACKS
 #undef ENTRY
@@ -58,7 +58,7 @@ int main()
 }
 #endif // __UNIT_TEST__
 
-static bool init_server()
+bool init_server()
 {
     UART_STATUS uart_status = UART_STATUS_OK;
 
@@ -74,9 +74,14 @@ static bool init_server()
     return true;
 }
 
-static bool wait_for_message(message **msg)
+bool wait_for_message(message **msg)
 {
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
+
+    if (!IS_VALID_POINTER(msg))
+    {
+        return false;
+    }
 
     server_status = receive_message(msg);
     if (SERVER_STATUS_TIMEOUT == server_status)
@@ -95,10 +100,15 @@ static bool wait_for_message(message **msg)
     return true;
 }
 
-static void handle_message(message *msg)
+void handle_message(message *msg)
 {
     RUNTIME_STATUS runtime_status = RUNTIME_STATUS_OK;
     SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
+
+    if (!IS_VALID_POINTER(msg))
+    {
+        return;
+    }
 
     runtime_status = msg_callback[msg->message_type](&msg);
     if (RUNTIME_STATUS_OK != runtime_status)
