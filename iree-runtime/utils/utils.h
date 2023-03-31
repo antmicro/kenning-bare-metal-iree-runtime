@@ -1,6 +1,12 @@
 #ifndef IREE_RUNTIME_UTILS_UTILS_H_
 #define IREE_RUNTIME_UTILS_UTILS_H_
 
+#ifndef __UNIT_TEST__
+#define ut_static static
+#else // __UNIT_TEST__
+#define ut_static
+#endif // __UNIT_TEST__
+
 #define IS_VALID_POINTER(ptr) (NULL != ptr)
 
 #define VALIDATE_POINTER(ptr, error_status) \
