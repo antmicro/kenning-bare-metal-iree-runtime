@@ -4,11 +4,7 @@ const char *const MODEL_STATUS_STR[] = {MODEL_STATUSES(GENERATE_STR)};
 
 MlModel g_model_struct;
 
-#ifndef __UNIT_TEST__
-static MODEL_STATE g_model_state = MODEL_STATE_UNINITIALIZED;
-#else  // __UNIT_TEST__
-MODEL_STATE g_model_state = MODEL_STATE_UNINITIALIZED;
-#endif // __UNIT_TEST__
+ut_static MODEL_STATE g_model_state = MODEL_STATE_UNINITIALIZED;
 
 MODEL_STATUS load_model_struct(const uint8_t *model_struct_data, const size_t data_size)
 {
