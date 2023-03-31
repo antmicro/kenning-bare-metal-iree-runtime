@@ -1,10 +1,6 @@
 #include "uart.h"
 
-#ifndef __UNIT_TEST__
-static uart_t g_uart = {.initialized = false};
-#else  // __UNIT_TEST__
-uart_t g_uart = {.initialized = false};
-#endif // __UNIT_TEST__
+ut_static uart_t g_uart = {.initialized = false};
 
 UART_STATUS uart_init(const uart_config *config)
 {
