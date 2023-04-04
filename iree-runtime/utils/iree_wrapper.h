@@ -5,7 +5,7 @@
 
 #ifndef __UNIT_TEST__
 #include "iree/hal/drivers/local_sync/sync_device.h"
-#include "iree/hal/local/loaders/vmvx_module_loader.h"
+#include "iree/hal/local/loaders/embedded_elf_loader.h"
 #include "iree/modules/hal/module.h"
 #include "iree/vm/bytecode_module.h"
 #else // __UNIT_TEST__
