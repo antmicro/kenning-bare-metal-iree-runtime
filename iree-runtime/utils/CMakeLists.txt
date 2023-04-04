@@ -20,7 +20,7 @@ iree_cc_library(
     "iree_wrapper.c"
   DEPS
     iree::hal::drivers::local_sync::sync_driver
-    iree::hal::local::loaders::vmvx_module_loader
+    iree::hal::local::loaders::embedded_elf_loader
     iree::modules::hal
     iree::vm::bytecode_module
     springbok
