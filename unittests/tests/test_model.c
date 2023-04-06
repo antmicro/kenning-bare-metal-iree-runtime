@@ -61,7 +61,7 @@ TEST_CASE("x")
 TEST_CASE("f15")
 TEST_CASE("i31")
 TEST_CASE("f32x")
-TEST_CASE("abcdefg")
+TEST_CASE("abcd")
 /**
  * Tests model struct parsing for invalid HAL element types
  */
