@@ -54,22 +54,49 @@ if (NOT MINIMAL_BUILD)
     add_subdirectory(iree-runtime iree-runtime)
 endif (NOT MINIMAL_BUILD)
 
-set(FIND_SOURCE_FILES "find ${CMAKE_CURRENT_SOURCE_DIR}/iree-runtime ${UNIT_TESTS_DIR}/tests -iname \"*.c\" -o -iname \"*.h\"")
+set(FIND_SRC_FILES "find \
+    ${CMAKE_CURRENT_SOURCE_DIR}/iree-runtime \
+    -iname \"*.c\" -o -iname \"*.h\"")
+set(FIND_SRC_AND_TEST_FILES "find \
+    ${CMAKE_CURRENT_SOURCE_DIR}/iree-runtime \
+    ${UNIT_TESTS_DIR}/tests \
+    -iname \"*.c\" -o -iname \"*.h\"")
 
-add_custom_target(check-tidy
-    COMMAND bash -c "${FIND_SOURCE_FILES} | xargs clang-tidy -format-style=file -header-filter=. -p ${CMAKE_BINARY_DIR}"
+add_custom_target(clang-tidy-fix
+    COMMAND bash -c "rm -f ${CMAKE_BINARY_DIR}/compile_commands.json && \
+        clang-tidy -format-style=file --use-color -fix \$(${FIND_SRC_FILES}) -- \
+        -isystem ${SPRINGBOK_SOURCE_DIR}/springbok/include \
+        -isystem ${IREE_SOURCE_DIR}/runtime/src \
+        -isystem ${UNIT_TESTS_DIR}/tests \
+        -D__CLANG_TIDY__"
+    USES_TERMINAL
     VERBATIM
 )
-add_custom_target(format
-    COMMAND bash -c "${FIND_SOURCE_FILES} | xargs clang-format --style=file -i"
+add_custom_target(clang-tidy
+    COMMAND bash -c "rm -f ${CMAKE_BINARY_DIR}/compile_commands.json && \
+        clang-tidy -format-style=file --use-color \$(${FIND_SRC_FILES}) -- \
+        -isystem ${SPRINGBOK_SOURCE_DIR}/springbok/include \
+        -isystem ${IREE_SOURCE_DIR}/runtime/src \
+        -isystem ${UNIT_TESTS_DIR}/tests \
+        -D__CLANG_TIDY__"
+    USES_TERMINAL
     VERBATIM
 )
-add_custom_target(check-format
-    COMMAND bash -c "${FIND_SOURCE_FILES} | xargs clang-format --dry-run --Werror --style=file -i"
+add_custom_target(clang-format-fix
+    COMMAND bash -c "${FIND_SRC_AND_TEST_FILES} | xargs \
+        clang-format --style=file -i"
+    USES_TERMINAL
+    VERBATIM
+)
+add_custom_target(clang-format
+    COMMAND bash -c "${FIND_SRC_AND_TEST_FILES} | xargs \
+        clang-format --dry-run --Werror --style=file -i"
+    USES_TERMINAL
     VERBATIM
 )
 add_custom_target(unit-tests
     COMMAND bash -c "ceedling test:all"
+    USES_TERMINAL
     VERBATIM
     WORKING_DIRECTORY ${UNIT_TESTS_DIR}
 )
