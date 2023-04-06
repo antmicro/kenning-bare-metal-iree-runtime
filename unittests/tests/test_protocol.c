@@ -6,8 +6,8 @@
 
 #define TEST_CASE(...)
 
-message *g_message = NULL;
-uint8_t *g_uart_buffer = NULL;
+message *gp_message = NULL;
+uint8_t *gp_uart_buffer = NULL;
 
 /**
  * Mocks UART read function
@@ -32,7 +32,7 @@ UART_STATUS mock_uart_read(uint8_t *data, size_t data_length, int num_calls);
 UART_STATUS mock_uart_write(const uint8_t *data, size_t data_length, int num_calls);
 
 /**
- * Prepares message of given type and payload and store result in g_message
+ * Prepares message of given type and payload and store result in gp_message
  *
  * @param msg_type type of the message
  * @param payload payload of the message
@@ -48,15 +48,15 @@ void setUp(void)
 
 void tearDown(void)
 {
-    if (IS_VALID_POINTER(g_message))
+    if (IS_VALID_POINTER(gp_message))
     {
-        free(g_message);
-        g_message = NULL;
+        free(gp_message);
+        gp_message = NULL;
     }
-    if (IS_VALID_POINTER(g_uart_buffer))
+    if (IS_VALID_POINTER(gp_uart_buffer))
     {
-        free(g_uart_buffer);
-        g_uart_buffer = NULL;
+        free(gp_uart_buffer);
+        gp_uart_buffer = NULL;
     }
 }
 
@@ -81,8 +81,8 @@ void test_ProtocolReceiveMessageShouldReadMessageWithoutPayloadFromUART(uint32_t
     server_status = receive_message(&msg);
 
     TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_DATA_READY, server_status);
-    TEST_ASSERT_EQUAL_UINT(g_message->message_size, msg->message_size);
-    TEST_ASSERT_EQUAL_UINT(g_message->message_type, msg->message_type);
+    TEST_ASSERT_EQUAL_UINT(gp_message->message_size, msg->message_size);
+    TEST_ASSERT_EQUAL_UINT(gp_message->message_type, msg->message_type);
 }
 
 TEST_CASE(2) // MESSAGE_TYPE_DATA
@@ -103,8 +103,8 @@ void test_ProtocolReceiveMessageShouldReadMessageWithPayloadFromUART(uint32_t me
     server_status = receive_message(&msg);
 
     TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_DATA_READY, server_status);
-    TEST_ASSERT_EQUAL_UINT(g_message->message_size, msg->message_size);
-    TEST_ASSERT_EQUAL_UINT(g_message->message_type, msg->message_type);
+    TEST_ASSERT_EQUAL_UINT(gp_message->message_size, msg->message_size);
+    TEST_ASSERT_EQUAL_UINT(gp_message->message_type, msg->message_type);
     TEST_ASSERT_EQUAL_UINT8_ARRAY(message_data, msg->payload, sizeof(message_data));
 }
 
@@ -133,7 +133,7 @@ void test_ProtocolReceiveMessageShouldFailIfMessageTooBig(void)
     message *msg;
 
     prepare_message(MESSAGE_TYPE_DATA, message_data, sizeof(message_data));
-    g_message->message_size = MAX_MESSAGE_SIZE_BYTES + 1;
+    gp_message->message_size = MAX_MESSAGE_SIZE_BYTES + 1;
 
     server_status = receive_message(&msg);
 
@@ -189,15 +189,15 @@ void test_ProtocolSendMessageShouldWriteMessageWithourPayloadToUART(uint32_t mes
 
     prepare_message(message_type, NULL, 0);
 
-    server_status = send_message(g_message);
+    server_status = send_message(gp_message);
 
     message test;
-    message *msg_from_buffer = (message *)g_uart_buffer;
+    message *msg_from_buffer = (message *)gp_uart_buffer;
 
     TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_NOTHING, server_status);
-    TEST_ASSERT_EQUAL_UINT(g_message->message_size, msg_from_buffer->message_size);
-    TEST_ASSERT_EQUAL_UINT(g_message->message_type, msg_from_buffer->message_type);
-    TEST_ASSERT_EQUAL_UINT8_ARRAY(g_message->payload, msg_from_buffer->payload, g_message->message_size);
+    TEST_ASSERT_EQUAL_UINT(gp_message->message_size, msg_from_buffer->message_size);
+    TEST_ASSERT_EQUAL_UINT(gp_message->message_type, msg_from_buffer->message_type);
+    TEST_ASSERT_EQUAL_UINT8_ARRAY(gp_message->payload, msg_from_buffer->payload, gp_message->message_size);
 }
 
 TEST_CASE(2) // MESSAGE_TYPE_DATA
@@ -214,15 +214,15 @@ void test_ProtocolSendMessageShouldWriteMessageWithPayloadToUART(uint32_t messag
 
     prepare_message(message_type, message_payload, sizeof(message_payload));
 
-    server_status = send_message(g_message);
+    server_status = send_message(gp_message);
 
     message test;
-    message *msg_from_buffer = (message *)g_uart_buffer;
+    message *msg_from_buffer = (message *)gp_uart_buffer;
 
     TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_NOTHING, server_status);
-    TEST_ASSERT_EQUAL_UINT(g_message->message_size, msg_from_buffer->message_size);
-    TEST_ASSERT_EQUAL_UINT(g_message->message_type, msg_from_buffer->message_type);
-    TEST_ASSERT_EQUAL_UINT8_ARRAY(g_message->payload, msg_from_buffer->payload, g_message->message_size);
+    TEST_ASSERT_EQUAL_UINT(gp_message->message_size, msg_from_buffer->message_size);
+    TEST_ASSERT_EQUAL_UINT(gp_message->message_type, msg_from_buffer->message_type);
+    TEST_ASSERT_EQUAL_UINT8_ARRAY(gp_message->payload, msg_from_buffer->payload, gp_message->message_size);
 }
 
 /**
@@ -247,7 +247,7 @@ void test_ProtocolSendMessageShouldFailIfUARTWriteFails(void)
     prepare_message(MESSAGE_TYPE_OK, NULL, 0);
     uart_write_IgnoreAndReturn(UART_STATUS_TIMEOUT);
 
-    server_status = send_message(g_message);
+    server_status = send_message(gp_message);
 
     TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_TIMEOUT, server_status);
 }
@@ -325,15 +325,15 @@ UART_STATUS mock_uart_read(uint8_t *data, size_t data_length, int num_calls)
     switch (data_read)
     {
     case 0:
-        memcpy(data, &g_message->message_size, sizeof(message_size_t));
+        memcpy(data, &gp_message->message_size, sizeof(message_size_t));
         data_read += data_length;
         break;
     case sizeof(message_size_t):
-        memcpy(data, &g_message->message_type, sizeof(message_type_t));
+        memcpy(data, &gp_message->message_type, sizeof(message_type_t));
         data_read += data_length;
         break;
     case sizeof(message):
-        memcpy(data, &g_message->payload, g_message->message_size);
+        memcpy(data, &gp_message->payload, gp_message->message_size);
         data_read = 0;
         break;
     default:
@@ -345,14 +345,14 @@ UART_STATUS mock_uart_read(uint8_t *data, size_t data_length, int num_calls)
 
 UART_STATUS mock_uart_write(const uint8_t *data, size_t data_length, int num_calls)
 {
-    if (IS_VALID_POINTER(g_uart_buffer))
+    if (IS_VALID_POINTER(gp_uart_buffer))
     {
-        free(g_uart_buffer);
-        g_uart_buffer = NULL;
+        free(gp_uart_buffer);
+        gp_uart_buffer = NULL;
     }
 
-    g_uart_buffer = malloc(data_length);
-    memcpy(g_uart_buffer, data, data_length);
+    gp_uart_buffer = malloc(data_length);
+    memcpy(gp_uart_buffer, data, data_length);
 
     return UART_STATUS_OK;
 }
@@ -363,16 +363,16 @@ UART_STATUS mock_uart_write(const uint8_t *data, size_t data_length, int num_cal
 
 void prepare_message(message_type_t msg_type, uint8_t *payload, size_t payload_size)
 {
-    if (IS_VALID_POINTER(g_message))
+    if (IS_VALID_POINTER(gp_message))
     {
-        free(g_message);
-        g_message = NULL;
+        free(gp_message);
+        gp_message = NULL;
     }
-    g_message = malloc(sizeof(message) + payload_size);
-    g_message->message_size = sizeof(message_type_t) + payload_size;
-    g_message->message_type = msg_type;
+    gp_message = malloc(sizeof(message) + payload_size);
+    gp_message->message_size = sizeof(message_type_t) + payload_size;
+    gp_message->message_type = msg_type;
     if (payload_size > 0)
     {
-        memcpy(g_message->payload, payload, payload_size);
+        memcpy(gp_message->payload, payload, payload_size);
     }
 }
