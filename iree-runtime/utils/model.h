@@ -7,16 +7,16 @@
 #include <string.h>
 
 #include "iree_wrapper.h"
-#ifndef __UNIT_TEST__
+#if !(defined(__UNIT_TEST__) || defined(__CLANG_TIDY__))
 #include "springbok.h"
-#else // __UNIT_TEST__
+#else // !(defined(__UNIT_TEST__) || defined(__CLANG_TIDY__))
 #include "mocks/springbok.h"
-#endif // __UNIT_TEST__
+#endif // !(defined(__UNIT_TEST__) || defined(__CLANG_TIDY__))
 
-#define CHECK_IREE_WRAPPER_STATUS(status) \
-    if (IREE_WRAPPER_STATUS_OK != status) \
-    {                                     \
-        return MODEL_STATUS_IREE_ERROR;   \
+#define CHECK_IREE_WRAPPER_STATUS(status)   \
+    if (IREE_WRAPPER_STATUS_OK != (status)) \
+    {                                       \
+        return MODEL_STATUS_IREE_ERROR;     \
     }
 
 /**
@@ -59,12 +59,12 @@ MODEL_STATUS load_model_struct(const uint8_t *model_struct_data, const size_t da
 /**
  * Loads model weights from given buffer
  *
- * @param model_data buffer that contains model weights
+ * @param model_weights_data buffer that contains model weights
  * @param model_data_size size of the buffer
  *
  * @returns status of the model
  */
-MODEL_STATUS load_model_weights(const uint8_t *model_data, const size_t model_data_size);
+MODEL_STATUS load_model_weights(const uint8_t *model_weights_data, const size_t model_data_size);
 
 /**
  * Loads model input from given buffer

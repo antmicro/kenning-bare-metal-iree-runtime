@@ -48,7 +48,7 @@ MODEL_STATUS load_model_struct(const uint8_t *model_struct_data, const size_t da
     else
     IREE_HAL_ELEMENT_TYPES(CHECK_HAL_ELEM_TYPE)
     {
-        LOG_ERROR("Wrong dtype %s", dtype);
+        LOG_ERROR("Wrong dtype %.4s", dtype);
         return MODEL_STATUS_INVALID_ARGUMENT;
     }
 #undef CHECK_HAL_ELEM_TYPE
