@@ -13,15 +13,15 @@ UART_STATUS uart_init(const uart_config *config)
 
     g_uart.registers = (uart_registers *)UART_ADDRESS;
 
-    if (config->data_bits < 5u || config->data_bits > 8u)
+    if (config->data_bits < 5U || config->data_bits > 8U)
     {
         return UART_STATUS_INVALID_ARGUMENT_WORDSIZE;
     }
-    if (config->stop_bits == 0u || config->stop_bits > 2u)
+    if (config->stop_bits == 0U || config->stop_bits > 2U)
     {
         return UART_STATUS_INVALID_ARGUMENT_STOP_BITS;
     }
-#define CHECK_UART(baudrate_value) (baudrate_value == config->baudrate) ||
+#define CHECK_UART(baudrate_value) ((baudrate_value) == config->baudrate) ||
     if (!(BAUDRATE_VALUES(CHECK_UART) false))
     {
         return UART_STATUS_INVALID_ARGUMENT_BAUDRATE;
@@ -36,13 +36,13 @@ UART_STATUS uart_init(const uart_config *config)
 
     double intpart = 0;
     double fractpart = 0;
-    double baudrate_divisor = (double)REF_CLOCK / (16u * config->baudrate);
+    double baudrate_divisor = (double)REF_CLOCK / (16U * config->baudrate);
     fractpart = modf(baudrate_divisor, &intpart);
 
     g_uart.registers->IBRD = (uint16_t)intpart;
-    g_uart.registers->FBRD = (uint8_t)((fractpart * 64u) + 0.5);
+    g_uart.registers->FBRD = (uint8_t)lround((fractpart * 64U) + 0.5);
 
-    uint32_t lcrh = 0u;
+    uint32_t lcrh = 0U;
 
     switch (config->data_bits)
     {
@@ -73,11 +73,11 @@ UART_STATUS uart_init(const uart_config *config)
         lcrh &= ~LCRH_SPS;
     }
 
-    if (config->stop_bits == 1u)
+    if (config->stop_bits == 1U)
     {
         lcrh &= ~LCRH_STP2;
     }
-    else if (config->stop_bits == 2u)
+    else if (config->stop_bits == 2U)
     {
         lcrh |= LCRH_STP2;
     }

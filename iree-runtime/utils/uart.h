@@ -12,18 +12,18 @@
  * Supported baudrate values
  */
 #define BAUDRATE_VALUES(BAUDRATE) \
-    BAUDRATE(110u)                \
-    BAUDRATE(300u)                \
-    BAUDRATE(600u)                \
-    BAUDRATE(1200u)               \
-    BAUDRATE(2400u)               \
-    BAUDRATE(4800u)               \
-    BAUDRATE(9600u)               \
-    BAUDRATE(14400u)              \
-    BAUDRATE(19200u)              \
-    BAUDRATE(38400u)              \
-    BAUDRATE(57600u)              \
-    BAUDRATE(115200u)
+    BAUDRATE(110U)                \
+    BAUDRATE(300U)                \
+    BAUDRATE(600U)                \
+    BAUDRATE(1200U)               \
+    BAUDRATE(2400U)               \
+    BAUDRATE(4800U)               \
+    BAUDRATE(9600U)               \
+    BAUDRATE(14400U)              \
+    BAUDRATE(19200U)              \
+    BAUDRATE(38400U)              \
+    BAUDRATE(57600U)              \
+    BAUDRATE(115200U)
 
 /**
  * An enum that describes UART status
@@ -83,8 +83,8 @@ typedef struct
 #ifndef __UNIT_TEST__
 #define UART_ADDRESS (0x40000000) /* address of UART registers */
 #else                             // __UNIT_TEST_
-extern uart_registers mock_uart_registers;
-#define UART_ADDRESS (&mock_uart_registers)
+extern uart_registers g_mock_uart_registers;
+#define UART_ADDRESS (&g_mock_uart_registers)
 #endif                        // __UNIT_TEST_
 #define REF_CLOCK (24000000u) /* UART reference clock (24 MHz) */
 
