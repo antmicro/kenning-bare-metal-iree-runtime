@@ -2,42 +2,54 @@ image: $CI_IMAGE
 
 variables:
     GIT_STRATEGY: clone
-    GIT_SUBMODULE_STRATEGY: recursive
 
 stages:
     - lint
     - build
     - tests
 
-before_script:
-    - mkdir -p build
-    - ln -s /build/toolchain_iree_rv32imf ./build/toolchain_iree_rv32imf
-    - ln -s /build/iree_compiler ./build/iree_compiler
-    - export PATH=${HOME}/.local/bin:${PATH}
-    - build_tools/configure_cmake.sh -G Ninja
+.build_prepare: &build_prepare
+    variables:
+        GIT_SUBMODULE_STRATEGY: recursive
+    before_script:
+        - mkdir -p build
+        - ln -s /build/toolchain_iree_rv32imf ./build/toolchain_iree_rv32imf
+        - ln -s /build/iree_compiler ./build/iree_compiler
+        - export PATH=${HOME}/.local/bin:${PATH}
+        - build_tools/configure_cmake.sh -G Ninja
 
-format:
-    stage: lint
+.minimal_build_prepare: &minimal_build_prepare
     variables:
         GIT_SUBMODULE_STRATEGY: none
     before_script:
         - cmake -B build/build-riscv -G Ninja -DMINIMAL_BUILD=True
+
+clang_format:
+    stage: lint
+    <<: *minimal_build_prepare
     script:
-        - cmake --build build/build-riscv --target check-format
+        - cmake --build build/build-riscv --target clang-format
+    allow_failure: false
+
+clang_tidy:
+    stage: lint
+    <<: *build_prepare
+    script:
+        - apt-get update
+        - apt-get -y install clang-tidy
+        - cmake --build build/build-riscv --target clang-tidy
     allow_failure: false
 
 build:
     stage: build
+    <<: *build_prepare
     script:
         - cmake --build build/build-riscv
     allow_failure: false
 
 unit_tests:
     stage: tests
-    variables:
-        GIT_SUBMODULE_STRATEGY: none
-    before_script:
-        - cmake -B build/build-riscv -G Ninja -DMINIMAL_BUILD=True
+    <<: *minimal_build_prepare
     script:
         - cmake --build build/build-riscv --target unit-tests
     allow_failure: false
