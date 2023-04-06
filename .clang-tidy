@@ -1,9 +1,12 @@
 FormatStyle: LLVM
-Checks: 'clang-diagnostic-*,clang-analyzer-*,modernize-*,-modernize-use-trailing-return-type,readability-braces-around-statements,readability-identifier-naming'
-HeaderFilterRegex: ''
-WarningsAsErrors: true
+Checks: '-*,readability-*,bugprone-*'
+HeaderFilterRegex: '.*'
+WarningsAsErrors: '*,-readability-magic-numbers,-readability-avoid-const-params-in-decls,-bugprone-sizeof-expression,-bugprone-branch-clone'
 CheckOptions:
-  - { key: readability-identifier-naming.StructCase,          value: CamelCase  }
-  - { key: readability-identifier-naming.FunctionCase,        value: lower_case }
-  - { key: readability-identifier-naming.VariableCase,        value: lower_case }
-  - { key: readability-identifier-naming.GlobalConstantCase,  value: UPPER_CASE }
+  - { key: readability-identifier-naming.EnumCase,              value: UPPER_CASE }
+  - { key: readability-identifier-naming.FunctionCase,          value: lower_case }
+  - { key: readability-identifier-naming.GlobalConstantCase,    value: UPPER_CASE }
+  - { key: readability-identifier-naming.GlobalPointerPrefix,   value: gp_        }
+  - { key: readability-identifier-naming.GlobalVariablePrefix,  value: g_         }
+  - { key: readability-identifier-naming.StructCase,            value: CamelCase  }
+  - { key: readability-identifier-naming.VariableCase,          value: lower_case }
