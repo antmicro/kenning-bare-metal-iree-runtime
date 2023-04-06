@@ -7,7 +7,7 @@
 #define ut_static
 #endif // __UNIT_TEST__
 
-#define IS_VALID_POINTER(ptr) (NULL != ptr)
+#define IS_VALID_POINTER(ptr) (NULL != (ptr))
 
 #define VALIDATE_POINTER(ptr, error_status) \
     if (!IS_VALID_POINTER(ptr))             \
@@ -30,9 +30,9 @@
 #define CSR_READ(v, csr)                      \
     do                                        \
     {                                         \
-        extern uint32_t mock_csr;             \
+        extern uint32_t g_mock_csr;           \
         extern void mock_csr_read_callback(); \
-        v = mock_csr;                         \
+        (v) = g_mock_csr;                     \
         mock_csr_read_callback();             \
     } while (0);
 #endif // __UNIT_TEST__
