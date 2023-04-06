@@ -5,7 +5,7 @@ extern const char *const MESSAGE_TYPE_STR[];
 extern const char *const MODEL_STATUS_STR[];
 extern const char *const SERVER_STATUS_STR[];
 
-ut_static callback_ptr msg_callback[NUM_MESSAGE_TYPES] = {
+ut_static callback_ptr g_msg_callback[NUM_MESSAGE_TYPES] = {
 #define ENTRY(msg_type, callback_func) callback_func,
     CALLBACKS
 #undef ENTRY
@@ -110,7 +110,7 @@ void handle_message(message *msg)
         return;
     }
 
-    runtime_status = msg_callback[msg->message_type](&msg);
+    runtime_status = g_msg_callback[msg->message_type](&msg);
     if (RUNTIME_STATUS_OK != runtime_status)
     {
         LOG_ERROR("Runtime error: %d (%s)", runtime_status, RUNTIME_STATUS_STR[runtime_status]);

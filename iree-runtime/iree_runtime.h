@@ -1,23 +1,23 @@
 #ifndef IREE_RUNTIME_IREE_RUNTIME_H_
 #define IREE_RUNTIME_IREE_RUNTIME_H_
 
-#ifndef __UNIT_TEST__
+#if !(defined(__UNIT_TEST__) || defined(__CLANG_TIDY__))
 #include "springbok.h"
-#else // __UNIT_TEST__
+#else // !(defined(__UNIT_TEST__) || defined(__CLANG_TIDY__))
 #include "mocks/springbok.h"
-#endif // __UNIT_TEST__
+#endif // !(defined(__UNIT_TEST__) || defined(__CLANG_TIDY__))
 
 #include "utils/model.h"
 #include "utils/protocol.h"
 
-#define VALIDATE_REQUEST(callback_message_type, request)   \
-    if (!IS_VALID_POINTER(request))                        \
-    {                                                      \
-        return RUNTIME_STATUS_INVALID_POINTER;             \
-    }                                                      \
-    if (callback_message_type != (*request)->message_type) \
-    {                                                      \
-        return RUNTIME_STATUS_INVALID_MESSAGE_TYPE;        \
+#define VALIDATE_REQUEST(callback_message_type, request)       \
+    if (!IS_VALID_POINTER(request))                            \
+    {                                                          \
+        return RUNTIME_STATUS_INVALID_POINTER;                 \
+    }                                                          \
+    if ((callback_message_type) != (*(request))->message_type) \
+    {                                                          \
+        return RUNTIME_STATUS_INVALID_MESSAGE_TYPE;            \
     }
 
 #define CHECK_MODEL_STATUS_LOG(status, response, log_format, log_args...)                \
@@ -27,10 +27,7 @@
         RETURN_ON_ERROR(prepare_failure_response(request), RUNTIME_STATUS_SERVER_ERROR); \
         return RUNTIME_STATUS_MODEL_ERROR;                                               \
     }                                                                                    \
-    else                                                                                 \
-    {                                                                                    \
-        LOG_INFO(log_format, ##log_args);                                                \
-    }
+    LOG_INFO(log_format, ##log_args);
 
 /**
  * An enum that describes runtime status
