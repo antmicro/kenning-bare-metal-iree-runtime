@@ -13,8 +13,8 @@ stages:
         GIT_SUBMODULE_STRATEGY: recursive
     before_script:
         - mkdir -p build
-        - ln -s /build/toolchain_iree_rv32imf ./build/toolchain_iree_rv32imf
-        - ln -s /build/iree_compiler ./build/iree_compiler
+        - ln -s /opt/toolchain_iree_rv32imf ./build/toolchain_iree_rv32imf
+        - ln -s /opt/iree_compiler ./build/iree_compiler
         - export PATH=${HOME}/.local/bin:${PATH}
         - build_tools/configure_cmake.sh -G Ninja
 
