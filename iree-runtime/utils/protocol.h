@@ -4,18 +4,18 @@
 #include "uart.h"
 
 #define CHECK_UART_STATUS(status)                 \
-    if (UART_STATUS_TIMEOUT == status)            \
+    if (UART_STATUS_TIMEOUT == (status))          \
     {                                             \
         return SERVER_STATUS_TIMEOUT;             \
     }                                             \
-    if (UART_STATUS_OK != status)                 \
+    if (UART_STATUS_OK != (status))               \
     {                                             \
         return SERVER_STATUS_CLIENT_DISCONNECTED; \
     }
 
 #define MAX_MESSAGE_SIZE_BYTES (3 * 1024 * 1024) // 3MB
 
-#define MESSAGE_SIZE_PAYLOAD(msg_size) (msg_size - sizeof(message_type_t))
+#define MESSAGE_SIZE_PAYLOAD(msg_size) ((msg_size) - sizeof(message_type_t))
 #define MESSAGE_SIZE_FULL(msg_size) (sizeof(message) + MESSAGE_SIZE_PAYLOAD(msg_size))
 
 /**
