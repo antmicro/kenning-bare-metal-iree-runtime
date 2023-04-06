@@ -6,8 +6,8 @@
 
 #define TEST_CASE(...)
 
-uart_registers mock_uart_registers;
-uint32_t mock_csr = 0;
+uart_registers g_mock_uart_registers;
+uint32_t g_mock_csr = 0;
 extern uart_t g_uart;
 
 /**
@@ -182,7 +182,7 @@ void test_UARTPutCharShouldWriteToDataRegister(uint8_t c)
     uart_status = uart_putchar(c);
 
     TEST_ASSERT_EQUAL_UINT(UART_STATUS_OK, uart_status);
-    TEST_ASSERT_EQUAL_UINT8(c, mock_uart_registers.DR & DR_DATA_MASK);
+    TEST_ASSERT_EQUAL_UINT8(c, g_mock_uart_registers.DR & DR_DATA_MASK);
 }
 
 /**
@@ -195,12 +195,12 @@ void test_UARTPutCharShouldFailAndDontWriteToDRIfUARTIsNotInitialized(void)
     const uint32_t dr = 0xABCD;
 
     g_uart.initialized = false;
-    mock_uart_registers.DR = dr;
+    g_mock_uart_registers.DR = dr;
 
     uart_status = uart_putchar(c);
 
     TEST_ASSERT_EQUAL_UINT(UART_STATUS_UNINITIALIZED, uart_status);
-    TEST_ASSERT_EQUAL_UINT32(dr, mock_uart_registers.DR);
+    TEST_ASSERT_EQUAL_UINT32(dr, g_mock_uart_registers.DR);
 }
 
 // ========================================================
@@ -222,7 +222,7 @@ void test_UARTWriteShouldWriteStringToDataRegister(char *data)
     uart_status = uart_write(data, sizeof(data));
 
     TEST_ASSERT_EQUAL_UINT(UART_STATUS_OK, uart_status);
-    TEST_ASSERT_EQUAL_UINT8(data[sizeof(data) - 1], mock_uart_registers.DR & DR_DATA_MASK);
+    TEST_ASSERT_EQUAL_UINT8(data[sizeof(data) - 1], g_mock_uart_registers.DR & DR_DATA_MASK);
 }
 
 /**
@@ -249,12 +249,12 @@ void test_UARTWriteShouldSucceedAndDontWriteToDRForNoData(void)
     const uint32_t dr = 0xABCD;
 
     g_uart.initialized = true;
-    mock_uart_registers.DR = dr;
+    g_mock_uart_registers.DR = dr;
 
     uart_status = uart_write(data, 0);
 
     TEST_ASSERT_EQUAL_UINT(UART_STATUS_OK, uart_status);
-    TEST_ASSERT_EQUAL_UINT32(dr, mock_uart_registers.DR);
+    TEST_ASSERT_EQUAL_UINT32(dr, g_mock_uart_registers.DR);
 }
 
 /**
@@ -267,12 +267,12 @@ void test_UARTWriteShouldFailAndDontWriteToDRIfUARTIsNotInitialized(void)
     const uint32_t dr = 0xABCD;
 
     g_uart.initialized = false;
-    mock_uart_registers.DR = dr;
+    g_mock_uart_registers.DR = dr;
 
     uart_status = uart_write(data, sizeof(data));
 
     TEST_ASSERT_EQUAL_UINT(UART_STATUS_UNINITIALIZED, uart_status);
-    TEST_ASSERT_EQUAL_UINT32(dr, mock_uart_registers.DR);
+    TEST_ASSERT_EQUAL_UINT32(dr, g_mock_uart_registers.DR);
 }
 
 // ========================================================
@@ -483,7 +483,7 @@ void test_UARTReadShouldReturnTimeoutIfNoData(void)
 // mocks
 // ========================================================
 
-void mock_csr_read_callback() { mock_csr += TIMER_CLOCK_FREQ >> 4; }
+void mock_csr_read_callback() { g_mock_csr += TIMER_CLOCK_FREQ >> 4; }
 
 // ========================================================
 // helper functions
@@ -497,22 +497,22 @@ static uart_config get_valid_uart_config()
 
 static void clear_FR_TXFF_flag()
 {
-    uint32_t *FR_ptr = (uint32_t *)&mock_uart_registers.FR;
+    uint32_t *FR_ptr = (uint32_t *)&g_mock_uart_registers.FR;
     *FR_ptr &= ~FR_TXFF;
 }
 
 static void clear_FR_RXFE_flag()
 {
-    uint32_t *FR_ptr = (uint32_t *)&mock_uart_registers.FR;
+    uint32_t *FR_ptr = (uint32_t *)&g_mock_uart_registers.FR;
     *FR_ptr &= ~FR_RXFE;
 }
 
 static void set_FR_RXFE_flag()
 {
-    uint32_t *FR_ptr = (uint32_t *)&mock_uart_registers.FR;
+    uint32_t *FR_ptr = (uint32_t *)&g_mock_uart_registers.FR;
     *FR_ptr |= FR_RXFE;
 }
 
-static void clear_RSRECR_ERR_flag() { mock_uart_registers.RSRECR &= ~RSRECR_ERR_MASK; }
+static void clear_RSRECR_ERR_flag() { g_mock_uart_registers.RSRECR &= ~RSRECR_ERR_MASK; }
 
-static void set_RSRECR_ERR_flag() { mock_uart_registers.RSRECR |= RSRECR_ERR_MASK; }
+static void set_RSRECR_ERR_flag() { g_mock_uart_registers.RSRECR |= RSRECR_ERR_MASK; }
