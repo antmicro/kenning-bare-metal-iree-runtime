@@ -217,7 +217,7 @@ IREE_WRAPPER_STATUS prepare_input_buffer(const MlModel *model_struct, const uint
     iree_status_t iree_status = iree_ok_status();
 
     iree_status = iree_vm_list_create(
-        /*element_type=*/NULL, /*capacity=*/model_struct->num_input, iree_allocator_system(), &gp_model_inputs);
+        /*element_type=*/NULL, /*initial_capacity=*/model_struct->num_input, iree_allocator_system(), &gp_model_inputs);
     RETURN_ON_ERROR(iree_status, (IREE_WRAPPER_STATUS)iree_status);
 
     iree_hal_buffer_view_t *arg_buffer_views[MAX_MODEL_INPUT_NUM] = {NULL};
@@ -240,7 +240,7 @@ IREE_WRAPPER_STATUS prepare_output_buffer()
     iree_status_t iree_status = iree_ok_status();
 
     iree_status = iree_vm_list_create(
-        /*element_type=*/NULL, /*capacity=*/1, iree_allocator_system(), &gp_model_outputs);
+        /*element_type=*/NULL, /*initial_capacity=*/1, iree_allocator_system(), &gp_model_outputs);
 
     return (IREE_WRAPPER_STATUS)iree_status;
 }

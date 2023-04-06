@@ -64,10 +64,10 @@ typedef struct __attribute__((packed))
         break;                           \
     }
 
-#define CHECK_IREE_STATUS(status)           \
-    if (!iree_status_is_ok(status))         \
-    {                                       \
-        return (IREE_WRAPPER_STATUS)status; \
+#define CHECK_IREE_STATUS(status)             \
+    if (!iree_status_is_ok(status))           \
+    {                                         \
+        return (IREE_WRAPPER_STATUS)(status); \
     }
 
 /**
