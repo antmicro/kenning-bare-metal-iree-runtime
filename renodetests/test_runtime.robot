@@ -25,16 +25,17 @@ Inference Test
     [Documentation]     Starts IREE bare-metal runtime, performs inference using Kenning and checks if there was no
     ...                 errors
     # start the IREE runtime
+                        Log To File                     ${CURDIR}/results/runtime_log.txt
+                        ...                             flushAfterEveryWrite=${True}
                         Execute Command                 $bin=@${RUNTIME_BINARY_PATH}
                         Execute Command                 i @${CURDIR}/../sim/config/springbok.resc
                         Execute Command                 start
                         Execute Command                 sysbus.vec_controlblock WriteDoubleWord 0xc 0
     # crete testers for logs and UART
-    ${log_tester}=      Create Log Tester               timeout=5.0
-    ${uart_tester}=     Create Terminal Tester          ${UART}
+    ${log_tester}=      Create Log Tester               timeout=0.5
+    ${uart_tester}=     Create Terminal Tester          ${UART}    timeout=0.5
     # verify that UART is idle
-                        Test If Uart Is Idle            timeout=1    testerId=${uart_tester}
-
+                        Test If Uart Is Idle            timeout=0.5    testerId=${uart_tester}
     # start Kenning inference client
     ${kenning}=         Start Process                   bash    renodetests/run_kenning_inference_tester.sh
                         ...                             shell=True    cwd=${CURDIR}/..
@@ -47,11 +48,12 @@ Inference Test
     ${result}=          Wait For Process                ${kenning}    timeout=600
     # verify that inference client does not return error
                         Should Be Equal As Integers     ${result.rc}    0
-    # verify that there was no runtime errors
-                        Should Not Be In Log            .*ERROR.*    treatAsRegex=True
+                        Sleep                           1s
+    # verify that there wereqqqq no runtime errors
+    ${logs}=            Get File                        ${CURDIR}/results/runtime_log.txt
+                        Should Not Contain              ${logs}    ERROR
     # verify that UART is idle
-                        Sleep                           5s
-                        Test If Uart Is Idle            timeout=1    testerId=${uart_tester}
+                        Test If Uart Is Idle            timeout=0.5    testerId=${uart_tester}
     # gather opcode stats
     ${opcode_stats}=    Execute Command                 sysbus.cpu GetAllOpcodesCounters
     # remove double newlines
