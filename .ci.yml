@@ -45,6 +45,10 @@ build:
     <<: *build_prepare
     script:
         - cmake --build build/build-riscv
+    artifacts:
+        paths:
+        - build/build-riscv/iree-runtime/iree_runtime
+        expire_in: 4 hour
     allow_failure: false
 
 unit_tests:
@@ -56,8 +60,9 @@ unit_tests:
 
 renode_tests:
     stage: tests
-    <<: *build_prepare
+    <<: *minimal_build_prepare
+    variables:
+        GIT_SUBMODULE_STRATEGY: normal
     script:
-        - cmake --build build/build-riscv
         - cmake --build build/build-riscv --target renode-tests
     allow_failure: false
