@@ -15,7 +15,6 @@ stages:
         - mkdir -p build
         - ln -s /opt/toolchain_iree_rv32imf ./build/toolchain_iree_rv32imf
         - ln -s /opt/iree_compiler ./build/iree_compiler
-        - ln -s /opt/renode ./build/renode
         - export PATH=${HOME}/.local/bin:${PATH}
         - build_tools/configure_cmake.sh -G Ninja
 
@@ -63,5 +62,6 @@ renode_tests:
     variables:
         GIT_SUBMODULE_STRATEGY: normal
     script:
+        - ln -s /opt/renode ./build/renode
         - cmake --build build/build-riscv --target renode-tests
     allow_failure: false
