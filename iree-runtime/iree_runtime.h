@@ -27,7 +27,7 @@
         RETURN_ON_ERROR(prepare_failure_response(request), RUNTIME_STATUS_SERVER_ERROR); \
         return RUNTIME_STATUS_MODEL_ERROR;                                               \
     }                                                                                    \
-    LOG_INFO(log_format, ##log_args);
+    LOG_DEBUG(log_format, ##log_args);
 
 /**
  * An enum that describes runtime status

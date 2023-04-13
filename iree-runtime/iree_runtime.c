@@ -94,8 +94,8 @@ bool wait_for_message(message **msg)
         LOG_ERROR("Error receiving message: %d (%s)", server_status, SERVER_STATUS_STR[server_status]);
         return false;
     }
-    LOG_INFO("Received message. Size: %d, type: %d (%s)", (*msg)->message_size, (*msg)->message_type,
-             MESSAGE_TYPE_STR[(*msg)->message_type]);
+    LOG_DEBUG("Received message. Size: %d, type: %d (%s)", (*msg)->message_size, (*msg)->message_type,
+              MESSAGE_TYPE_STR[(*msg)->message_type]);
 
     return true;
 }
@@ -117,8 +117,8 @@ void handle_message(message *msg)
     }
     if (NULL != msg)
     {
-        LOG_INFO("Sending reponse. Size: %d, type: %d (%s)", msg->message_size, msg->message_type,
-                 MESSAGE_TYPE_STR[msg->message_type]);
+        LOG_DEBUG("Sending reponse. Size: %d, type: %d (%s)", msg->message_size, msg->message_type,
+                  MESSAGE_TYPE_STR[msg->message_type]);
         server_status = send_message(msg);
         if (SERVER_STATUS_NOTHING != server_status)
         {
