@@ -11,6 +11,8 @@ stages:
 .build_prepare: &build_prepare
     variables:
         GIT_SUBMODULE_STRATEGY: recursive
+        GIT_SUBMODULE_DEPTH: 1
+        GIT_SUBMODULE_UPDATE_FLAGS: --jobs 4
     before_script:
         - mkdir -p build
         - ln -s /opt/toolchain_iree_rv32imf ./build/toolchain_iree_rv32imf
@@ -29,14 +31,15 @@ clang_format:
     <<: *minimal_build_prepare
     script:
         - cmake --build build/build-riscv --target clang-format
-    allow_failure: false
 
 clang_tidy:
     stage: lint
-    <<: *build_prepare
+    <<: *minimal_build_prepare
+    variables:
+        GIT_SUBMODULE_STRATEGY: normal
     script:
+        - git -C third-party/iree-rv32-springbok submodule update --init
         - cmake --build build/build-riscv --target clang-tidy
-    allow_failure: false
 
 build:
     stage: build
@@ -46,15 +49,12 @@ build:
     artifacts:
         paths:
         - build/build-riscv/iree-runtime/iree_runtime
-        expire_in: 4 hour
-    allow_failure: false
 
 unit_tests:
     stage: tests
     <<: *minimal_build_prepare
     script:
         - cmake --build build/build-riscv --target unit-tests
-    allow_failure: false
 
 renode_tests:
     stage: tests
@@ -64,4 +64,3 @@ renode_tests:
     script:
         - ln -s /opt/renode ./build/renode
         - cmake --build build/build-riscv --target renode-tests
-    allow_failure: false
