@@ -12,7 +12,7 @@ stages:
     variables:
         GIT_SUBMODULE_STRATEGY: recursive
         GIT_SUBMODULE_DEPTH: 1
-        GIT_SUBMODULE_UPDATE_FLAGS: --jobs 4
+        GIT_SUBMODULE_UPDATE_FLAGS: --jobs `nproc`
     before_script:
         - mkdir -p build
         - ln -s /opt/toolchain_iree_rv32imf ./build/toolchain_iree_rv32imf
@@ -64,3 +64,7 @@ renode_tests:
     script:
         - ln -s /opt/renode ./build/renode
         - cmake --build build/build-riscv --target renode-tests
+    artifacts:
+        paths:
+        - renode-tests/results/opcode_stats.txt
+        - renode-tests/results/kenning_output.json
