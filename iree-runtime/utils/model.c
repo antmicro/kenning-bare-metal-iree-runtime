@@ -53,7 +53,7 @@ MODEL_STATUS load_model_struct(const uint8_t *model_struct_data, const size_t da
     }
 #undef CHECK_HAL_ELEM_TYPE
 
-    LOG_INFO("Loaded model struct. Model name: %s", g_model_struct.model_name);
+    LOG_DEBUG("Loaded model struct. Model name: %s", g_model_struct.model_name);
 
     g_model_state = MODEL_STATE_STRUCT_LOADED;
 
@@ -79,7 +79,7 @@ MODEL_STATUS load_model_weights(const uint8_t *model_weights_data, const size_t 
     iree_status = create_context(model_weights_data, data_size);
     CHECK_IREE_WRAPPER_STATUS(iree_status);
 
-    LOG_INFO("Loaded model weights");
+    LOG_DEBUG("Loaded model weights");
 
     g_model_state = MODEL_STATE_WEIGHTS_LOADED;
 
@@ -117,7 +117,7 @@ MODEL_STATUS load_model_input(const uint8_t *model_input, const size_t model_inp
     iree_status = prepare_input_buffer(&g_model_struct, model_input);
     CHECK_IREE_WRAPPER_STATUS(iree_status);
 
-    LOG_INFO("Loaded model input");
+    LOG_DEBUG("Loaded model input");
 
     g_model_state = MODEL_STATE_INPUT_LOADED;
 
@@ -145,7 +145,7 @@ MODEL_STATUS run_model()
     iree_status = run_inference();
     CHECK_IREE_WRAPPER_STATUS(iree_status);
 
-    LOG_INFO("Model inference done");
+    LOG_DEBUG("Model inference done");
 
     g_model_state = MODEL_STATE_INFERENCE_DONE;
 
@@ -180,7 +180,7 @@ MODEL_STATUS get_model_output(const size_t buffer_size, uint8_t *model_output, s
     iree_status = get_output(model_output);
     CHECK_IREE_WRAPPER_STATUS(iree_status);
 
-    LOG_INFO("Model output retrieved");
+    LOG_DEBUG("Model output retrieved");
 
     return status;
 }
@@ -201,7 +201,7 @@ MODEL_STATUS get_statistics(const size_t statistics_buffer_size, uint8_t *statis
     iree_status = get_model_stats(statistics_buffer_size, statistics_buffer, statistics_size);
     CHECK_IREE_WRAPPER_STATUS(iree_status);
 
-    LOG_INFO("Model statistics retrieved");
+    LOG_DEBUG("Model statistics retrieved");
 
     return status;
 }
