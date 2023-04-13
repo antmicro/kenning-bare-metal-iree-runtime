@@ -14,9 +14,9 @@ set(SPRINGBOK_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third-party/iree-rv32-spri
     "Springbok source code path." FORCE)
 set(IREE_SOURCE_DIR "${SPRINGBOK_SOURCE_DIR}/third_party/iree" CACHE PATH
     "IREE source code path." FORCE)
-set(UNIT_TESTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/unittests" CACHE PATH
+set(UNIT_TESTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/unit-tests" CACHE PATH
     "Unit tests directory." FORCE)
-set(RENODE_TESTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/renodetests" CACHE PATH
+set(RENODE_TESTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/renode-tests" CACHE PATH
     "Renode tests directory." FORCE)
 set(RENODE_TEST_BIN_PATH "${CMAKE_CURRENT_SOURCE_DIR}/build/renode/renode-test" CACHE PATH
     "Path to renode-test")
