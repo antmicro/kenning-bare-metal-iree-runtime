@@ -49,7 +49,7 @@ Inference Test
     # verify that inference client does not return error
                         Should Be Equal As Integers     ${result.rc}    0
                         Sleep                           1s
-    # verify that there wereqqqq no runtime errors
+    # verify that there were no runtime errors
     ${logs}=            Get File                        ${CURDIR}/results/runtime_log.txt
                         Should Not Contain              ${logs}    ERROR
     # verify that UART is idle
