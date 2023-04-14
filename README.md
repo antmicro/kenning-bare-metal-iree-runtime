@@ -5,10 +5,39 @@ Copyright (c) 2023 [Antmicro](https://www.antmicro.com)
 This is a IREE runtime for Springbok - a RISC-V 32-bit bare-metal platform.
 The purpose of this runtime is to deploy ML workloads using [Kenning](https://github.com/antmicro/kenning) framework.
 
+## Preparing the environment
+
+First, clone this repository and make sure that git submodules are updated.
+Clone this repository and run:
+```bash
+git clone https://github.com/antmicro/kenning-bare-metal-iree-runtime.git
+cd kenning-bare-metal-iree-runtime
+git submodule update --init --recursive
+```
+
+To install required system packages run:
+```
+sudo apt install xxd cmake ninja-build wget
+```
+
+The python packages required to run below python scripts and to run Kenning inference tester are listed in the `requirements.txt` file.
+Before installing those, it is recommended to create Python virtual environment.
+To create virtual environment run the following commands:
+```bash
+python -m venv venv             # create venv
+source ./venv/bin/activate      # activate it
+python -m pip install -r ./requirements.txt
+```
+
+Finally, add `${HOME}/.local/bin` to your `PATH` variable:
+
+```bash
+export PATH=${HOME}/.local/bin:${PATH}
+```
+
 ## Building the runtime
 
-Before building the runtime binary, make sure that git submodules are updated.
-You also need to download pre-compiled RV32 LLVM toolchain and IREE compiler.
+Before building the binary, you need to download pre-compiled RV32 LLVM toolchain and IREE compiler.
 To download it you can use scripts included in `iree-rv32-springbok` submodule located in `third-party/iree-rv32-springbok/build_tools` directory.
 To do so, run (you need to call these scripts from root directory of this repository):
 ```bash
@@ -34,13 +63,16 @@ This script will initialize cmake in `build/build-riscv` directory.
 
 To build the runtime, run the following command:
 ```bash
-cmake --build build/build-riscv
+cmake --build build/build-riscv -j `nproc`
 ```
 The runtime binary will be saved in `build/build-riscv/iree-runtime` directory.
 
 ## Running the Renode simulation
 
-To run the runtime on Springbok in Renode, you can use the script `build_tools/run_simulation.sh`.
+To run the runtime on Springbok in Renode, you can use the prepared script as follows:
+```
+./build_tools/run_simulation.sh
+```
 
 It will start simulation, add Springbok and start the runtime.
 You can now use Kenning to communicate with it and perform ML model inference.
@@ -107,7 +139,7 @@ Then, the inference tester sends model IO specification (model inputs and output
 As the model is ready, the inference tester can send the input data, request inference and then request inference output.
 At the end it also requests runtime statistics which are retrieved by runtime from IREE allocator.
 
-To run this scenario, save it in some `json` file (i.e. `iree-bare-metal-inference.json`) and run
+To run this scenario, `cd` into `third-party/kenning` directory, save above scenario in some `json` file (i.e. `iree-bare-metal-inference.json`) and run
 ```bash
 python -m kenning.scenarios.json_inference_tester ./iree-bare-metal-inference.json ./output.json
 ```
