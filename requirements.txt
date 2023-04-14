@@ -1,0 +1,16 @@
+cmake
+git+https://github.com/antmicro/servis#egg=servis[bokeh,matplotlib]
+google
+iree_compiler
+iree_runtime
+iree-tools-tf
+jsonschema
+numpy
+pillow
+protobuf
+psutil
+pyserial
+requests
+tensorflow
+tqdm
+wget
