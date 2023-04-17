@@ -46,7 +46,7 @@ To do so, run (you need to call these scripts from root directory of this reposi
 ```
 
 > **NOTE:** the most recent toolchain requires at least 2.33 `glibc` version.
-In case your `glibc` version is older (can be checked with `ldd --version`), you need to manually download older version of the toolchain from [storage.googleapis.com/shodan-public-artifacts/](https://storage.googleapis.com/shodan-public-artifacts/) (i.e. [toolchain_backups/toolchain_iree_rv32_20220307.tar.gz](https://storage.googleapis.com/shodan-public-artifacts/toolchain_backups/toolchain_backups/toolchain_iree_rv32_20220307.tar.gz)).
+In case your `glibc` version is older (can be checked with `ldd --version`), you need to manually download older version of the toolchain from [storage.googleapis.com/shodan-public-artifacts/](https://storage.googleapis.com/shodan-public-artifacts/) (i.e. [toolchain_backups/toolchain_iree_rv32_20220307.tar.gz](https://storage.googleapis.com/shodan-public-artifacts/toolchain_backups/toolchain_iree_rv32_20220307.tar.gz)).
 
 You may also want to download portable Renode version to run the runtime in simulation.
 You can do it with the script:
