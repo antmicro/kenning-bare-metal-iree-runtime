@@ -15,18 +15,20 @@ cd kenning-bare-metal-iree-runtime
 git submodule update --init --recursive
 ```
 
-To install required system packages run:
-```
-sudo apt install xxd cmake ninja-build wget
-```
+To be able to build the project, you need to install `xxd`, `cmake`, `ninja` and `wget`.
 
-The python packages required to run below python scripts and to run Kenning inference tester are listed in the `requirements.txt` file.
+The python packages required to run below python scripts are listed in the `requirements.txt` file.
 Before installing those, it is recommended to create Python virtual environment.
 To create virtual environment run the following commands:
 ```bash
 python -m venv venv             # create venv
 source ./venv/bin/activate      # activate it
-python -m pip install -r ./requirements.txt
+python -m pip install -r requirements.txt
+```
+
+To install additional python packages required to run Kenning inference client and render reports, run the following command:
+```bash
+python -m pip install third-party/kenning[tensorflow,iree,reports,uart]
 ```
 
 Finally, add `${HOME}/.local/bin` to your `PATH` variable:
@@ -147,7 +149,7 @@ python -m kenning.scenarios.json_inference_tester ./iree-bare-metal-inference.js
 ## Running tests
 
 For unit tests implementation, the `ceedling` framework was used.
-You may need to install it with the following commands:
+You need ruby and gem to install it, for Debian-based distributions you can use:
 ```bash
 apt-get install ruby
 gem install ceedling
