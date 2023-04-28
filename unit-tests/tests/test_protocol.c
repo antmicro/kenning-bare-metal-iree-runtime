@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2023 Antmicro <www.antmicro.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include "../iree-runtime/utils/protocol.h"
 #include "mock_uart.h"
 #include "unity.h"

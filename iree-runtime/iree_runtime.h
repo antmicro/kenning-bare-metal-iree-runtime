@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2023 Antmicro <www.antmicro.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #ifndef IREE_RUNTIME_IREE_RUNTIME_H_
 #define IREE_RUNTIME_IREE_RUNTIME_H_
 

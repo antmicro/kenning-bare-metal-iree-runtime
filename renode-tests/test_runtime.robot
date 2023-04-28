@@ -1,3 +1,7 @@
+# Copyright (c) 2023 Antmicro <www.antmicro.com>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 *** Settings ***
 Suite Setup     Setup
 Suite Teardown  Teardown

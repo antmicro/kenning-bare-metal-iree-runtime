@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2023 Antmicro <www.antmicro.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include "iree_runtime.h"
 
 const char *const RUNTIME_STATUS_STR[] = {RUNTIME_STATUSES(GENERATE_STR)};

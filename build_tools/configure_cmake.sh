@@ -1,3 +1,9 @@
+#!/usr/bin/env bash
+
+# Copyright (c) 2023 Antmicro <www.antmicro.com>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ROOT_DIR=$(realpath $(git rev-parse --show-toplevel))
 
 cmake \

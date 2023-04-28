@@ -1,3 +1,9 @@
+#!/usr/bin/env bash
+
+# Copyright (c) 2023 Antmicro <www.antmicro.com>
+#
+# SPDX-License-Identifier: Apache-2.0
+
 ROOTDIR=$(dirname $(dirname $(realpath $0)))
 
 command="start;"

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2023 Antmicro <www.antmicro.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include "uart.h"
 
 ut_static uart_t g_uart = {.initialized = false};

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2023 Antmicro <www.antmicro.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include "model.h"
 
 const char *const MODEL_STATUS_STR[] = {MODEL_STATUSES(GENERATE_STR)};
