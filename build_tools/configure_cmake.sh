@@ -4,7 +4,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-ROOT_DIR=$(realpath $(git rev-parse --show-toplevel))
+ROOT_DIR=$(dirname $(dirname $(realpath $0)))
 
 cmake \
     -B build/build-riscv \
@@ -12,4 +12,4 @@ cmake \
     -DCMAKE_BUILD_TYPE=MinSizeRel \
     -DIREE_HOST_BIN_DIR="${ROOT_DIR?}/build/iree_compiler/bin" \
     -DRISCV_TOOLCHAIN_ROOT="${ROOT_DIR?}/build/toolchain_iree_rv32imf" \
-    "$@"
+    $@
