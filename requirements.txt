@@ -4,3 +4,4 @@ numpy
 lit
 requests
 wget
+robot
