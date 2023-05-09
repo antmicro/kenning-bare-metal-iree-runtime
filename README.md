@@ -15,8 +15,7 @@ This repository provides end-to-end demonstration for deploying and testing mode
 Firstly, clone the repository with submodules and go to the created directory:
 
 ```bash
-git clone --recursive https://github.com/antmicro/kenning-bare-metal-iree-runtime.git
-cd kenning-bare-metal-iree-runtime
+$ git clone --recursive https://github.com/antmicro/kenning-bare-metal-iree-runtime.git && cd kenning-bare-metal-iree-runtime
 ```
 
 To be able to build the project, several dependencies need to be installed.
@@ -216,7 +215,7 @@ cmake --build build/build-riscv --target renode-tests
 They can also be executed directly with the following command:
 
 ```bash
-build/renode/renode-test renode-tests/test_runtime.robot --show-log -r renode-tests/results
+./build/renode/renode-test renode-tests/test_runtime.robot --show-log -r renode-tests/results
 ```
 
 ### Unit tests
