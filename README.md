@@ -4,18 +4,19 @@ Copyright (c) 2023 [Antmicro](https://www.antmicro.com)
 
 This repository contains a bare metal implementation of `Runtime` and `RuntimeProtocol` for Kenning, tested with Renode.
 
-The `Runtime` used in this implementation runs models compiled with [IREE framework](https://github.com/openxla/iree).
-`Runtime` communicates with Kenning via UART `RuntimeProtocol`.
-The `Runtime` is tested on [Springbok](https://opensource.googleblog.com/2022/09/co-simulating-ml-with-springbok-using-renode.html) AI accelerator and simulated with Renode.
+The `Runtime` used in this implementation runs models compiled with the [IREE framework](https://github.com/openxla/iree).
+The `Runtime` communicates with Kenning via a UART-based `RuntimeProtocol`.
+The `Runtime` is tested on the [Springbok](https://opensource.googleblog.com/2022/09/co-simulating-ml-with-springbok-using-renode.html) AI accelerator simulated with Renode.
 
-This repository provides end-to-end demonstration for deploying and testing models in a simulated environment using the simulated accelerator.
+This repository provides an end-to-end demonstration for deploying and testing models in a simulated environment (including the ML accelerator).
 
 ## Preparing the environment
 
 Firstly, clone the repository with submodules and go to the created directory:
 
 ```bash
-$ git clone --recursive https://github.com/antmicro/kenning-bare-metal-iree-runtime.git && cd kenning-bare-metal-iree-runtime
+git clone --recursive https://github.com/antmicro/kenning-bare-metal-iree-runtime
+cd kenning-bare-metal-iree-runtime
 ```
 
 To be able to build the project, several dependencies need to be installed.
@@ -34,11 +35,11 @@ apt-get install -qqy --no-install-recommends \
     xxd
 ```
 
-In other distributions install the above dependencies using available package manager.
+In other distributions install the above dependencies using your package manager.
 
-The Python packages required to run below scripts are listed in the `requirements.txt` file.
-Before installing those, it is recommended to create Python virtual environment.
-To create virtual environment run the following commands:
+The Python packages required to run below scripts are listed in `requirements.txt`.
+Before installing those, it is recommended to create a Python virtual environment.
+To create a virtual environment run the following commands:
 
 ```bash
 python3 -m venv venv                       # create venv
@@ -52,7 +53,7 @@ To install additional python packages required to run Kenning inference client a
 python3 -m pip install third-party/kenning[tensorflow,reports,uart]
 ```
 
-For installing IREE Python modules for compiling models in Kenning, either follow [Building IREE from source](https://openxla.github.io/iree/building-from-source/#reference-pages) instructions to build Python bindings from `third-party/iree-rv32-springbok/third_party/iree/` directory, or install available Python modules using `pip`:
+For installing IREE Python modules for compiling models in Kenning, either follow [Building IREE from source](https://openxla.github.io/iree/building-from-source/#reference-pages) instructions to build Python bindings from `third-party/iree-rv32-springbok/third_party/iree/` directory, or install the available Python modules using `pip`:
 
 ```bash
 python3 -m pip install iree-compiler~=20230209.425 iree-runtime~=20230209.425 iree-tools-tf~=20230209.425 iree-tools-tflite~=20230209.425
@@ -62,9 +63,9 @@ python3 -m pip install iree-compiler~=20230209.425 iree-runtime~=20230209.425 ir
 
 ## Building the runtime
 
-Before building the binary, download pre-compiled RV32 LLVM toolchain and IREE compiler.
+Before building the binary, download a pre-compiled RV32 LLVM toolchain and IREE compiler.
 To download it, scripts included in `iree-rv32-springbok` submodule located in `third-party/iree-rv32-springbok/build_tools` directory can be used.
-To do so, run following commands in the project's root directory::
+To do so, run the following commands in the project's root directory:
 
 ```bash
 ./third-party/iree-rv32-springbok/build_tools/install_toolchain.sh
@@ -72,7 +73,7 @@ To do so, run following commands in the project's root directory::
 ```
 
 > **NOTE:** the most recent toolchain requires at least 2.33 `glibc` version.
-In case `glibc` version in the system is older (can be checked with `ldd --version`), the older version of the toolchain needs to be downloaded manually from [storage.googleapis.com/shodan-public-artifacts/](https://storage.googleapis.com/shodan-public-artifacts/) (i.e. [toolchain_backups/toolchain_iree_rv32_20220307.tar.gz](https://storage.googleapis.com/shodan-public-artifacts/toolchain_backups/toolchain_iree_rv32_20220307.tar.gz)).
+In case the `glibc` version in the system is older (this can be checked with `ldd --version`), the older version of the toolchain needs to be downloaded manually from [storage.googleapis.com/shodan-public-artifacts/](https://storage.googleapis.com/shodan-public-artifacts/) (i.e. [toolchain_backups/toolchain_iree_rv32_20220307.tar.gz](https://storage.googleapis.com/shodan-public-artifacts/toolchain_backups/toolchain_iree_rv32_20220307.tar.gz)).
 
 For running the simulation, Renode can be downloaded with:
 
@@ -87,9 +88,10 @@ It is possible to add CMake-specific arguments to this script, for example:
 ./build_tools/configure_cmake.sh -G Ninja
 ```
 
-This script will initialize CMake in `build/build-riscv` directory.
+This script will initialize CMake in the `build/build-riscv` directory.
 
 To build the runtime, run:
+
 ```bash
 cmake --build build/build-riscv -j `nproc`
 ```
@@ -100,12 +102,12 @@ The runtime binary will be saved in `build/build-riscv/iree-runtime` directory.
 To run the runtime on Springbok in Renode, use the prepared script as follows:
 
 ```bash
-$ ./build_tools/run_simulation.sh
+./build_tools/run_simulation.sh
 ```
 
-It will start simulation, add Springbok and start the runtime.
+It will start the simulation, add Springbok and start the runtime.
 
-In parallel to simulated hardware in Renode, Kenning can be started with the following scenario:
+In parallel to the simulation in Renode, Kenning can be started with the following scenario:
 
 ```json
 {
@@ -161,20 +163,20 @@ In parallel to simulated hardware in Renode, Kenning can be started with the fol
 ```
 
 The above scenario can be found in `third-party/kenning/scripts/jsonconfigs/iree-bare-metal-inference.json`.
-To run this scenario, go to `third-party/kenning` directory and run:
+To run this scenario, go to the `third-party/kenning` directory and run:
 
 ```bash
-$ python3 -m kenning.scenarios.json_inference_tester ./scripts/jsonconfigs/iree-bare-metal-inference.json ./results.json
+python3 -m kenning.scenarios.json_inference_tester ./scripts/jsonconfigs/iree-bare-metal-inference.json ./results.json
 ```
 
-The model used for this demo is a simple neural network trained on Magic Wand dataset for classifying gestures from accelerometer.
+The model used for this demo is a simple neural network trained on the Magic Wand dataset for classifying gestures from accelerometer.
 
-* `dataset` entry provides a class for managing the Magic Wand dataset (downloading the dataset, parsing data from files, and evaluating the model on Springbok by sending inputs and comparing outputs to ground truth)
-* `model_wrapper` entry provides the model to optimize (a TensorFlow implementation of the model in H5 format), as well as model input and output specification, and model-specific preprocessing and postprocessing
+* the `dataset` entry provides a class for managing the Magic Wand dataset (downloading the dataset, parsing data from files, and evaluating the model on Springbok by sending inputs and comparing outputs to ground truth)
+* the `model_wrapper` entry provides the model to optimize (a TensorFlow implementation of the model in H5 format), as well as model input and output specification, and model-specific preprocessing and postprocessing
 
 The `optimizers` list here contains a single `Optimizer` instance, which is an IREE compiler.
 The IREE compiler optimizes and compiles the model to Virtual Machine Flat Buffer format (`.vmfb`), which will be later executed on minimal IREE virtual machine on bare metal in Springbok.
-The additional flags are provided to IREE compiler, specifying the RISC-V target architecture, with V Extensions features to utilize vector computation acceleration present in the Springbok accelerator.
+The additional flags are provided to the IREE compiler, specifying the RISC-V target architecture, with V Extensions features to utilize vector computation acceleration present in the Springbok accelerator.
 
 In `runtime` entry, it is specified that IREE runtime will be used.
 
@@ -189,9 +191,9 @@ Once the scenario is started:
 * Kenning loads the model with Keras and compiles it with IREE to `./build/magic-wand.vmfb`
 * Kenning establishes the connection via UART with the simulated Springbok platform
 * Kenning sends the compiled model in `VMFB` format to the device via UART
-* Bare-metal IREE runtime loads the model
-* Kenning sends the specification of model's inputs and outputs, bare-metal runtime stores the information
-* Kenning sends the input data in loop, bare metal runtime infers the data and sends results back to Kenning
+* The bare-metal IREE runtime loads the model
+* Kenning sends the specification of model's inputs and outputs, the bare-metal runtime stores the information
+* Kenning sends the input data in loop, the bare metal runtime infers the data and sends results back to Kenning
 * Kenning evaluates the model
 * Kenning collects runtime metrics and stores evaluation and benchmark results in `results.json`
 
@@ -199,14 +201,14 @@ Once the scenario is started:
 
 ### End-to-end test with Kenning
 
-Kenning and Renode integration can be verified using Robot framework testing.
-Firstly, install dependencies for tests with:
+Kenning and Renode integration can also be verified using a Robot framework test.
+Firstly, install the dependencies for tests with:
 
 ```bash
 python3 -m pip install -r build/renode/tests/requirements.txt
 ```
 
-To run them you can use custom `cmake` target `renode-tests` as follows:
+To run them you can use a custom `cmake` target `renode-tests` as follows:
 
 ```bash
 cmake --build build/build-riscv --target renode-tests
@@ -220,7 +222,7 @@ They can also be executed directly with the following command:
 
 ### Unit tests
 
-For unit tests implementation, the [Ceedling](https://github.com/ThrowTheSwitch/Ceedling) framework was used.
+The [Ceedling](https://github.com/ThrowTheSwitch/Ceedling) framework was used for implementing unit tests.
 Ruby and Gem are necessary for this framework, for Debian-based distributions you can use:
 
 ```bash
