@@ -184,8 +184,6 @@ The `runtime_protocol` entry specifies the communication parameters.
 The UART interface for Renode is created under `/tmp/uart`, hence `port` is set to this path.
 In addition, `baudrate` and `endianness` is specified.
 
-The UART interface will be created under `/tmp/uart`.
-
 Once the scenario is started:
 
 * Kenning loads the model with Keras and compiles it with IREE to `./build/magic-wand.vmfb`
