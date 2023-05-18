@@ -14,7 +14,7 @@ This repository provides an end-to-end demonstration for deploying and testing m
 
 Firstly, clone the repository with submodules and go to the created directory:
 
-```bash
+```
 git clone --recursive https://github.com/antmicro/kenning-bare-metal-iree-runtime
 cd kenning-bare-metal-iree-runtime
 ```
@@ -101,7 +101,7 @@ The runtime binary will be saved in `build/build-riscv/iree-runtime` directory.
 
 To run the runtime on Springbok in Renode, use the prepared script as follows:
 
-```bash
+```
 ./build_tools/run_simulation.sh
 ```
 
@@ -165,7 +165,7 @@ In parallel to the simulation in Renode, Kenning can be started with the followi
 The above scenario can be found in `third-party/kenning/scripts/jsonconfigs/iree-bare-metal-inference.json`.
 To run this scenario, go to the `third-party/kenning` directory and run:
 
-```bash
+```
 python3 -m kenning.scenarios.json_inference_tester ./scripts/jsonconfigs/iree-bare-metal-inference.json ./results.json
 ```
 
