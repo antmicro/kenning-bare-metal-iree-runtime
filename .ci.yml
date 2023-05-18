@@ -67,6 +67,10 @@ renode_tests:
         - ./renode-tests/render_kenning_report.sh
     artifacts:
         paths:
+        - renode-tests/results/robot_output.xml
+        - renode-tests/results/log.html
+        - renode-tests/results/report.html
         - renode-tests/results/opcode_stats.txt
         - renode-tests/results/kenning_output.json
         - renode-tests/results/benchmarks/
+        when: always
