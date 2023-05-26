@@ -19,7 +19,7 @@
         return SERVER_STATUS_CLIENT_DISCONNECTED; \
     }
 
-#define MAX_MESSAGE_SIZE_BYTES (3 * 1024 * 1024) // 3MB
+#define MAX_MESSAGE_SIZE_BYTES (5 * 256 * 1024) // 1.25 MB
 
 #define MESSAGE_SIZE_PAYLOAD(msg_size) ((msg_size) - sizeof(message_type_t))
 #define MESSAGE_SIZE_FULL(msg_size) (sizeof(message) + MESSAGE_SIZE_PAYLOAD(msg_size))
