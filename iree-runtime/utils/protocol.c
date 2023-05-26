@@ -18,7 +18,7 @@ static uint8_t __attribute__((aligned(4))) g_message_buffer[MAX_MESSAGE_SIZE_BYT
  */
 static message *get_message_buffer()
 {
-    // payload should be alligned to 4 bytes and as header (msg size and msg type) are
+    // payload should be aligned to 4 bytes and as header (msg size and msg type) are
     // total 6 bytes, we need to shift msg buffer pointer 2 bytes
     return (message *)(g_message_buffer + 2);
 }
