@@ -50,7 +50,7 @@ python3 -m pip install -r requirements.txt # install dependencies
 To install additional python packages required to run Kenning inference client and render reports, run the following command:
 
 ```bash
-python3 -m pip install third-party/kenning[tensorflow,reports,uart]
+python3 -m pip install third-party/kenning[tensorflow,reports,uart,renode]
 ```
 
 For installing IREE Python modules for compiling models in Kenning, either follow [Building IREE from source](https://openxla.github.io/iree/building-from-source/#reference-pages) instructions to build Python bindings from `third-party/iree-rv32-springbok/third_party/iree/` directory, or install the available Python modules using `pip`:
@@ -72,7 +72,7 @@ To do so, run the following commands in the project's root directory:
 ./third-party/iree-rv32-springbok/build_tools/download_iree_compiler.py
 ```
 
-> **NOTE:** the most recent toolchain requires at least 2.33 `glibc` version.
+> **NOTE:** recent toolchains require at least 2.33 `glibc` version.
 In case the `glibc` version in the system is older (this can be checked with `ldd --version`), the older version of the toolchain needs to be downloaded manually from [storage.googleapis.com/shodan-public-artifacts/](https://storage.googleapis.com/shodan-public-artifacts/) (i.e. [toolchain_backups/toolchain_iree_rv32_20220307.tar.gz](https://storage.googleapis.com/shodan-public-artifacts/toolchain_backups/toolchain_iree_rv32_20220307.tar.gz)).
 
 For running the simulation, Renode can be downloaded with:
@@ -95,33 +95,33 @@ To build the runtime, run:
 ```bash
 cmake --build build/build-riscv -j `nproc`
 ```
+
 The runtime binary will be saved in `build/build-riscv/iree-runtime` directory.
 
-## Running the Renode simulation
+## Evaluating the model and accelerator in Renode simulation
 
-To run the runtime on Springbok in Renode, use the prepared script as follows:
+Kenning can evaluate a bare metal runtime using Renode - it allows the user to:
 
-```
-./build_tools/run_simulation.sh
-```
+* Check how the model would behave on actual hardware
+* Check the performance and quality of the model on simulated accelerator, to verify any issues with model compilation or accelerator runtime
+* Check the instructions used during inference to find out how the accelerator was utilized
+* Check the memory and interface accesses during runtime execution
 
-It will start the simulation, add Springbok and start the runtime.
-
-In parallel to the simulation in Renode, Kenning can be started with the following scenario:
+The sample scenario evaluating the model on Springbok AI accelerator in Renode looks as follows:
 
 ```json
 {
     "dataset": {
         "type": "kenning.datasets.magic_wand_dataset.MagicWandDataset",
         "parameters": {
-            "dataset_root": "./build/magic-wand-dataset",
+            "dataset_root": "./build/MagicWandDataset",
             "download_dataset": true
         }
     },
     "model_wrapper": {
         "type": "kenning.modelwrappers.classification.tflite_magic_wand.MagicWandModelWrapper",
         "parameters": {
-            "model_path": "./kenning/resources/models/classification/magic_wand.h5"
+            "model_path": "third-party/kenning/kenning/resources/models/classification/magic_wand.h5"
         }
     },
     "optimizers":
@@ -130,7 +130,7 @@ In parallel to the simulation in Renode, Kenning can be started with the followi
             "type": "kenning.compilers.iree.IREECompiler",
             "parameters":
             {
-                "compiled_model_path": "./build/magic-wand.vmfb",
+                "compiled_model_path": "./build/tflite-magic-wand.vmfb",
                 "backend": "llvm-cpu",
                 "model_framework": "keras",
                 "compiler_args": [
@@ -146,9 +146,10 @@ In parallel to the simulation in Renode, Kenning can be started with the followi
         }
     ],
     "runtime": {
-        "type": "kenning.runtimes.iree.IREERuntime",
+        "type": "kenning.runtimes.renode.RenodeRuntime",
         "parameters": {
-            "driver": "local-task"
+            "runtime_binary_path": "build/build-riscv/iree-runtime/iree_runtime",
+            "platform_resc_path": "sim/config/springbok.resc"
         }
     },
     "runtime_protocol": {
@@ -162,12 +163,7 @@ In parallel to the simulation in Renode, Kenning can be started with the followi
 }
 ```
 
-The above scenario can be found in `third-party/kenning/scripts/jsonconfigs/iree-bare-metal-inference.json`.
-To run this scenario, go to the `third-party/kenning` directory and run:
-
-```
-python3 -m kenning.scenarios.json_inference_tester ./scripts/jsonconfigs/iree-bare-metal-inference.json ./results.json
-```
+The scenario can be found in `kenning-scenarios/renode-iree-bare-metal-inference.json`.
 
 The model used for this demo is a simple neural network trained on the Magic Wand dataset for classifying gestures from accelerometer.
 
@@ -178,7 +174,10 @@ The `optimizers` list here contains a single `Optimizer` instance, which is an I
 The IREE compiler optimizes and compiles the model to Virtual Machine Flat Buffer format (`.vmfb`), which will be later executed on minimal IREE virtual machine on bare metal in Springbok.
 The additional flags are provided to the IREE compiler, specifying the RISC-V target architecture, with V Extensions features to utilize vector computation acceleration present in the Springbok accelerator.
 
-In `runtime` entry, it is specified that IREE runtime will be used.
+The `runtime` entry specifies the `RenodeRuntime` - it is a runtime that will take:
+
+* `platform_resc_path` - a Renode script (`.resc` file) creating the machine and declaring the UART communication on `/tmp/uart`.
+* `runtime_binary_path` - a path to a binary containing the runtime implementation running on platform created in `.resc` file.
 
 The `runtime_protocol` entry specifies the communication parameters.
 The UART interface for Renode is created under `/tmp/uart`, hence `port` is set to this path.
@@ -187,13 +186,76 @@ In addition, `baudrate` and `endianness` is specified.
 Once the scenario is started:
 
 * Kenning loads the model with Keras and compiles it with IREE to `./build/magic-wand.vmfb`
+* Kenning runs Renode, creates the machine with accelerator, and requests profiling of the application
 * Kenning establishes the connection via UART with the simulated Springbok platform
 * Kenning sends the compiled model in `VMFB` format to the device via UART
 * The bare-metal IREE runtime loads the model
 * Kenning sends the specification of model's inputs and outputs, the bare-metal runtime stores the information
 * Kenning sends the input data in loop, the bare metal runtime infers the data and sends results back to Kenning
-* Kenning evaluates the model
+* Kenning evaluates the model, and Renode profiles the application
 * Kenning collects runtime metrics and stores evaluation and benchmark results in `results.json`
+* Kenning parses profiling results from Renode and adds them to benchmark results in `results.json`
+
+To evaluate the model, run:
+
+```bash
+python3 -m kenning.scenarios.json_inference_tester kenning-scenarios/renode-iree-bare-metal-inference.json ./results.json
+```
+
+To render the report with performance and quality metrics (including Renode performance metrics), run:
+
+```bash
+python3 -m kenning.scenarios.render_report \
+    --root-dir springbok-magic-wand \
+    --report-types performance classification renode_stats \
+    --img-dir springbok-magic-wand/img \
+    --measurements results.json \
+    --model-names magic_wand_fp32 \
+    --verbosity INFO \
+    v-extensions-riscv springbok-magic-wand/report.md
+```
+
+This command:
+
+* Creates a `springbok-magic-wand` directory with the report
+* Creates plots and summaries regarding overall performance, classification quality and Renode profiler metrics, such as used instructions, memory accesses and more
+* Saves plots in `springbok-magic-wand/img` directory
+* Creates a MyST-based Markdown file with report summary.
+
+## Running Kenning with existing Renode session.
+
+To run the runtime on Springbok in Renode, use the prepared script as follows:
+
+```
+./build_tools/run_simulation.sh
+```
+
+It will start the simulation, add Springbok and start the runtime.
+
+In parallel to the simulation in Renode, Kenning can be started with the `third-party/kenning/scripts/jsonconfigs/iree-bare-metal-inference.json` scenario.
+
+It only differs in the `runtime` section:
+```json
+{
+    ...
+    "runtime": {
+        "type": "kenning.runtimes.iree.IREERuntime",
+        "parameters": {
+            "driver": "local-task"
+        }
+    },
+    ...
+}
+```
+
+Instead of using Renode to run the bare metal application, Kenning assumes communication with the actual hardware and communicates via UART.
+In `runtime`, the default `IREERuntime` block is used to mark that IREE is used on target device.
+
+```
+python3 -m kenning.scenarios.json_inference_tester ./scripts/jsonconfigs/iree-bare-metal-inference.json ./results.json
+```
+
+This flow, however, won't collect inference information necessary to plot the performance metrics collected during Renode simulation.
 
 ## Running tests
 
