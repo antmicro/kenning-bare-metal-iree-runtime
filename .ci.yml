@@ -72,5 +72,7 @@ renode_tests:
         - renode-tests/results/report.html
         - renode-tests/results/opcode_stats.txt
         - renode-tests/results/kenning_output.json
+        - renode-tests/results/kenning_stdout.txt
+        - renode-tests/results/kenning_stderr.txt
         - renode-tests/results/benchmarks/
         when: always

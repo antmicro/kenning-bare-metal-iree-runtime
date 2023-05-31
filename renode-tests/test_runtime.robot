@@ -43,6 +43,8 @@ Inference Test
     # start Kenning inference client
     ${kenning}=         Start Process                   bash    ${CURDIR}/run_kenning_inference_tester.sh
                         ...                             shell=True    cwd=${CURDIR}/..
+                        ...                             stdout=${CURDIR}/results/kenning_stdout.txt
+                        ...                             stderr=${CURDIR}/results/kenning_stderr.txt
     # verify that inference client is running and communicating via UART
                         Sleep                           5s
                         Process Should Be Running       ${kenning}
