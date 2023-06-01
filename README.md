@@ -27,6 +27,7 @@ apt-get update
 apt-get install -qqy --no-install-recommends \
     cmake \
     git \
+    git-lfs \
     ninja-build \
     python3 \
     python3-pip \
