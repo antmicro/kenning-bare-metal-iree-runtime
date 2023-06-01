@@ -1,0 +1,26 @@
+mach create "springbok"
+
+EnsureTypeIsLoaded "Antmicro.Renode.Peripherals.CPU.RiscV32"
+include $ORIGIN/../../third-party/iree-rv32-springbok/sim/config/infrastructure/SpringbokRiscV32.cs
+
+$platformfile?=$ORIGIN/platforms/springbok_accelerometer.repl
+
+machine LoadPlatformDescription $platformfile
+
+sysbus.cpu EnableRiscvOpcodesCounting
+
+# Enable UART connection
+emulation CreateUartPtyTerminal "term" "/tmp/uart"
+connector Connect sysbus.uart0 term
+
+sysbus.i2c.adxl345 MaxFifoDepth 2
+sysbus.i2c.adxl345 FeedSample $ORIGIN/../../data/magic_wand.data -1
+
+macro reset
+"""
+    sysbus LoadELF $bin
+    # Start the vector core at address 0 of its instruction TCM.
+    sysbus.cpu IsHalted true
+    sysbus.cpu PC 0x32000000
+"""
+runMacro $reset
