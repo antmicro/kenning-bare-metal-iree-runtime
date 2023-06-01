@@ -166,7 +166,7 @@ The sample scenario evaluating the model on Springbok AI accelerator in Renode l
 }
 ```
 
-The scenario can be found in `kenning-scenarios/renode-iree-bare-metal-inference.json`.
+The scenario can be found in `kenning-scenarios/renode-magic-wand-iree-bare-metal-inference.json`.
 
 The model used for this demo is a simple neural network trained on the Magic Wand dataset for classifying gestures from accelerometer.
 
@@ -202,7 +202,7 @@ Once the scenario is started:
 To evaluate the model, run:
 
 ```bash
-python3 -m kenning.scenarios.json_inference_tester kenning-scenarios/renode-iree-bare-metal-inference.json ./results.json
+python3 -m kenning.scenarios.json_inference_tester kenning-scenarios/renode-magic-wand-iree-bare-metal-inference.json ./results.json
 ```
 
 To render the report with performance and quality metrics (including Renode performance metrics), run:
