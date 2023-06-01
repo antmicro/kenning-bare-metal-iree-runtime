@@ -142,7 +142,7 @@ The sample scenario evaluating the model on Springbok AI accelerator in Renode l
                     "iree-vm-emit-polyglot-zip=false",
                     "iree-llvm-target-triple=riscv32-pc-linux-elf",
                     "iree-llvm-target-cpu=generic-rv32",
-                    "iree-llvm-target-cpu-features=+m,+f,+zvl512b,+zve32x",
+                    "iree-llvm-target-cpu-features=+m,+f,+zvl512b,+zve32x,+zve32f",
                     "iree-llvm-target-abi=ilp32"
                 ]
             }
