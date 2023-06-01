@@ -12,13 +12,6 @@ This repository provides an end-to-end demonstration for deploying and testing m
 
 ## Preparing the environment
 
-Firstly, clone the repository with submodules and go to the created directory:
-
-```
-git clone --recursive https://github.com/antmicro/kenning-bare-metal-iree-runtime
-cd kenning-bare-metal-iree-runtime
-```
-
 To be able to build the project, several dependencies need to be installed.
 In Debian-based distros they can be installed with:
 
@@ -34,6 +27,15 @@ apt-get install -qqy --no-install-recommends \
     python3-venv \
     wget \
     xxd
+```
+
+Then, clone the repository with submodules and go to the created directory:
+
+```
+git clone --recursive https://github.com/antmicro/kenning-bare-metal-iree-runtime
+cd kenning-bare-metal-iree-runtime
+git lfs install
+git lfs pull
 ```
 
 In other distributions install the above dependencies using your package manager.
