@@ -121,8 +121,8 @@ To be able to build the project, several dependencies need to be installed - `cm
 In Debian-based distros they can be installed with:
 
 ```bash
-apt-get update
-apt-get install -qqy --no-install-recommends \
+sudo apt-get update
+sudo apt-get install -qqy --no-install-recommends \
     cmake \
     g++ \
     git \
@@ -411,8 +411,8 @@ The [Ceedling](https://github.com/ThrowTheSwitch/Ceedling) framework was used fo
 Ruby and Gem are necessary for this framework, for Debian-based distributions you can use:
 
 ```bash
-apt-get install -qqy --no-install-recommends ruby build-essential
-gem install ceedling
+sudo apt-get install -qqy --no-install-recommends ruby build-essential
+sudo gem install ceedling
 ```
 
 To run the tests you use custom `cmake` target `unit-tests` as follows:
