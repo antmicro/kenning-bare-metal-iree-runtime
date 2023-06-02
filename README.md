@@ -2,17 +2,122 @@
 
 Copyright (c) 2023 [Antmicro](https://www.antmicro.com)
 
-This repository contains a bare metal implementation of `Runtime` and `RuntimeProtocol` for Kenning, tested with Renode.
+This repository contains a bare metal implementation of `Runtime` and UART `RuntimeProtocol` for [Kenning](https://github.com/antmicro/kenning), tested with [Renode](https://github.com/antmicro/renode).
 
 The `Runtime` used in this implementation runs models compiled with the [IREE framework](https://github.com/openxla/iree).
 The `Runtime` communicates with Kenning via a UART-based `RuntimeProtocol`.
 The `Runtime` is tested on the [Springbok](https://opensource.googleblog.com/2022/09/co-simulating-ml-with-springbok-using-renode.html) AI accelerator simulated with Renode.
 
-This repository provides an end-to-end demonstration for deploying and testing models in a simulated environment (including the ML accelerator).
+Apart from bare-metal runtime implementation, this repository provides a demo that:
 
-## Preparing the environment
+* Compiles a neural network model (Magic Wand classifier or Person Detection classifier) using Kenning model optimization and deployment framework
+* Runs benchmarks on the compiled model in Renode, collecting model quality and performance statistics, including Renode profiling
+* Creates a report in MyST format, with interactive and regular PNG plots summarizing the whole execution, which can be either included in Sphinx-based docs or converted to HTML using Jupyter Book
 
-To be able to build the project, several dependencies need to be installed.
+This repository will also demonstrate:
+
+* How to setup Kenning to run Renode and collect profiler information
+* How to run Kenning and Renode independently (and how do they communicate)
+* How to test the runtime (with Robot framework testing and unit testing)
+
+## Quickstart
+
+This is a minimal set of steps to run base demo scenario.
+Follow links in instructions to get an explanation for every step.
+
+First, install `git` and `git-lfs`.
+Secondly, clone the repository:
+
+```
+git clone --recursive https://github.com/antmicro/kenning-bare-metal-iree-runtime
+cd kenning-bare-metal-iree-runtime
+git lfs install
+git lfs pull
+```
+
+The fastest way to obtain all of the necessary dependencies is to [pull the Docker image](#using-the-docker-environment) with all the dependencies for the project:
+
+```
+docker pull ghcr.io/antmicro/kenning-bare-metal-iree-runtime:latest
+```
+
+and enter it using:
+
+```
+docker run --rm -v $(pwd):/data -it ghcr.io/antmicro/kenning-bare-metal-iree-runtime:latest /bin/bash
+```
+
+To build the bare-metal runtime, firstly CMake build needs to be configured.
+It can be done with `build_tools/configure_cmake_in_docker.sh`:
+
+```
+./build_tools/configure_cmake_in_docker.sh -G Ninja
+```
+
+This script will initialize CMake in the `build/build-riscv` directory.
+To build the runtime, run:
+
+```
+cmake --build build/build-riscv -j `nproc`
+```
+
+The runtime binary will be saved in `build/build-riscv/iree-runtime/iree_runtime`.
+
+To evaluate the model, run:
+
+```
+python3 -m kenning.scenarios.json_inference_tester kenning-scenarios/renode-magic-wand-iree-bare-metal-inference.json ./results.json
+```
+
+For details on what is happening here check [Evaluating the model and accelerator in Renode environment](#evaluating-the-model-and-accelerator-in-simulation).
+
+To render the report with performance and quality metrics (including Renode performance metrics), run:
+
+```
+python3 -m kenning.scenarios.render_report \
+    --root-dir springbok-magic-wand \
+    --report-types performance classification renode_stats \
+    --img-dir springbok-magic-wand/img \
+    --measurements results.json \
+    --model-names magic_wand_fp32 \
+    --verbosity INFO \
+    v-extensions-riscv springbok-magic-wand/report.md
+```
+
+In the end, to create a HTML page from the generated report, run:
+
+```
+jupyter-book build springbok-magic-wand/report.md
+```
+
+The generated report will be available under `_build/_page/springbok-magic-wand-report/html/index.html`.
+
+The HTML report will contain such information as:
+
+* Scenario used to run the model,
+* Inference speed,
+* Used instructions during inference,
+* Used instructions from V Extensions,
+* Memory and interface accesses,
+* Model confusion matrix, accuracy, precision, and other quality metrics.
+
+## Building the project
+
+This section describes how to prepare the development environment and build the project.
+
+### Using the Docker environment
+
+The Docker environment with all the necessary components is available in [Dockerfile](./Dockerfile).
+The built image can be pulled with:
+
+```
+docker pull ghcr.io/antmicro/kenning-bare-metal-iree-runtime:latest
+```
+
+### Installing the dependencies in the system
+
+To be able to build the project, several dependencies need to be installed - `cmake`, `git`, `git-lfs`, `ninja-build`, `python3`, `python3-pip`, `wget` and `xxd`.
+
 In Debian-based distros they can be installed with:
 
 ```bash
@@ -29,7 +134,7 @@ apt-get install -qqy --no-install-recommends \
     xxd
 ```
 
-Then, clone the repository with submodules and go to the created directory:
+After installation, clone the repository with submodules and go to the created directory:
 
 ```
 git clone --recursive https://github.com/antmicro/kenning-bare-metal-iree-runtime
@@ -37,8 +142,6 @@ cd kenning-bare-metal-iree-runtime
 git lfs install
 git lfs pull
 ```
-
-In other distributions install the above dependencies using your package manager.
 
 The Python packages required to run below scripts are listed in `requirements.txt`.
 Before installing those, it is recommended to create a Python virtual environment.
@@ -50,7 +153,7 @@ source ./venv/bin/activate                 # activate it
 python3 -m pip install -r requirements.txt # install dependencies
 ```
 
-To install additional python packages required to run Kenning inference client and render reports, run the following command:
+To install additional python packages required to run Kenning compilation, inference and report rendering, run the following command:
 
 ```bash
 python3 -m pip install third-party/kenning[tensorflow,reports,uart,renode,object_detection]
@@ -64,7 +167,7 @@ python3 -m pip install iree-compiler~=20230209.425 iree-runtime~=20230209.425 ir
 
 > **NOTE:** Downloaded pip package and the binaries downloaded with `third-party/iree-rv32-springbok/build_tools/download_iree_compiler.py` should match to avoid inconsistencies between `iree-compiler` for RISC-V and Python bindings.
 
-## Building the runtime
+### Building the runtime
 
 Before building the binary, download a pre-compiled RV32 LLVM toolchain and IREE compiler.
 To download it, scripts included in `iree-rv32-springbok` submodule located in `third-party/iree-rv32-springbok/build_tools` directory can be used.
@@ -101,7 +204,7 @@ cmake --build build/build-riscv -j `nproc`
 
 The runtime binary will be saved in `build/build-riscv/iree-runtime` directory.
 
-## Evaluating the model and accelerator in Renode simulation
+## Evaluating the model and accelerator in simulation
 
 Kenning can evaluate a bare metal runtime using Renode - it allows the user to:
 
@@ -224,6 +327,22 @@ This command:
 * Creates plots and summaries regarding overall performance, classification quality and Renode profiler metrics, such as used instructions, memory accesses and more
 * Saves plots in `springbok-magic-wand/img` directory
 * Creates a MyST-based Markdown file with report summary.
+
+In the end, the report can be converted to HTML using Jupyter Book.
+It can be installed with:
+
+```bash
+python3 -m pip install install jupyter-book
+```
+
+Later, to build the HTML, run:
+
+```bash
+jupyter book build springbok-magic-wand/report.md
+```
+
+It uses (_config.yml)[./_config.yml] to configure the build.
+It adds usage of `kenning.utils.sphinx_html_as_figure` Sphinx extension to allow using HTML with plots as figures in the rendered report.
 
 ## Running Kenning with existing Renode session.
 
