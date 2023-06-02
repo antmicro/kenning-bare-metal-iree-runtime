@@ -1,0 +1,34 @@
+name: Publish Docker image for demo
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    PublishDocker:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Cancel previous
+              uses: styfle/cancel-workflow-action@0.11.0
+              with:
+                  access_token: ${{ github.token }}
+            - name: Checkout sources
+              uses: actions/checkout@v3
+              with:
+                  submodules: 'recursive'
+                  lfs: false
+            - name: Build Docker image
+              run: docker build . --tag ghcr.io/antmicro/kenning-bare-metal-iree-runtime:latest
+            - name: Login to registry
+              uses: docker/login-action@v2
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ github.token }}
+            - name: Push image to registry
+              run: docker push ghcr.io/antmicro/kenning-bare-metal-iree-runtime:latest
