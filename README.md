@@ -124,12 +124,15 @@ In Debian-based distros they can be installed with:
 apt-get update
 apt-get install -qqy --no-install-recommends \
     cmake \
+    g++ \
     git \
     git-lfs \
     ninja-build \
     python3 \
+    python3-dev \
     python3-pip \
     python3-venv \
+    python3-wheel \
     wget \
     xxd
 ```
