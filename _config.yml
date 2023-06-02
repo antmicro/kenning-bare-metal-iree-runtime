@@ -1,0 +1,2 @@
+sphinx:
+    extra_extensions: ['kenning.utils.sphinx_html_as_figure']
