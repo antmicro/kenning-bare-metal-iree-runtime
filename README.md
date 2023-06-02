@@ -53,7 +53,7 @@ python3 -m pip install -r requirements.txt # install dependencies
 To install additional python packages required to run Kenning inference client and render reports, run the following command:
 
 ```bash
-python3 -m pip install third-party/kenning[tensorflow,reports,uart,renode]
+python3 -m pip install third-party/kenning[tensorflow,reports,uart,renode,object_detection]
 ```
 
 For installing IREE Python modules for compiling models in Kenning, either follow [Building IREE from source](https://openxla.github.io/iree/building-from-source/#reference-pages) instructions to build Python bindings from `third-party/iree-rv32-springbok/third_party/iree/` directory, or install the available Python modules using `pip`:
