@@ -3,4 +3,4 @@
 	url = https://github.com/antmicro/iree-rv32-springbok.git
 [submodule "third-party/kenning"]
 	path = third-party/kenning
-	url = https://github.com/antmicro/kenning.git
+	url = ../kenning.git
