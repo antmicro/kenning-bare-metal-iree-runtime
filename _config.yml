@@ -1,2 +1,5 @@
+author: Kenning report generator
 sphinx:
     extra_extensions: ['kenning.utils.sphinx_html_as_figure']
+    config:
+        html_show_copyright: false

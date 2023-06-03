@@ -341,7 +341,7 @@ python3 -m pip install install jupyter-book
 Later, to build the HTML, run:
 
 ```bash
-jupyter book build springbok-magic-wand/report.md
+jupyter-book build springbok-magic-wand/report.md
 ```
 
 It uses (_config.yml)[./_config.yml] to configure the build.
