@@ -44,7 +44,7 @@ docker pull ghcr.io/antmicro/kenning-bare-metal-iree-runtime:latest
 and enter it using:
 
 ```
-docker run --rm -v $(pwd):/data -it ghcr.io/antmicro/kenning-bare-metal-iree-runtime:latest /bin/bash
+docker run --rm -v $(pwd):/data -w /data -it ghcr.io/antmicro/kenning-bare-metal-iree-runtime:latest /bin/bash
 ```
 
 To build the bare-metal runtime, firstly CMake build needs to be configured.
