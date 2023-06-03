@@ -25,10 +25,12 @@ jobs:
             - name: Build Docker image
               run: docker build . --tag ghcr.io/antmicro/kenning-bare-metal-iree-runtime:latest
             - name: Login to registry
+              if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
               uses: docker/login-action@v2
               with:
                   registry: ghcr.io
                   username: ${{ github.actor }}
                   password: ${{ github.token }}
             - name: Push image to registry
+              if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
               run: docker push ghcr.io/antmicro/kenning-bare-metal-iree-runtime:latest
