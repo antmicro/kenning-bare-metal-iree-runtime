@@ -16,6 +16,8 @@ iree_cc_binary(
     ::utils::model
     ::utils::uart
     ::utils::protocol
+    ::utils::adxl345
+    ::utils::i2c
   LINKOPTS
     "LINKER:--defsym=__itcm_length__=1M"
     "LINKER:--defsym=__stack_size__=200k"
