@@ -48,3 +48,26 @@ iree_cc_library(
   SRCS
     "uart.c"
 )
+
+iree_cc_library(
+  NAME
+    i2c
+  HDRS
+    "i2c.h"
+  SRCS
+    "i2c.c"
+  DEPS
+    springbok
+)
+
+iree_cc_library(
+  NAME
+    adxl345
+  HDRS
+    "adxl345.h"
+  SRCS
+    "adxl345.c"
+  DEPS
+    ::i2c
+    springbok
+)
