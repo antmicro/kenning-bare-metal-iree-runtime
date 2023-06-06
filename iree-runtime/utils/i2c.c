@@ -6,61 +6,63 @@
 
 #include "i2c.h"
 
+GENERATE_MODULE_STATUSES_STR(I2C);
+
 ut_static i2c_t g_i2c = {.initialized = false};
 
-static uint16_t round_up_divide(uint32_t a, uint32_t b) {
+static uint16_t round_up_divide(uint32_t a, uint32_t b)
+{
     const uint32_t result = ((a - 1) / b) + 1;
     return (uint16_t)result;
 }
 
-static i2c_timing_config_t get_default_config_for_speed(I2C_SPEED speed, uint32_t clock_period_nanos)
+static I2C_STATUS get_default_config_for_speed(I2C_SPEED speed, uint32_t clock_period_nanos,
+                                               i2c_timing_config_t *config)
 {
-    switch (speed) {
-        case I2C_SPEED_STANDARD:
-            return (i2c_timing_config_t) {
-                .scl_time_high_cycles = round_up_divide(4000, clock_period_nanos),
-                .scl_time_low_cycles = round_up_divide(4700, clock_period_nanos),
-                .start_signal_setup_cycles = round_up_divide(4700, clock_period_nanos),
-                .start_signal_hold_cycles = round_up_divide(4000, clock_period_nanos),
-                .data_signal_setup_cycles = round_up_divide(250, clock_period_nanos),
-                .data_signal_hold_cycles = 1,
-                .stop_signal_setup_cycles = round_up_divide(4000, clock_period_nanos),
-                .stop_signal_hold_cycles = round_up_divide(4700, clock_period_nanos),
-            };
-        case I2C_SPEED_FAST:
-            return (i2c_timing_config_t){
-                .scl_time_high_cycles = round_up_divide(600, clock_period_nanos),
-                .scl_time_low_cycles = round_up_divide(1300, clock_period_nanos),
-                .start_signal_setup_cycles = round_up_divide(600, clock_period_nanos),
-                .start_signal_hold_cycles = round_up_divide(600, clock_period_nanos),
-                .data_signal_setup_cycles = round_up_divide(100, clock_period_nanos),
-                .data_signal_hold_cycles = 1,
-                .stop_signal_setup_cycles = round_up_divide(600, clock_period_nanos),
-                .stop_signal_hold_cycles = round_up_divide(1300, clock_period_nanos),
-            };
-        case I2C_SPEED_FAST_PLUS:
-            return (i2c_timing_config_t){
-                .scl_time_high_cycles = round_up_divide(260, clock_period_nanos),
-                .scl_time_low_cycles = round_up_divide(500, clock_period_nanos),
-                .start_signal_setup_cycles = round_up_divide(260, clock_period_nanos),
-                .start_signal_hold_cycles = round_up_divide(260, clock_period_nanos),
-                .data_signal_setup_cycles = round_up_divide(50, clock_period_nanos),
-                .data_signal_hold_cycles = 1,
-                .stop_signal_setup_cycles = round_up_divide(260, clock_period_nanos),
-                .stop_signal_hold_cycles = round_up_divide(500, clock_period_nanos),
-            };
-        default:
-            return (i2c_timing_config_t){0};
+    VALIDATE_POINTER(config, I2C_STATUS_INV_PTR);
+
+    switch (speed)
+    {
+    case I2C_SPEED_STANDARD:
+        config->scl_time_high_cycles = round_up_divide(4000, clock_period_nanos);
+        config->scl_time_low_cycles = round_up_divide(4700, clock_period_nanos);
+        config->start_signal_setup_cycles = round_up_divide(4700, clock_period_nanos);
+        config->start_signal_hold_cycles = round_up_divide(4000, clock_period_nanos);
+        config->data_signal_setup_cycles = round_up_divide(250, clock_period_nanos);
+        config->data_signal_hold_cycles = 1;
+        config->stop_signal_setup_cycles = round_up_divide(4000, clock_period_nanos);
+        config->stop_signal_hold_cycles = round_up_divide(4700, clock_period_nanos);
+        break;
+    case I2C_SPEED_FAST:
+        config->scl_time_high_cycles = round_up_divide(600, clock_period_nanos);
+        config->scl_time_low_cycles = round_up_divide(1300, clock_period_nanos);
+        config->start_signal_setup_cycles = round_up_divide(600, clock_period_nanos);
+        config->start_signal_hold_cycles = round_up_divide(600, clock_period_nanos);
+        config->data_signal_setup_cycles = round_up_divide(100, clock_period_nanos);
+        config->data_signal_hold_cycles = 1;
+        config->stop_signal_setup_cycles = round_up_divide(600, clock_period_nanos);
+        config->stop_signal_hold_cycles = round_up_divide(1300, clock_period_nanos);
+        break;
+    case I2C_SPEED_FAST_PLUS:
+        config->scl_time_high_cycles = round_up_divide(260, clock_period_nanos);
+        config->scl_time_low_cycles = round_up_divide(500, clock_period_nanos);
+        config->start_signal_setup_cycles = round_up_divide(260, clock_period_nanos);
+        config->start_signal_hold_cycles = round_up_divide(260, clock_period_nanos);
+        config->data_signal_setup_cycles = round_up_divide(50, clock_period_nanos);
+        config->data_signal_hold_cycles = 1;
+        config->stop_signal_setup_cycles = round_up_divide(260, clock_period_nanos);
+        config->stop_signal_hold_cycles = round_up_divide(500, clock_period_nanos);
+        break;
+    default:
+        return I2C_STATUS_INV_ARG;
     }
+
+    return STATUS_OK;
 }
 
 static I2C_STATUS i2c_set_timings(const i2c_timing_config_t *config)
 {
-    VALIDATE_POINTER(config, I2C_STATUS_INVALID_POINTER);
-    if (!g_i2c.initialized)
-    {
-        return I2C_STATUS_UNINITIALIZED;
-    }
+    VALIDATE_POINTER(config, I2C_STATUS_INV_PTR);
 
     uint32_t timing0 = 0;
     timing0 = SET_REG_FIELD(timing0, TIMING0_THIGH, config->scl_time_high_cycles);
@@ -87,146 +89,196 @@ static I2C_STATUS i2c_set_timings(const i2c_timing_config_t *config)
     timing4 = SET_REG_FIELD(timing4, TIMING4_T_BUF, config->stop_signal_hold_cycles);
     g_i2c.registers->TIMING4 = timing4;
 
-    return I2C_STATUS_OK;
+    return STATUS_OK;
 }
 
-static I2C_STATUS i2c_reset_rx_fifo() {
-    if (!g_i2c.initialized)
-    {
-        return I2C_STATUS_UNINITIALIZED;
-    }
+void i2c_reset_rx_fifo() { g_i2c.registers->FIFO_CTRL = SET_REG_FIELD(g_i2c.registers->FIFO_CTRL, FIFO_CTRL_RXRST, 1); }
 
-    g_i2c.registers->FIFO_CTRL = SET_REG_FIELD(g_i2c.registers->FIFO_CTRL, FIFO_CTRL_RXRST, 1);
-
-    return I2C_STATUS_OK;
-}
-
-static I2C_STATUS i2c_reset_fmt_fifo() {
-    if (!g_i2c.initialized)
-    {
-        return I2C_STATUS_UNINITIALIZED;
-    }
-
-    g_i2c.registers->FIFO_CTRL = SET_REG_FIELD(g_i2c.registers->FIFO_CTRL, FIFO_CTRL_FMTRST, 1);
-
-    return I2C_STATUS_OK;
-}
-
-static I2C_STATUS i2c_reset_acq_fifo() {
-    if (!g_i2c.initialized)
-    {
-        return I2C_STATUS_UNINITIALIZED;
-    }
-
-    g_i2c.registers->FIFO_CTRL = SET_REG_FIELD(g_i2c.registers->FIFO_CTRL, FIFO_CTRL_ACQRST, 1);
-
-    return I2C_STATUS_OK;
-}
-
-static I2C_STATUS i2c_reset_tx_fifo() {
-    if (!g_i2c.initialized)
-    {
-        return I2C_STATUS_UNINITIALIZED;
-    }
-
-    g_i2c.registers->FIFO_CTRL = SET_REG_FIELD(g_i2c.registers->FIFO_CTRL, FIFO_CTRL_TXRST, 1);
-
-    return I2C_STATUS_OK;
-}
-
-I2C_STATUS i2c_init(const i2c_config_t *config)
+void i2c_reset_fmt_fifo()
 {
-    VALIDATE_POINTER(config, I2C_STATUS_INVALID_POINTER);
+    g_i2c.registers->FIFO_CTRL = SET_REG_FIELD(g_i2c.registers->FIFO_CTRL, FIFO_CTRL_FMTRST, 1);
+}
 
-    g_i2c.registers = (i2c_registers *)I2C_ADDRESS;
+void i2c_reset_acq_fifo()
+{
+    g_i2c.registers->FIFO_CTRL = SET_REG_FIELD(g_i2c.registers->FIFO_CTRL, FIFO_CTRL_ACQRST, 1);
+}
+
+void i2c_reset_tx_fifo() { g_i2c.registers->FIFO_CTRL = SET_REG_FIELD(g_i2c.registers->FIFO_CTRL, FIFO_CTRL_TXRST, 1); }
+
+status_t i2c_init(const i2c_config_t *config)
+{
+    status_t status = STATUS_OK;
+
+    VALIDATE_POINTER(config, I2C_STATUS_INV_PTR);
+
+    g_i2c.registers = (i2c_registers_t *)I2C_ADDRESS;
 
     // Timing parameter initialization
-    i2c_timing_config_t timing_config = get_default_config_for_speed(I2C_SPEED_STANDARD, config->clock_period_nanos);
+    i2c_timing_config_t timing_config;
+    status = get_default_config_for_speed(config->speed, config->clock_period_nanos, &timing_config);
+    RETURN_ON_ERROR(status, status);
     i2c_set_timings(&timing_config);
 
-    // FIFO reset and configuration
+    // FIFO reset
     i2c_reset_rx_fifo();
     i2c_reset_fmt_fifo();
     i2c_reset_acq_fifo();
     i2c_reset_tx_fifo();
-
-    // Interrupt configuration (no interrupts enabled)
 
     // Enable I2C Host or Target functionality
     g_i2c.registers->CTRL = CTRL_ENABLEHOST;
 
     g_i2c.initialized = true;
 
-    LOG_INFO("INTR_STATE: %x", g_i2c.registers->INTR_STATE);
-    LOG_INFO("INTR_ENABLE: %x", g_i2c.registers->INTR_ENABLE);
-    LOG_INFO("INTR_TEST: %x", g_i2c.registers->INTR_TEST);
-    LOG_INFO("ALERT_TEST: %x", g_i2c.registers->ALERT_TEST);
-    LOG_INFO("CTRL: %x", g_i2c.registers->CTRL);
-    LOG_INFO("STATUS: %x", g_i2c.registers->STATUS);
-    LOG_INFO("RDATA: %x", g_i2c.registers->RDATA);
-    LOG_INFO("FDATA: %x", g_i2c.registers->FDATA);
-    LOG_INFO("FIFO_CTRL: %x", g_i2c.registers->FIFO_CTRL);
-    LOG_INFO("FIFO_STATUS: %x", g_i2c.registers->FIFO_STATUS);
-    LOG_INFO("OVRD: %x", g_i2c.registers->OVRD);
-    LOG_INFO("VAL: %x", g_i2c.registers->VAL);
-    LOG_INFO("TIMING0: %x", g_i2c.registers->TIMING0);
-    LOG_INFO("TIMING1: %x", g_i2c.registers->TIMING1);
-    LOG_INFO("TIMING2: %x", g_i2c.registers->TIMING2);
-    LOG_INFO("TIMING3: %x", g_i2c.registers->TIMING3);
-    LOG_INFO("TIMING4: %x", g_i2c.registers->TIMING4);
-    LOG_INFO("TIMEOUT_CTRL: %x", g_i2c.registers->TIMEOUT_CTRL);
-    LOG_INFO("TARGET_ID: %x", g_i2c.registers->TARGET_ID);
-    LOG_INFO("ACQDATA: %x", g_i2c.registers->ACQDATA);
-    LOG_INFO("TXDATA: %x", g_i2c.registers->TXDATA);
-    LOG_INFO("HOST_TIMEOUT_CTRL: %x", g_i2c.registers->HOST_TIMEOUT_CTRL);
-
-    return I2C_STATUS_OK;
+    return STATUS_OK;
 }
 
-I2C_STATUS i2c_write_byte(const uint8_t byte)
+status_t i2c_get_status(i2c_status_t *status)
 {
+    VALIDATE_POINTER(status, I2C_STATUS_INV_PTR);
+
     if (!g_i2c.initialized)
     {
-        return I2C_STATUS_UNINITIALIZED;
+        return I2C_STATUS_UNINIT;
     }
 
-    return I2C_STATUS_OK;
+    memset(status, 0, sizeof(i2c_status_t));
+    uint32_t status_reg = g_i2c.registers->STATUS;
+
+    status->fmt_full = GET_REG_FIELD(status_reg, STATUS_FMT_FULL);
+    status->rx_full = GET_REG_FIELD(status_reg, STATUS_RX_FULL);
+    status->fmt_empty = GET_REG_FIELD(status_reg, STATUS_FMT_EMPTY);
+    status->host_idle = GET_REG_FIELD(status_reg, STATUS_HOST_IDLE);
+    status->target_idle = GET_REG_FIELD(status_reg, STATUS_TARGET_IDLE);
+    status->rx_empty = GET_REG_FIELD(status_reg, STATUS_RX_EMPTY);
+    status->tx_full = GET_REG_FIELD(status_reg, STATUS_TX_FULL);
+    status->acq_full = GET_REG_FIELD(status_reg, STATUS_ACQ_FULL);
+    status->tx_empty = GET_REG_FIELD(status_reg, STATUS_TX_EMPTY);
+    status->acq_empty = GET_REG_FIELD(status_reg, STATUS_ACQ_EMPTY);
+
+    return STATUS_OK;
 }
 
-I2C_STATUS i2c_write(const uint8_t *data, size_t data_length)
+status_t i2c_write_byte(const uint8_t byte, I2C_FORMAT format)
 {
-    VALIDATE_POINTER(data, I2C_STATUS_INVALID_POINTER);
-
     if (!g_i2c.initialized)
     {
-        return I2C_STATUS_UNINITIALIZED;
+        return I2C_STATUS_UNINIT;
     }
 
-    return I2C_STATUS_OK;
+    i2c_format_flags_t flags = {.no_ack_ok = true};
+
+    switch (format)
+    {
+    case I2C_FORMAT_START:
+        flags.start = true;
+        break;
+    case I2C_FORMAT_TX:
+        break;
+    case I2C_FORMAT_TX_STOP:
+        flags.stop = true;
+        break;
+    case I2C_FORMAT_RX:
+        flags.read = true;
+        break;
+    case I2C_FORMAT_RX_CONT:
+        flags.read = true;
+        flags.read_cont = true;
+        break;
+    case I2C_FORMAT_RX_STOP:
+        flags.read = true;
+        flags.stop = true;
+        break;
+    default:
+        return I2C_STATUS_INV_ARG;
+    }
+
+    uint32_t fdata = 0;
+    fdata = SET_REG_FIELD(fdata, FDATA_FBYTE, byte);
+    fdata = SET_REG_FIELD(fdata, FDATA_START, flags.start);
+    fdata = SET_REG_FIELD(fdata, FDATA_STOP, flags.stop);
+    fdata = SET_REG_FIELD(fdata, FDATA_READ, flags.read);
+    fdata = SET_REG_FIELD(fdata, FDATA_RCONT, flags.read_cont);
+    fdata = SET_REG_FIELD(fdata, FDATA_NAKOK, flags.no_ack_ok);
+
+    g_i2c.registers->FDATA = fdata;
+
+    return STATUS_OK;
 }
 
-I2C_STATUS i2c_read_byte(uint8_t *byte)
+status_t i2c_read_byte(uint8_t *byte)
 {
-    VALIDATE_POINTER(byte, I2C_STATUS_INVALID_POINTER);
+    VALIDATE_POINTER(byte, I2C_STATUS_INV_PTR);
 
     if (!g_i2c.initialized)
     {
-        return I2C_STATUS_UNINITIALIZED;
+        return I2C_STATUS_UNINIT;
     }
 
     *byte = GET_REG_FIELD(g_i2c.registers->RDATA, RDATA_RDATA);
 
-    return I2C_STATUS_OK;
+    return STATUS_OK;
 }
 
-I2C_STATUS i2c_read(const uint8_t *data, size_t data_length)
+status_t i2c_write_target_register(uint8_t target_id, uint8_t address, uint8_t data)
 {
-    VALIDATE_POINTER(data, I2C_STATUS_INVALID_POINTER);
+    status_t status;
 
     if (!g_i2c.initialized)
     {
-        return I2C_STATUS_UNINITIALIZED;
+        return I2C_STATUS_UNINIT;
     }
 
-    return I2C_STATUS_OK;
+    status = i2c_write_byte(target_id, I2C_FORMAT_START);
+    RETURN_ON_ERROR(status, status);
+    status = i2c_write_byte(address, I2C_FORMAT_TX);
+    RETURN_ON_ERROR(status, status);
+    status = i2c_write_byte(data, I2C_FORMAT_TX);
+    RETURN_ON_ERROR(status, status);
+    status = i2c_write_byte(1, I2C_FORMAT_RX_STOP);
+    RETURN_ON_ERROR(status, status);
+
+    return STATUS_OK;
+}
+
+status_t i2c_read_target_register(uint8_t target_id, uint8_t address, uint8_t *data)
+{
+    return i2c_read_target_registers(target_id, address, 1, data);
+}
+
+status_t i2c_read_target_registers(uint8_t target_id, uint8_t address, size_t count, uint8_t *data)
+{
+    status_t status;
+
+    VALIDATE_POINTER(data, I2C_STATUS_INV_PTR);
+
+    if (!g_i2c.initialized)
+    {
+        return I2C_STATUS_UNINIT;
+    }
+
+    status = i2c_write_byte(target_id, I2C_FORMAT_START);
+    RETURN_ON_ERROR(status, status);
+    status = i2c_write_byte(address, I2C_FORMAT_TX);
+    RETURN_ON_ERROR(status, status);
+    status = i2c_write_byte(count, I2C_FORMAT_RX_STOP);
+    RETURN_ON_ERROR(status, status);
+
+    i2c_status_t i2c_status;
+    size_t i = 0;
+    while (1)
+    {
+        status = i2c_get_status(&i2c_status);
+        RETURN_ON_ERROR(status, status);
+        if (i2c_status.rx_empty || i >= count)
+        {
+            break;
+        }
+        status = i2c_read_byte(data + i);
+        RETURN_ON_ERROR(status, status);
+        ++i;
+    }
+
+    return STATUS_OK;
 }
