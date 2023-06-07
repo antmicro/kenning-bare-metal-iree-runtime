@@ -49,22 +49,28 @@
 #define GENERATE_STR(STR) #STR,
 
 #define INT_TO_BOOL(x) (!!(x))
-#define LS_ONE(x) ((x) & ((x) ^ ((x) - 1)))
-#define TR_ZEROS(x) (INT_TO_BOOL(LS_ONE(x) & 0xFFFF0000) << 4 |  \
-                     INT_TO_BOOL(LS_ONE(x) & 0xFF00FF00) << 3 |  \
-                     INT_TO_BOOL(LS_ONE(x) & 0xF0F0F0F0) << 2 |  \
-                     INT_TO_BOOL(LS_ONE(x) & 0xCCCCCCCC) << 1 |  \
-                     INT_TO_BOOL(LS_ONE(x) & 0xAAAAAAAA))
-#define MASKED_OR_32(a, b, mask) ((a & (0xFFFFFFFF ^ mask)) | (b & mask))
+/* extracts least significant one */
+#define LS_ONE(x) ((x) & ((x) ^ ((x)-1)))
+/* counts tailing zeros */
+#define TR_ZEROS(x)                                                                        \
+    (INT_TO_BOOL(LS_ONE(x) & 0xFFFF0000) << 4 | INT_TO_BOOL(LS_ONE(x) & 0xFF00FF00) << 3 | \
+     INT_TO_BOOL(LS_ONE(x) & 0xF0F0F0F0) << 2 | INT_TO_BOOL(LS_ONE(x) & 0xCCCCCCCC) << 1 | \
+     INT_TO_BOOL(LS_ONE(x) & 0xAAAAAAAA))
+/* performs masked or operation */
+#define MASKED_OR_32(a, b, mask) (((a) & (0xFFFFFFFF ^ (mask))) | ((b) & (mask)))
 
+/* retrieves offset from register field mask */
 #define GET_OFFSET(field) TR_ZEROS(field)
-#define GET_REG_FIELD(var, field) ((var & field) >> GET_OFFSET(field))
-#define SET_REG_FIELD(var, field, value) MASKED_OR_32(var, value << GET_OFFSET(field), field)
+/* extracts register field value */
+#define GET_REG_FIELD(var, field) (((var) & (field)) >> GET_OFFSET(field))
+/* sets register field value */
+#define SET_REG_FIELD(var, field, value) MASKED_OR_32((var), (value) << GET_OFFSET(field), (field))
 
 /**
  * Generic error status
  */
-typedef enum {
+typedef enum
+{
     ERROR_STATUS_OK = 0,
     ERROR_STATUS_ERROR
 } ERROR_STATUS;
