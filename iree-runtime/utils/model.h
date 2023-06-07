@@ -73,6 +73,15 @@ MODEL_STATUS load_model_struct(const uint8_t *model_struct_data, const size_t da
 MODEL_STATUS load_model_weights(const uint8_t *model_weights_data, const size_t model_data_size);
 
 /**
+ * Calculates model input size based on data from model struct
+ *
+ * @param model_input_size output value
+ *
+ * @returns status of the model
+ */
+MODEL_STATUS get_model_input_size(size_t *model_input_size);
+
+/**
  * Loads model input from given buffer
  *
  * @param model_input buffer that contains model input

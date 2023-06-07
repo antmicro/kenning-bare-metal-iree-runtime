@@ -92,6 +92,29 @@ MODEL_STATUS load_model_weights(const uint8_t *model_weights_data, const size_t 
     return status;
 }
 
+MODEL_STATUS get_model_input_size(size_t *model_input_size)
+{
+    MODEL_STATUS status = MODEL_STATUS_OK;
+
+    VALIDATE_POINTER(model_input_size, MODEL_STATUS_INVALID_POINTER);
+
+    if (g_model_state < MODEL_STATE_STRUCT_LOADED)
+    {
+        return MODEL_STATUS_INVALID_STATE;
+    }
+
+    // compute input size
+    size_t size = 0;
+    for (int i = 0; i < g_model_struct.num_input; ++i)
+    {
+        size += g_model_struct.input_length[i] * g_model_struct.input_size_bytes[i];
+    }
+
+    *model_input_size = size;
+
+    return status;
+}
+
 MODEL_STATUS load_model_input(const uint8_t *model_input, const size_t model_input_size)
 {
     MODEL_STATUS status = MODEL_STATUS_OK;
@@ -106,10 +129,9 @@ MODEL_STATUS load_model_input(const uint8_t *model_input, const size_t model_inp
 
     // validate size of received data
     size_t expected_size = 0;
-    for (int i = 0; i < g_model_struct.num_input; ++i)
-    {
-        expected_size += g_model_struct.input_length[i] * g_model_struct.input_size_bytes[i];
-    }
+    status = get_model_input_size(&expected_size);
+    RETURN_ON_ERROR(status, status);
+
     if (model_input_size != expected_size)
     {
         LOG_ERROR("Invalid model input size: %d. Expected size: %d", model_input_size, expected_size);
