@@ -71,3 +71,16 @@ iree_cc_library(
     ::i2c
     springbok
 )
+
+iree_cc_library(
+  NAME
+    sensor
+  HDRS
+    "sensor.h"
+  SRCS
+    "sensor.c"
+  DEPS
+    ::i2c
+    ::adxl345
+    springbok
+)
