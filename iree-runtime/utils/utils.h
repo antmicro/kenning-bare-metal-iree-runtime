@@ -45,8 +45,8 @@
 
 #define TIMER_CLOCK_FREQ (24000000u) /* 24 MHz */
 
-#define GENERATE_ENUM(ENUM) ENUM,
-#define GENERATE_STR(STR) #STR,
+#define GENERATE_ENUM(ENUM, ...) ENUM,
+#define GENERATE_STR(STR, ...) #STR,
 
 #define INT_TO_BOOL(x) (!!(x))
 /* extracts least significant one */
