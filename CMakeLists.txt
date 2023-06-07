@@ -22,8 +22,13 @@ set(UNIT_TESTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/unit-tests" CACHE PATH
     "Unit tests directory." FORCE)
 set(RENODE_TESTS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/renode-tests" CACHE PATH
     "Renode tests directory." FORCE)
-set(RENODE_TEST_BIN_PATH "${CMAKE_CURRENT_SOURCE_DIR}/build/renode/renode-test" CACHE PATH
+set(RENODE_TEST_BIN_PATH "${RENODE_PATH}/renode-test" CACHE PATH
     "Path to renode-test")
+
+if (I2C_ACCELEROMETER)
+    add_compile_definitions(I2C_SENSOR)
+    add_compile_definitions(I2C_ADXL345)
+endif (I2C_ACCELEROMETER)
 
 include_directories(BEFORE SYSTEM ${CMAKE_CURRENT_LIST_DIR})
 include_directories(BEFORE SYSTEM ${CMAKE_CURRENT_BINARY_DIR})
@@ -86,7 +91,9 @@ add_custom_target(clang-tidy
         -isystem ${SPRINGBOK_SOURCE_DIR}/springbok/include \
         -isystem ${IREE_SOURCE_DIR}/runtime/src \
         -isystem ${UNIT_TESTS_DIR}/tests \
-        -D__CLANG_TIDY__"
+        -D__CLANG_TIDY__ \
+        -DI2C_SENSOR \
+        -DI2C_ADXL345"
     USES_TERMINAL
     VERBATIM
 )
@@ -104,6 +111,13 @@ add_custom_target(clang-format
 )
 add_custom_target(unit-tests
     COMMAND bash -c "ceedling test:all"
+    USES_TERMINAL
+    VERBATIM
+    USES_TERMINAL
+    WORKING_DIRECTORY ${UNIT_TESTS_DIR}
+)
+add_custom_target(unit-tests-coverage
+    COMMAND bash -c "ceedling gcov:all utils:gcov"
     USES_TERMINAL
     VERBATIM
     USES_TERMINAL
