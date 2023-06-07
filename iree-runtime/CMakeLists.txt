@@ -16,7 +16,7 @@ iree_cc_binary(
     ::utils::model
     ::utils::uart
     ::utils::protocol
-    ::utils::adxl345
+    ::utils::sensor
     ::utils::i2c
   LINKOPTS
     "LINKER:--defsym=__itcm_length__=1M"
