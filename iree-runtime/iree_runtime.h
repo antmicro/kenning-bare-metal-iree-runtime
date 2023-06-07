@@ -13,13 +13,11 @@
 #include "mocks/springbok.h"
 #endif // !(defined(__UNIT_TEST__) || defined(__CLANG_TIDY__))
 
-#include "utils/utils.h"
-#ifdef __I2C__
 #include "utils/i2c.h"
-#include "utils/sensor.h"
-#endif //__I2C__
+#include "utils/input_reader.h"
 #include "utils/model.h"
 #include "utils/protocol.h"
+#include "utils/utils.h"
 
 #define VALIDATE_REQUEST(callback_message_type, request)       \
     if (!IS_VALID_POINTER(request))                            \
@@ -48,6 +46,39 @@
 
 GENERATE_MODULE_STATUSES(RUNTIME);
 
+#define CHECK_INIT_STATUS_RET(status, log_format, log_args...) \
+    if (STATUS_OK != status)                                   \
+    {                                                          \
+        LOG_ERROR(log_format, ##log_args);                     \
+        return false;                                          \
+    }                                                          \
+    LOG_DEBUG(log_format, ##log_args);
+
+/**
+ * Initializes UART
+ *
+ * @param config UART configuration
+ *
+ * @returns status of initialization
+ */
+status_t __attribute__((weak)) uart_init(void *config);
+
+/**
+ * Initializes I2C
+ *
+ * @param config I2C configuration
+ *
+ * @returns status of the I2C
+ */
+status_t __attribute__((weak)) i2c_init(void *config);
+
+/**
+ * Initializes sensor
+ *
+ * @returns status of the sensor
+ */
+status_t __attribute__((weak)) sensor_init(void);
+
 /**
  * Type of callback function
  */
@@ -56,7 +87,7 @@ typedef status_t (*callback_ptr)(message_t **);
 /**
  * List of callbacks for each message type
  */
-#define CALLBACKS                                    \
+#define CALLBACKS(ENTRY)                             \
     /*    MessageType           Callback_function */ \
     ENTRY(MESSAGE_TYPE_OK, ok_callback)              \
     ENTRY(MESSAGE_TYPE_ERROR, error_callback)        \

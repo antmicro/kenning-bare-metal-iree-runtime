@@ -17,6 +17,10 @@
 
 #define TEST_CASE(...)
 
+status_t g_uart_init_ret = STATUS_OK;
+status_t g_i2c_init_ret = STATUS_OK;
+status_t g_sensor_init_ret = STATUS_OK;
+
 message_t *gp_message = NULL;
 message_t *gp_message_sent = NULL;
 message_t *gp_message_to_receive = NULL;
@@ -101,7 +105,19 @@ status_t mock_callback_with_ok_response_with_payload(message_t **request);
  */
 status_t mock_callback_error(message_t **request);
 
-void setUp(void) { get_status_str_StubWithCallback(mock_get_status_str); }
+status_t uart_init(void *config) { return g_uart_init_ret; }
+
+status_t i2c_init(void *config) { return g_i2c_init_ret; }
+
+status_t sensor_init() { return g_sensor_init_ret; }
+
+void setUp(void)
+{
+    g_uart_init_ret = STATUS_OK;
+    g_i2c_init_ret = STATUS_OK;
+    g_sensor_init_ret = STATUS_OK;
+    get_status_str_StubWithCallback(mock_get_status_str);
+}
 
 void tearDown(void)
 {
@@ -133,10 +149,6 @@ void test_RuntimeInitServerShouldInitUART()
 {
     bool status = true;
 
-    uart_init_IgnoreAndReturn(STATUS_OK);
-    i2c_init_IgnoreAndReturn(STATUS_OK);
-    sensor_init_IgnoreAndReturn(STATUS_OK);
-
     status = init_server();
 
     TEST_ASSERT_TRUE(status);
@@ -153,9 +165,7 @@ void test_RuntimeInitServerShouldFailIfInitUARTFails(status_t uart_error)
 {
     bool status = true;
 
-    uart_init_IgnoreAndReturn(uart_error);
-    i2c_init_IgnoreAndReturn(STATUS_OK);
-    sensor_init_IgnoreAndReturn(STATUS_OK);
+    g_uart_init_ret = uart_error;
 
     status = init_server();
 
@@ -171,9 +181,7 @@ void test_RuntimeInitServerShouldFailIfInitI2CFails(status_t i2c_error)
 {
     bool status = true;
 
-    uart_init_IgnoreAndReturn(STATUS_OK);
-    i2c_init_IgnoreAndReturn(i2c_error);
-    sensor_init_IgnoreAndReturn(STATUS_OK);
+    g_i2c_init_ret = i2c_error;
 
     status = init_server();
 
@@ -189,9 +197,7 @@ void test_RuntimeInitServerShouldFailIfInitSensorFails(status_t sensor_error)
 {
     bool status = true;
 
-    uart_init_IgnoreAndReturn(STATUS_OK);
-    i2c_init_IgnoreAndReturn(STATUS_OK);
-    sensor_init_IgnoreAndReturn(sensor_error);
+    g_sensor_init_ret = sensor_error;
 
     status = init_server();
 

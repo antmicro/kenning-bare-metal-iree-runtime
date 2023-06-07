@@ -12,7 +12,7 @@ extern const char *const MESSAGE_TYPE_STR[];
 
 ut_static callback_ptr g_msg_callback[NUM_MESSAGE_TYPES] = {
 #define ENTRY(msg_type, callback_func) callback_func,
-    CALLBACKS
+    CALLBACKS(ENTRY)
 #undef ENTRY
 };
 
@@ -53,7 +53,47 @@ int main()
     // main runtime loop
     while (1)
     {
+        status_t status = STATUS_OK;
         message_t *msg = NULL;
+
+        do
+        {
+            // read input if model is loaded
+            if (get_model_state() < MODEL_STATE_WEIGHTS_LOADED)
+            {
+                break;
+            }
+
+            status = read_input();
+
+            // break if no read
+            if (INPUT_READER_NO_READ == status)
+            {
+                break;
+            }
+
+            if (STATUS_OK != status)
+            {
+                LOG_ERROR("read_input returned 0x%x (%s)", status, get_status_str(status));
+                reset_model_state();
+                break;
+            }
+
+            // run inference if model input is loaded
+            if (get_model_state() < MODEL_STATE_INPUT_LOADED)
+            {
+                break;
+            }
+
+            status = run_model();
+
+            if (STATUS_OK != status)
+            {
+                LOG_ERROR("run_model returned 0x%x (%s)", status, get_status_str(status));
+                reset_model_state();
+                break;
+            }
+        } while (0);
         if (wait_for_message(&msg))
         {
             handle_message(msg);
@@ -67,27 +107,28 @@ bool init_server()
 {
     status_t status = STATUS_OK;
 
-    uart_config_t config = {.data_bits = 8, .stop_bits = 1, .parity = false, .baudrate = 115200};
-    status = uart_init(&config);
-    if (STATUS_OK != status)
+    // initialize UART
+    if (uart_init)
     {
-        LOG_ERROR("uart_init returned 0x%x (%s)", status, get_status_str(status));
-        return false;
+        uart_config_t config = {.data_bits = 8, .stop_bits = 1, .parity = false, .baudrate = 115200};
+        status = uart_init(&config);
+        CHECK_INIT_STATUS_RET(status, "uart_init returned 0x%x (%s)", status, get_status_str(status));
     }
-    LOG_INFO("UART initialized");
 
-#ifdef __I2C__
-    i2c_config_t i2c_config = {.speed = I2C_SPEED_STANDARD, .clock_period_nanos = 41};
-    status = i2c_init(&i2c_config);
-    if (STATUS_OK != status)
+    // initialize I2C
+    if (i2c_init)
     {
-        LOG_ERROR("i2c_init returned 0x%x (%s)", status, get_status_str(status));
-        return false;
+        i2c_config_t i2c_config = {.speed = I2C_SPEED_STANDARD, .clock_period_nanos = 41};
+        status = i2c_init(&i2c_config);
+        CHECK_INIT_STATUS_RET(status, "i2c_init returned 0x%x (%s)", status, get_status_str(status));
     }
-    LOG_INFO("I2C initialized");
 
-#endif // __I2C__
-
+    // initialize sensor
+    if (sensor_init)
+    {
+        status = sensor_init();
+        CHECK_INIT_STATUS_RET(status, "sensor_init returned 0x%x (%s)", status, get_status_str(status));
+    }
     LOG_INFO("Runtime started");
     return true;
 }
@@ -143,6 +184,7 @@ void handle_message(message_t *msg)
         }
     }
 }
+
 /**
  * Handles OK message
  *
