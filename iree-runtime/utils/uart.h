@@ -32,20 +32,16 @@
     BAUDRATE(115200U)
 
 /**
- * An enum that describes UART status
+ * UART custom error codes
  */
-typedef enum
-{
-    UART_STATUS_OK = 0,
-    UART_STATUS_INVALID_ARGUMENT_BAUDRATE,
-    UART_STATUS_INVALID_ARGUMENT_WORDSIZE,
-    UART_STATUS_INVALID_ARGUMENT_STOP_BITS,
-    UART_STATUS_RECEIVE_ERROR,
-    UART_STATUS_NO_DATA,
-    UART_STATUS_TIMEOUT,
-    UART_STATUS_UNINITIALIZED,
-    UART_STATUS_INVALID_POINTER,
-} UART_STATUS;
+#define UART_STATUSES(STATUS)             \
+    STATUS(UART_STATUS_INV_ARG_BAUDRATE)  \
+    STATUS(UART_STATUS_INV_ARG_WORDSIZE)  \
+    STATUS(UART_STATUS_INV_ARG_STOP_BITS) \
+    STATUS(UART_STATUS_RECV_ERROR)        \
+    STATUS(UART_STATUS_NO_DATA)
+
+GENERATE_MODULE_STATUSES(UART);
 
 /**
  * A struct that contains registers used by UART
@@ -121,7 +117,7 @@ extern uart_registers g_mock_uart_registers;
  *
  * @returns status of initialization
  */
-UART_STATUS uart_init(const uart_config *config);
+status_t uart_init(const uart_config *config);
 /**
  * Writes single byte to UART
  *
@@ -129,7 +125,7 @@ UART_STATUS uart_init(const uart_config *config);
  *
  * @returns error status of write
  */
-UART_STATUS uart_putchar(const uint8_t c);
+status_t uart_putchar(const uint8_t c);
 /**
  * Write buffer of bytes to UART
  *
@@ -138,7 +134,7 @@ UART_STATUS uart_putchar(const uint8_t c);
  *
  * @returns error status of write
  */
-UART_STATUS uart_write(const uint8_t *data, size_t data_length);
+status_t uart_write(const uint8_t *data, size_t data_length);
 /**
  * Reads single byte from UART
  *
@@ -146,7 +142,7 @@ UART_STATUS uart_write(const uint8_t *data, size_t data_length);
  *
  * @returns status of read action
  */
-UART_STATUS uart_getchar(uint8_t *c);
+status_t uart_getchar(uint8_t *c);
 /**
  * Reads bytes from UART into given buffer
  *
@@ -155,6 +151,6 @@ UART_STATUS uart_getchar(uint8_t *c);
  *
  * @returns status of read action
  */
-UART_STATUS uart_read(uint8_t *data, size_t data_length);
+status_t uart_read(uint8_t *data, size_t data_length);
 
 #endif // IREE_RUNTIME_UTILS_UART_H_
