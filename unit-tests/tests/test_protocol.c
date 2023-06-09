@@ -12,7 +12,8 @@
 
 #define TEST_CASE(...)
 
-message *gp_message = NULL;
+extern uint8_t g_message_buffer[];
+message_t *gp_message = NULL;
 uint8_t *gp_uart_buffer = NULL;
 
 /**
@@ -24,7 +25,7 @@ uint8_t *gp_uart_buffer = NULL;
  *
  * @returns status of read action
  */
-UART_STATUS mock_uart_read(uint8_t *data, size_t data_length, int num_calls);
+status_t mock_uart_read(uint8_t *data, size_t data_length, int num_calls);
 
 /**
  * Mocks UART write function
@@ -35,7 +36,7 @@ UART_STATUS mock_uart_read(uint8_t *data, size_t data_length, int num_calls);
  *
  * @returns status of read action
  */
-UART_STATUS mock_uart_write(const uint8_t *data, size_t data_length, int num_calls);
+status_t mock_uart_write(const uint8_t *data, size_t data_length, int num_calls);
 
 /**
  * Prepares message of given type and payload and store result in gp_message
@@ -79,14 +80,14 @@ TEST_CASE(5) // MESSAGE_TYPE_OUTPUT
  */
 void test_ProtocolReceiveMessageShouldReadMessageWithoutPayloadFromUART(uint32_t message_type)
 {
-    SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
-    message *msg;
+    status_t status = STATUS_OK;
+    message_t *msg;
 
     prepare_message(message_type, NULL, 0);
 
-    server_status = receive_message(&msg);
+    status = receive_message(&msg);
 
-    TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_DATA_READY, server_status);
+    TEST_ASSERT_EQUAL_UINT(PROTOCOL_STATUS_DATA_READY, status);
     TEST_ASSERT_EQUAL_UINT(gp_message->message_size, msg->message_size);
     TEST_ASSERT_EQUAL_UINT(gp_message->message_type, msg->message_type);
 }
@@ -100,15 +101,15 @@ TEST_CASE(7) // MESSAGE_TYPE_IOSPEC
  */
 void test_ProtocolReceiveMessageShouldReadMessageWithPayloadFromUART(uint32_t message_type)
 {
-    SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
+    status_t status = STATUS_OK;
     uint8_t message_data[] = "some data";
-    message *msg;
+    message_t *msg;
 
     prepare_message(message_type, message_data, sizeof(message_data));
 
-    server_status = receive_message(&msg);
+    status = receive_message(&msg);
 
-    TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_DATA_READY, server_status);
+    TEST_ASSERT_EQUAL_UINT(PROTOCOL_STATUS_DATA_READY, status);
     TEST_ASSERT_EQUAL_UINT(gp_message->message_size, msg->message_size);
     TEST_ASSERT_EQUAL_UINT(gp_message->message_type, msg->message_type);
     TEST_ASSERT_EQUAL_UINT8_ARRAY(message_data, msg->payload, sizeof(message_data));
@@ -119,14 +120,14 @@ void test_ProtocolReceiveMessageShouldReadMessageWithPayloadFromUART(uint32_t me
  */
 void test_ProtocolReceiveMessageShouldFailWhenMsgPointerIsInvalid(void)
 {
-    SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
+    status_t status = STATUS_OK;
     uint8_t message_data[] = "some data";
 
     prepare_message(MESSAGE_TYPE_DATA, message_data, sizeof(message_data));
 
-    server_status = receive_message(NULL);
+    status = receive_message(NULL);
 
-    TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_INVALID_POINTER, server_status);
+    TEST_ASSERT_EQUAL_UINT(PROTOCOL_STATUS_INV_PTR, status);
 }
 
 /**
@@ -134,16 +135,16 @@ void test_ProtocolReceiveMessageShouldFailWhenMsgPointerIsInvalid(void)
  */
 void test_ProtocolReceiveMessageShouldFailIfMessageTooBig(void)
 {
-    SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
+    status_t status = STATUS_OK;
     uint8_t message_data[] = "some data";
-    message *msg;
+    message_t *msg;
 
     prepare_message(MESSAGE_TYPE_DATA, message_data, sizeof(message_data));
     gp_message->message_size = MAX_MESSAGE_SIZE_BYTES + 1;
 
-    server_status = receive_message(&msg);
+    status = receive_message(&msg);
 
-    TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_MESSAGE_TOO_BIG, server_status);
+    TEST_ASSERT_EQUAL_UINT(PROTOCOL_STATUS_MSG_TOO_BIG, status);
 }
 
 /**
@@ -151,15 +152,15 @@ void test_ProtocolReceiveMessageShouldFailIfMessageTooBig(void)
  */
 void test_ProtocolReceiveMessageShouldFailWhenUARTReadError(void)
 {
-    SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
-    message *msg;
+    status_t status = STATUS_OK;
+    message_t *msg;
 
     prepare_message(MESSAGE_TYPE_OK, NULL, 0);
-    uart_read_IgnoreAndReturn(UART_STATUS_RECEIVE_ERROR);
+    uart_read_IgnoreAndReturn(UART_STATUS_RECV_ERROR);
 
-    server_status = receive_message(&msg);
+    status = receive_message(&msg);
 
-    TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_CLIENT_DISCONNECTED, server_status);
+    TEST_ASSERT_EQUAL_UINT(PROTOCOL_STATUS_CLIENT_DISCONNECTED, status);
 }
 
 /**
@@ -167,15 +168,15 @@ void test_ProtocolReceiveMessageShouldFailWhenUARTReadError(void)
  */
 void test_ProtocolReceiveMessageShouldFailWhenUARTReadTimeout(void)
 {
-    SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
-    message *msg;
+    status_t status = STATUS_OK;
+    message_t *msg;
 
     prepare_message(MESSAGE_TYPE_OK, NULL, 0);
     uart_read_IgnoreAndReturn(UART_STATUS_TIMEOUT);
 
-    server_status = receive_message(&msg);
+    status = receive_message(&msg);
 
-    TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_TIMEOUT, server_status);
+    TEST_ASSERT_EQUAL_UINT(PROTOCOL_STATUS_TIMEOUT, status);
 }
 
 // ========================================================
@@ -191,16 +192,16 @@ TEST_CASE(5) // MESSAGE_TYPE_OUTPUT
  */
 void test_ProtocolSendMessageShouldWriteMessageWithourPayloadToUART(uint32_t message_type)
 {
-    SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
+    status_t status = STATUS_OK;
 
     prepare_message(message_type, NULL, 0);
 
-    server_status = send_message(gp_message);
+    status = send_message(gp_message);
 
-    message test;
-    message *msg_from_buffer = (message *)gp_uart_buffer;
+    message_t test;
+    message_t *msg_from_buffer = (message_t *)gp_uart_buffer;
 
-    TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_NOTHING, server_status);
+    TEST_ASSERT_EQUAL_UINT(STATUS_OK, status);
     TEST_ASSERT_EQUAL_UINT(gp_message->message_size, msg_from_buffer->message_size);
     TEST_ASSERT_EQUAL_UINT(gp_message->message_type, msg_from_buffer->message_type);
     TEST_ASSERT_EQUAL_UINT8_ARRAY(gp_message->payload, msg_from_buffer->payload, gp_message->message_size);
@@ -215,17 +216,17 @@ TEST_CASE(7) // MESSAGE_TYPE_IOSPEC
  */
 void test_ProtocolSendMessageShouldWriteMessageWithPayloadToUART(uint32_t message_type)
 {
-    SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
+    status_t status = STATUS_OK;
     uint8_t message_payload[128];
 
     prepare_message(message_type, message_payload, sizeof(message_payload));
 
-    server_status = send_message(gp_message);
+    status = send_message(gp_message);
 
-    message test;
-    message *msg_from_buffer = (message *)gp_uart_buffer;
+    message_t test;
+    message_t *msg_from_buffer = (message_t *)gp_uart_buffer;
 
-    TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_NOTHING, server_status);
+    TEST_ASSERT_EQUAL_UINT(STATUS_OK, status);
     TEST_ASSERT_EQUAL_UINT(gp_message->message_size, msg_from_buffer->message_size);
     TEST_ASSERT_EQUAL_UINT(gp_message->message_type, msg_from_buffer->message_type);
     TEST_ASSERT_EQUAL_UINT8_ARRAY(gp_message->payload, msg_from_buffer->payload, gp_message->message_size);
@@ -236,11 +237,11 @@ void test_ProtocolSendMessageShouldWriteMessageWithPayloadToUART(uint32_t messag
  */
 void test_ProtocolSendMessageShouldFailIfMessagePointerIsInvalid(void)
 {
-    SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
+    status_t status = STATUS_OK;
 
-    server_status = send_message(NULL);
+    status = send_message(NULL);
 
-    TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_INVALID_POINTER, server_status);
+    TEST_ASSERT_EQUAL_UINT(PROTOCOL_STATUS_INV_PTR, status);
 }
 
 /**
@@ -248,14 +249,14 @@ void test_ProtocolSendMessageShouldFailIfMessagePointerIsInvalid(void)
  */
 void test_ProtocolSendMessageShouldFailIfUARTWriteFails(void)
 {
-    SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
+    status_t status = STATUS_OK;
 
     prepare_message(MESSAGE_TYPE_OK, NULL, 0);
     uart_write_IgnoreAndReturn(UART_STATUS_TIMEOUT);
 
-    server_status = send_message(gp_message);
+    status = send_message(gp_message);
 
-    TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_TIMEOUT, server_status);
+    TEST_ASSERT_EQUAL_UINT(PROTOCOL_STATUS_TIMEOUT, status);
 }
 
 // ========================================================
@@ -267,12 +268,12 @@ void test_ProtocolSendMessageShouldFailIfUARTWriteFails(void)
  */
 void test_ProtocolPrepareSuccessResponseShouldPrepareEmptyOKMessage(void)
 {
-    SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
-    message *msg;
+    status_t status = STATUS_OK;
+    message_t *msg;
 
-    server_status = prepare_success_response(&msg);
+    status = prepare_success_response(&msg);
 
-    TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_NOTHING, server_status);
+    TEST_ASSERT_EQUAL_UINT(STATUS_OK, status);
     TEST_ASSERT_EQUAL_UINT(MESSAGE_TYPE_OK, msg->message_type);
     TEST_ASSERT_EQUAL_UINT(sizeof(message_type_t), msg->message_size);
 }
@@ -282,11 +283,11 @@ void test_ProtocolPrepareSuccessResponseShouldPrepareEmptyOKMessage(void)
  */
 void test_ProtocolPrepareSuccessResponseShouldFailIfThePointerIsInvalid(void)
 {
-    SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
+    status_t status = STATUS_OK;
 
-    server_status = prepare_success_response(NULL);
+    status = prepare_success_response(NULL);
 
-    TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_INVALID_POINTER, server_status);
+    TEST_ASSERT_EQUAL_UINT(PROTOCOL_STATUS_INV_PTR, status);
 }
 
 // ========================================================
@@ -298,12 +299,12 @@ void test_ProtocolPrepareSuccessResponseShouldFailIfThePointerIsInvalid(void)
  */
 void test_ProtocolPrepareFailureResponseShouldPrepareEmptyERRORMessage(void)
 {
-    SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
-    message *msg;
+    status_t status = STATUS_OK;
+    message_t *msg;
 
-    server_status = prepare_failure_response(&msg);
+    status = prepare_failure_response(&msg);
 
-    TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_NOTHING, server_status);
+    TEST_ASSERT_EQUAL_UINT(STATUS_OK, status);
     TEST_ASSERT_EQUAL_UINT(MESSAGE_TYPE_ERROR, msg->message_type);
     TEST_ASSERT_EQUAL_UINT(sizeof(message_type_t), msg->message_size);
 }
@@ -311,20 +312,20 @@ void test_ProtocolPrepareFailureResponseShouldPrepareEmptyERRORMessage(void)
 /**
  * Tests if protocol prepare failure message fails if message pointer is invalid
  */
-void test_ProtocolPrepareFailureResponseShouldFailfThePointerIsInvalid(void)
+void test_ProtocolPrepareFailureResponseShouldFailIfThePointerIsInvalid(void)
 {
-    SERVER_STATUS server_status = SERVER_STATUS_NOTHING;
+    status_t status = STATUS_OK;
 
-    server_status = prepare_failure_response(NULL);
+    status = prepare_failure_response(NULL);
 
-    TEST_ASSERT_EQUAL_UINT(SERVER_STATUS_INVALID_POINTER, server_status);
+    TEST_ASSERT_EQUAL_UINT(PROTOCOL_STATUS_INV_PTR, status);
 }
 
 // ========================================================
 // mocks
 // ========================================================
 
-UART_STATUS mock_uart_read(uint8_t *data, size_t data_length, int num_calls)
+status_t mock_uart_read(uint8_t *data, size_t data_length, int num_calls)
 {
     static size_t data_read = 0;
 
@@ -338,18 +339,18 @@ UART_STATUS mock_uart_read(uint8_t *data, size_t data_length, int num_calls)
         memcpy(data, &gp_message->message_type, sizeof(message_type_t));
         data_read += data_length;
         break;
-    case sizeof(message):
+    case sizeof(message_t):
         memcpy(data, &gp_message->payload, gp_message->message_size);
         data_read = 0;
         break;
     default:
-        return UART_STATUS_RECEIVE_ERROR;
+        return UART_STATUS_RECV_ERROR;
     }
 
-    return UART_STATUS_OK;
+    return STATUS_OK;
 }
 
-UART_STATUS mock_uart_write(const uint8_t *data, size_t data_length, int num_calls)
+status_t mock_uart_write(const uint8_t *data, size_t data_length, int num_calls)
 {
     if (IS_VALID_POINTER(gp_uart_buffer))
     {
@@ -360,7 +361,7 @@ UART_STATUS mock_uart_write(const uint8_t *data, size_t data_length, int num_cal
     gp_uart_buffer = malloc(data_length);
     memcpy(gp_uart_buffer, data, data_length);
 
-    return UART_STATUS_OK;
+    return STATUS_OK;
 }
 
 // ========================================================
@@ -374,7 +375,7 @@ void prepare_message(message_type_t msg_type, uint8_t *payload, size_t payload_s
         free(gp_message);
         gp_message = NULL;
     }
-    gp_message = malloc(sizeof(message) + payload_size);
+    gp_message = malloc(sizeof(message_t) + payload_size);
     gp_message->message_size = sizeof(message_type_t) + payload_size;
     gp_message->message_type = msg_type;
     if (payload_size > 0)
