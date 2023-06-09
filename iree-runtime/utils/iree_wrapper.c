@@ -6,6 +6,8 @@
 
 #include "iree_wrapper.h"
 
+GENERATE_MODULE_STATUSES_STR(IREE_WRAPPER);
+
 /**
  * IREE runtime instance
  */
@@ -106,7 +108,7 @@ static void release_context()
     }
 }
 
-IREE_WRAPPER_STATUS create_context(const uint8_t *model_data, const size_t model_data_size)
+status_t create_context(const uint8_t *model_data, const size_t model_data_size)
 {
     iree_status_t iree_status = iree_ok_status();
     iree_vm_module_t *hal_module = NULL;
@@ -165,8 +167,9 @@ IREE_WRAPPER_STATUS create_context(const uint8_t *model_data, const size_t model
     {
         release_context();
     }
+    CHECK_IREE_STATUS(iree_status);
 
-    return (IREE_WRAPPER_STATUS)iree_status;
+    return STATUS_OK;
 }
 
 /**
@@ -218,57 +221,59 @@ static iree_status_t prepare_input_hal_buffer_views(const uint8_t *model_input,
     return iree_status;
 }
 
-IREE_WRAPPER_STATUS prepare_input_buffer(const MlModel *model_struct, const uint8_t *model_input)
+status_t prepare_input_buffer(const MlModel *model_struct, const uint8_t *model_input)
 {
     iree_status_t iree_status = iree_ok_status();
 
     iree_status = iree_vm_list_create(
         /*element_type=*/NULL, /*initial_capacity=*/model_struct->num_input, iree_allocator_system(), &gp_model_inputs);
-    RETURN_ON_ERROR(iree_status, (IREE_WRAPPER_STATUS)iree_status);
+    CHECK_IREE_STATUS(iree_status);
 
     iree_hal_buffer_view_t *arg_buffer_views[MAX_MODEL_INPUT_NUM] = {NULL};
     iree_status = prepare_input_hal_buffer_views(model_input, arg_buffer_views);
-    RETURN_ON_ERROR(iree_status, (IREE_WRAPPER_STATUS)iree_status);
+    CHECK_IREE_STATUS(iree_status);
 
     iree_vm_ref_t arg_buffer_view_ref;
     for (int i = 0; i < model_struct->num_input; ++i)
     {
         arg_buffer_view_ref = iree_hal_buffer_view_move_ref(arg_buffer_views[i]);
         iree_status = iree_vm_list_push_ref_move(gp_model_inputs, &arg_buffer_view_ref);
-        RETURN_ON_ERROR(iree_status, (IREE_WRAPPER_STATUS)iree_status);
+        CHECK_IREE_STATUS(iree_status);
     }
 
-    return (IREE_WRAPPER_STATUS)iree_status;
+    return STATUS_OK;
 }
 
-IREE_WRAPPER_STATUS prepare_output_buffer()
+status_t prepare_output_buffer()
 {
     iree_status_t iree_status = iree_ok_status();
 
     iree_status = iree_vm_list_create(
         /*element_type=*/NULL, /*initial_capacity=*/1, iree_allocator_system(), &gp_model_outputs);
+    CHECK_IREE_STATUS(iree_status);
 
-    return (IREE_WRAPPER_STATUS)iree_status;
+    return STATUS_OK;
 }
 
-IREE_WRAPPER_STATUS run_inference()
+status_t run_inference()
 {
     iree_status_t iree_status = iree_ok_status();
     iree_vm_function_t main_function;
 
     iree_status =
         iree_vm_context_resolve_function(gp_context, iree_make_cstring_view(g_model_struct.entry_func), &main_function);
-    RETURN_ON_ERROR(iree_status, (IREE_WRAPPER_STATUS)iree_status);
+    CHECK_IREE_STATUS(iree_status);
 
     // invoke model
     iree_status = iree_vm_invoke(gp_context, main_function,
                                  IREE_VM_INVOCATION_FLAG_NONE /*IREE_VM_INVOCATION_FLAG_TRACE_EXECUTION*/,
                                  /*policy=*/NULL, gp_model_inputs, gp_model_outputs, iree_allocator_system());
+    CHECK_IREE_STATUS(iree_status);
 
-    return (IREE_WRAPPER_STATUS)iree_status;
+    return STATUS_OK;
 }
 
-IREE_WRAPPER_STATUS get_output(uint8_t *model_output)
+status_t get_output(uint8_t *model_output)
 {
     iree_status_t iree_status = iree_ok_status();
 
@@ -282,7 +287,7 @@ IREE_WRAPPER_STATUS get_output(uint8_t *model_output)
                                                                                iree_hal_buffer_view_get_descriptor());
         if (NULL == ret_buffer_view)
         {
-            return IREE_WRAPPER_STATUS_ERROR;
+            return IREE_WRAPPER_STATUS_INV_PTR;
         }
         iree_status =
             iree_hal_buffer_map_range(iree_hal_buffer_view_buffer(ret_buffer_view), IREE_HAL_MAPPING_MODE_SCOPED,
@@ -294,7 +299,7 @@ IREE_WRAPPER_STATUS get_output(uint8_t *model_output)
                  g_model_struct.output_length[output_idx]) &&
             NULL == ret_buffer_view)
         {
-            return IREE_WRAPPER_STATUS_ERROR;
+            return IREE_WRAPPER_STATUS_INV_PTR;
         }
         memcpy(&model_output[model_output_idx], mapped_memory.contents.data,
                g_model_struct.output_size_bytes * g_model_struct.output_length[output_idx]);
@@ -302,23 +307,20 @@ IREE_WRAPPER_STATUS get_output(uint8_t *model_output)
         iree_hal_buffer_unmap_range(&mapped_memory);
     }
 
-    return (IREE_WRAPPER_STATUS)iree_status;
+    return STATUS_OK;
 }
 
-IREE_WRAPPER_STATUS get_model_stats(const size_t statistics_buffer_size, uint8_t *statistics_buffer,
-                                    size_t *statistics_size)
+status_t get_model_stats(const size_t statistics_buffer_size, uint8_t *statistics_buffer, size_t *statistics_size)
 {
-    iree_status_t iree_status = iree_ok_status();
-
     if (statistics_buffer_size < sizeof(iree_hal_allocator_statistics_t))
     {
-        return IREE_WRAPPER_STATUS_ERROR;
+        return IREE_WRAPPER_STATUS_INV_ARG;
     }
     iree_hal_allocator_query_statistics(iree_hal_device_allocator(gp_device),
                                         (iree_hal_allocator_statistics_t *)statistics_buffer);
     *statistics_size = sizeof(iree_hal_allocator_statistics_t);
 
-    return (IREE_WRAPPER_STATUS)iree_status;
+    return STATUS_OK;
 }
 
 void release_input_buffer()

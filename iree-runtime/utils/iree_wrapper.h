@@ -31,11 +31,12 @@
     HAL_ELEMENT_TYPE("f32", IREE_HAL_ELEMENT_TYPE_FLOAT_32) \
     HAL_ELEMENT_TYPE("f64", IREE_HAL_ELEMENT_TYPE_FLOAT_64)
 
-typedef enum
-{
-    IREE_WRAPPER_STATUS_OK,
-    IREE_WRAPPER_STATUS_ERROR,
-} IREE_WRAPPER_STATUS;
+/**
+ * IREE wrapper custom error codes
+ */
+#define IREE_WRAPPER_STATUSES(STATUS)
+
+GENERATE_MODULE_STATUSES(IREE_WRAPPER);
 
 /**
  * Model struct constraints
@@ -64,16 +65,16 @@ typedef struct __attribute__((packed))
     uint8_t model_name[MAX_LENGTH_MODEL_NAME];
 } MlModel;
 
-#define BREAK_ON_IREE_ERROR(status)      \
-    if (!iree_status_is_ok(iree_status)) \
-    {                                    \
-        break;                           \
+#define BREAK_ON_IREE_ERROR(status) \
+    if (!iree_status_is_ok(status)) \
+    {                               \
+        break;                      \
     }
 
-#define CHECK_IREE_STATUS(status)             \
-    if (!iree_status_is_ok(status))           \
-    {                                         \
-        return (IREE_WRAPPER_STATUS)(status); \
+#define CHECK_IREE_STATUS(status)                    \
+    if (!iree_status_is_ok(status))                  \
+    {                                                \
+        return GENERATE_ERROR(IREE_WRAPPER, status); \
     }
 
 /**
@@ -84,7 +85,7 @@ typedef struct __attribute__((packed))
  *
  * @returns error status
  */
-IREE_WRAPPER_STATUS create_context(const uint8_t *model_data, const size_t model_data_size);
+status_t create_context(const uint8_t *model_data, const size_t model_data_size);
 
 /**
  * Prepares model input buffer
@@ -94,21 +95,21 @@ IREE_WRAPPER_STATUS create_context(const uint8_t *model_data, const size_t model
  *
  * @returns error status
  */
-IREE_WRAPPER_STATUS prepare_input_buffer(const MlModel *model_struct, const uint8_t *model_input);
+status_t prepare_input_buffer(const MlModel *model_struct, const uint8_t *model_input);
 
 /**
  * Prepares model output buffer
  *
  * @returns error status
  */
-IREE_WRAPPER_STATUS prepare_output_buffer();
+status_t prepare_output_buffer();
 
 /**
  * Runs model inference
  *
  * @returns error status
  */
-IREE_WRAPPER_STATUS run_inference();
+status_t run_inference();
 
 /**
  * Returns model output
@@ -117,7 +118,7 @@ IREE_WRAPPER_STATUS run_inference();
  *
  * @returns error status
  */
-IREE_WRAPPER_STATUS get_output(uint8_t *model_output);
+status_t get_output(uint8_t *model_output);
 
 /**
  * Returns model stats
@@ -128,8 +129,7 @@ IREE_WRAPPER_STATUS get_output(uint8_t *model_output);
  *
  * @returns error status
  */
-IREE_WRAPPER_STATUS get_model_stats(const size_t statistics_buffer_size, uint8_t *statistics_buffer,
-                                    size_t *statistics_size);
+status_t get_model_stats(const size_t statistics_buffer_size, uint8_t *statistics_buffer, size_t *statistics_size);
 
 /**
  * Clears model input buffer
