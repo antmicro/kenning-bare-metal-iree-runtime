@@ -6,8 +6,8 @@
 
 #include "protocol.h"
 
+GENERATE_MODULE_STATUSES_STR(PROTOCOL);
 const char *const MESSAGE_TYPE_STR[] = {MESSAGE_TYPES(GENERATE_STR)};
-const char *const SERVER_STATUS_STR[] = {SERVER_STATUSES(GENERATE_STR)};
 
 static uint8_t __attribute__((aligned(4))) g_message_buffer[MAX_MESSAGE_SIZE_BYTES + 2];
 
@@ -16,21 +16,21 @@ static uint8_t __attribute__((aligned(4))) g_message_buffer[MAX_MESSAGE_SIZE_BYT
  *
  * @returns pointer to a message buffer
  */
-static message *get_message_buffer()
+static message_t *get_message_buffer()
 {
     // payload should be aligned to 4 bytes and as header (msg size and msg type) are
     // total 6 bytes, we need to shift msg buffer pointer 2 bytes
-    return (message *)(g_message_buffer + 2);
+    return (message_t *)(g_message_buffer + 2);
 }
 
-SERVER_STATUS receive_message(message **msg)
+status_t receive_message(message_t **msg)
 {
-    UART_STATUS status = UART_STATUS_OK;
+    status_t status = STATUS_OK;
     message_size_t msg_size = 0;
     MESSAGE_TYPE msg_type = MESSAGE_TYPE_OK;
     uint8_t data[4];
 
-    VALIDATE_POINTER(msg, SERVER_STATUS_INVALID_POINTER);
+    VALIDATE_POINTER(msg, PROTOCOL_STATUS_INV_PTR);
 
     // read size of the message
     status = uart_read(data, sizeof(message_size_t));
@@ -40,7 +40,7 @@ SERVER_STATUS receive_message(message **msg)
 
     if (msg_size > MAX_MESSAGE_SIZE_BYTES)
     {
-        return SERVER_STATUS_MESSAGE_TOO_BIG;
+        return PROTOCOL_STATUS_MSG_TOO_BIG;
     }
 
     // read type of the message
@@ -50,58 +50,58 @@ SERVER_STATUS receive_message(message **msg)
 
     // get pointer to the message buffer
     *msg = get_message_buffer();
-    VALIDATE_POINTER(*msg, SERVER_STATUS_INVALID_POINTER);
+    VALIDATE_POINTER(*msg, PROTOCOL_STATUS_INV_PTR);
 
     (*msg)->message_size = msg_size;
     (*msg)->message_type = msg_type;
 
     // read the payload
     status = uart_read((*msg)->payload, MESSAGE_SIZE_PAYLOAD(msg_size));
-    if (UART_STATUS_OK != status)
+    if (STATUS_OK != status)
     {
         *msg = NULL;
     }
     CHECK_UART_STATUS(status);
 
-    return SERVER_STATUS_DATA_READY;
+    return PROTOCOL_STATUS_DATA_READY;
 }
 
-SERVER_STATUS send_message(const message *msg)
+status_t send_message(const message_t *msg)
 {
-    UART_STATUS status = UART_STATUS_OK;
+    status_t status = STATUS_OK;
 
-    VALIDATE_POINTER(msg, SERVER_STATUS_INVALID_POINTER);
+    VALIDATE_POINTER(msg, PROTOCOL_STATUS_INV_PTR);
 
     status = uart_write((uint8_t *)msg, MESSAGE_SIZE_FULL(msg->message_size));
 
     CHECK_UART_STATUS(status);
 
-    return SERVER_STATUS_NOTHING;
+    return status;
 }
 
-SERVER_STATUS prepare_success_response(message **response)
+status_t prepare_success_response(message_t **response)
 {
-    VALIDATE_POINTER(response, SERVER_STATUS_INVALID_POINTER);
+    VALIDATE_POINTER(response, PROTOCOL_STATUS_INV_PTR);
 
     *response = get_message_buffer();
     if (!IS_VALID_POINTER(*response))
     {
-        return SERVER_STATUS_INTERNAL_ERROR;
+        return PROTOCOL_STATUS_INTERNAL_ERROR;
     }
     (*response)->message_size = sizeof(message_type_t);
     (*response)->message_type = MESSAGE_TYPE_OK;
-    return SERVER_STATUS_NOTHING;
+    return STATUS_OK;
 }
-SERVER_STATUS prepare_failure_response(message **response)
+status_t prepare_failure_response(message_t **response)
 {
-    VALIDATE_POINTER(response, SERVER_STATUS_INVALID_POINTER);
+    VALIDATE_POINTER(response, PROTOCOL_STATUS_INV_PTR);
 
     *response = get_message_buffer();
     if (!IS_VALID_POINTER(*response))
     {
-        return SERVER_STATUS_INTERNAL_ERROR;
+        return PROTOCOL_STATUS_INTERNAL_ERROR;
     }
     (*response)->message_size = sizeof(message_type_t);
     (*response)->message_type = MESSAGE_TYPE_ERROR;
-    return SERVER_STATUS_NOTHING;
+    return STATUS_OK;
 }

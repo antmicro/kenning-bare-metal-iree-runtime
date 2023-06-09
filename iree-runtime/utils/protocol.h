@@ -9,20 +9,20 @@
 
 #include "uart.h"
 
-#define CHECK_UART_STATUS(status)                 \
-    if (UART_STATUS_TIMEOUT == (status))          \
-    {                                             \
-        return SERVER_STATUS_TIMEOUT;             \
-    }                                             \
-    if (UART_STATUS_OK != (status))               \
-    {                                             \
-        return SERVER_STATUS_CLIENT_DISCONNECTED; \
+#define CHECK_UART_STATUS(status)                   \
+    if (UART_STATUS_TIMEOUT == (status))            \
+    {                                               \
+        return PROTOCOL_STATUS_TIMEOUT;             \
+    }                                               \
+    if (STATUS_OK != (status))                      \
+    {                                               \
+        return PROTOCOL_STATUS_CLIENT_DISCONNECTED; \
     }
 
 #define MAX_MESSAGE_SIZE_BYTES (5 * 256 * 1024) // 1.25 MB
 
 #define MESSAGE_SIZE_PAYLOAD(msg_size) ((msg_size) - sizeof(message_type_t))
-#define MESSAGE_SIZE_FULL(msg_size) (sizeof(message) + MESSAGE_SIZE_PAYLOAD(msg_size))
+#define MESSAGE_SIZE_FULL(msg_size) (sizeof(message_t) + MESSAGE_SIZE_PAYLOAD(msg_size))
 
 /**
  * An enum that describes message type
@@ -44,24 +44,18 @@ typedef enum
 } MESSAGE_TYPE;
 
 /**
- * An enum that describes server status
+ * Protocol custom error codes
  */
-#define SERVER_STATUSES(STATUS)               \
-    STATUS(SERVER_STATUS_NOTHING)             \
-    STATUS(SERVER_STATUS_CLIENT_CONNECTED)    \
-    STATUS(SERVER_STATUS_CLIENT_DISCONNECTED) \
-    STATUS(SERVER_STATUS_CLIENT_IGNORED)      \
-    STATUS(SERVER_STATUS_DATA_READY)          \
-    STATUS(SERVER_STATUS_DATA_INVALID)        \
-    STATUS(SERVER_STATUS_INTERNAL_ERROR)      \
-    STATUS(SERVER_STATUS_TIMEOUT)             \
-    STATUS(SERVER_STATUS_MESSAGE_TOO_BIG)     \
-    STATUS(SERVER_STATUS_INVALID_POINTER)
+#define PROTOCOL_STATUSES(STATUS)               \
+    STATUS(PROTOCOL_STATUS_CLIENT_CONNECTED)    \
+    STATUS(PROTOCOL_STATUS_CLIENT_DISCONNECTED) \
+    STATUS(PROTOCOL_STATUS_CLIENT_IGNORED)      \
+    STATUS(PROTOCOL_STATUS_DATA_READY)          \
+    STATUS(PROTOCOL_STATUS_DATA_INV)            \
+    STATUS(PROTOCOL_STATUS_INTERNAL_ERROR)      \
+    STATUS(PROTOCOL_STATUS_MSG_TOO_BIG)
 
-typedef enum
-{
-    SERVER_STATUSES(GENERATE_ENUM)
-} SERVER_STATUS;
+GENERATE_MODULE_STATUSES(PROTOCOL);
 
 typedef uint32_t message_size_t;
 typedef uint16_t message_type_t;
@@ -74,39 +68,39 @@ typedef struct __attribute__((packed))
     message_size_t message_size;
     message_type_t message_type;
     uint8_t payload[0];
-} message;
+} message_t;
 
 /**
  * Waits for a message to be received
  *
  * @param msg received message
  *
- * @returns status of the server
+ * @returns status of the protocol
  */
-SERVER_STATUS receive_message(message **msg);
+status_t receive_message(message_t **msg);
 /**
  * Sends given message
  *
  * @param msg message to be sent
  *
- * @returns status of the server
+ * @returns status of the protocol
  */
-SERVER_STATUS send_message(const message *msg);
+status_t send_message(const message_t *msg);
 /**
  * Create a message that indicates an successful action
  *
  * @param response created message
  *
- * @returns status of the server
+ * @returns status of the protocol
  */
-SERVER_STATUS prepare_success_response(message **response);
+status_t prepare_success_response(message_t **response);
 /**
  * Create a message that indicates an error
  *
  * @param response created message
  *
- * @returns status of the server
+ * @returns status of the protocol
  */
-SERVER_STATUS prepare_failure_response(message **response);
+status_t prepare_failure_response(message_t **response);
 
 #endif // IREE_RUNTIME_UTILS_PROTOCOL_H_
