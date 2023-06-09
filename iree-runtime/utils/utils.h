@@ -16,20 +16,31 @@
 #define ut_static
 #endif // __UNIT_TEST__
 
+/* checks if pointer is valid */
 #define IS_VALID_POINTER(ptr) (NULL != (ptr))
 
+/* checks if pointer is NULL and returns error when it is true */
 #define VALIDATE_POINTER(ptr, error_status) \
     if (!IS_VALID_POINTER(ptr))             \
     {                                       \
         return error_status;                \
     }
 
+/* returns on error */
 #define RETURN_ON_ERROR(status, err_code) \
     if (STATUS_OK != (status))            \
     {                                     \
         return err_code;                  \
     }
 
+/* breaks loop on error */
+#define BREAK_ON_ERROR(status) \
+    if (STATUS_OK != (status)) \
+    {                          \
+        break;                 \
+    }
+
+/* CSRs addresses */
 #define CSR_CYCLE (0xC00)
 #define CSR_TIME (0xC01)
 
@@ -62,20 +73,24 @@
 /* performs masked or operation */
 #define MASKED_OR_32(a, b, mask) (((a) & (0xFFFFFFFF ^ (mask))) | ((b) & (mask)))
 
-/* retrieves offset from register field mask */
+/* retrieves field offset from register field mask */
 #define GET_OFFSET(field) TR_ZEROS(field)
 /* extracts register field value */
 #define GET_REG_FIELD(var, field) (((var) & (field)) >> GET_OFFSET(field))
 /* sets register field value */
 #define SET_REG_FIELD(var, field, value) (MASKED_OR_32((var), (value) << GET_OFFSET(field), (field)))
 
-#define ERROR_MASK_MODULE 0xFF00
-#define ERROR_MASK_STATUS 0xFF
-#define GENERATE_ERROR(module, status)                                 \
-    ((((module) << TR_ZEROS(ERROR_MASK_MODULE)) & ERROR_MASK_MODULE) | \
-     ((((status_t)(status)) << TR_ZEROS(ERROR_MASK_STATUS)) & ERROR_MASK_STATUS))
-#define GET_ERROR_MODULE(status) GET_REG_FIELD(status, ERROR_MASK_MODULE)
-#define GET_ERROR_STATUS(status) GET_REG_FIELD(status, ERROR_MASK_STATUS)
+#define STATUS_MASK_MODULE 0xFF00
+#define STATUS_MASK_CODE 0xFF
+#define GENERATE_ERROR(module, status)                                   \
+    ((((module) << TR_ZEROS(STATUS_MASK_MODULE)) & STATUS_MASK_MODULE) | \
+     ((((status_t)(status)) << TR_ZEROS(STATUS_MASK_CODE)) & STATUS_MASK_CODE))
+#define GET_STATUS_MODULE(status) GET_REG_FIELD(status, STATUS_MASK_MODULE)
+#define GET_STATUS_CODE(status) GET_REG_FIELD(status, STATUS_MASK_CODE)
+/* generates enum with module statuses. First status module##_STATUS_OK is added only to set enum counter value and
+   should not be used. The generated enum contains generic statuses from GENERIC_STATUSES defined below and custom
+   statuses module##_STATUSES that are defined in each modules header. The module##_LAST_STATUS is only to get number
+   of statuses and should noe be used */
 #define GENERATE_MODULE_STATUSES(module)                                                              \
     typedef enum                                                                                      \
     {                                                                                                 \
@@ -83,31 +98,73 @@
         GENERIC_STATUSES(GENERATE_ENUM, module) module##_STATUSES(GENERATE_ENUM) module##_LAST_STATUS \
     } module##_STATUS;
 
+/* generates array of strings with modules statuses names */
 #define GENERATE_MODULE_STATUSES_STR(module)                                                                \
     const char *const module##_STATUS_STR[] = {#module "_STATUS_OK", GENERIC_STATUSES(GENERATE_STR, module) \
                                                                          module##_STATUSES(GENERATE_STR)};  \
     const size_t module##_STATUS_COUNT = GET_STATUS_COUNT(module);
 
-#define GET_STATUS_COUNT(module) GET_ERROR_STATUS(module##_LAST_STATUS)
+/* returns status count for given module */
+#define GET_STATUS_COUNT(module) GET_STATUS_CODE(module##_LAST_STATUS)
 
 /**
  * Modules
  */
-#define MODULES(MODULE)  \
-    MODULE(RUNTIME)      \
-    MODULE(MODEL)        \
-    MODULE(IREE_WRAPPER) \
-    MODULE(PROTOCOL)     \
-    MODULE(UART)         \
-    MODULE(I2C)          \
-    MODULE(ADXL345)      \
+#define BASE_MODULES(MODULE) \
+    MODULE(RUNTIME)          \
+    MODULE(MODEL)            \
+    MODULE(IREE_WRAPPER)     \
+    MODULE(PROTOCOL)         \
+    MODULE(UART)             \
+    MODULE(INPUT_READER)
+
+#define I2C_SENSORS_MODULES(MODULE) \
+    MODULE(I2C)                     \
     MODULE(SENSOR)
 
+#define ADXL345_MODULES(MODULE) MODULE(ADXL345)
+
+#define MOCK_MODULES(MODULE) MODULE(SENSOR_MOCK)
+
+#define MODULES_ALL(MODULE)     \
+    BASE_MODULES(MODULE)        \
+    I2C_SENSORS_MODULES(MODULE) \
+    ADXL345_MODULES(MODULE)     \
+    MOCK_MODULES(MODULE)
+
+/**
+ * Enum with all modules
+ */
 enum
 {
     SKIP_ZERO,
-    MODULES(GENERATE_ENUM)
+    MODULES_ALL(GENERATE_ENUM)
 };
+
+#undef MODULES_ALL
+
+// disable unused modules
+
+#ifndef I2C_SENSOR
+#undef I2C_SENSORS_MODULES
+#define I2C_SENSORS_MODULES(...)
+#endif // I2C_SENSORS_MODULES
+
+#ifndef I2C_ADXL345
+#undef ADXL345_MODULES
+#define ADXL345_MODULES(...)
+#endif // I2C_ADXL345
+
+#ifndef __UNIT_TEST__
+#undef MOCK_MODULES
+#define MOCK_MODULES(...)
+#endif // __UNIT_TEST__
+
+#define MODULES(MODULE)         \
+    BASE_MODULES(MODULE)        \
+    I2C_SENSORS_MODULES(MODULE) \
+    ADXL345_MODULES(MODULE)     \
+    MOCK_MODULES(MODULE)
 
 #define STATUS_OK 0 /* success */
 
