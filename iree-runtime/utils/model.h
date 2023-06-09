@@ -19,26 +19,12 @@
 #include "mocks/springbok.h"
 #endif // !(defined(__UNIT_TEST__) || defined(__CLANG_TIDY__))
 
-#define CHECK_IREE_WRAPPER_STATUS(status)   \
-    if (IREE_WRAPPER_STATUS_OK != (status)) \
-    {                                       \
-        return MODEL_STATUS_IREE_ERROR;     \
-    }
-
 /**
- * An enum that describes server status
+ * Model custom error codes
  */
-#define MODEL_STATUSES(STATUS)            \
-    STATUS(MODEL_STATUS_OK)               \
-    STATUS(MODEL_STATUS_INVALID_ARGUMENT) \
-    STATUS(MODEL_STATUS_INVALID_STATE)    \
-    STATUS(MODEL_STATUS_IREE_ERROR)       \
-    STATUS(MODEL_STATUS_INVALID_POINTER)
+#define MODEL_STATUSES(STATUS) STATUS(MODEL_STATUS_INV_STATE)
 
-typedef enum
-{
-    MODEL_STATUSES(GENERATE_ENUM)
-} MODEL_STATUS;
+GENERATE_MODULE_STATUSES(MODEL);
 
 /**
  * An enum that describes model state
@@ -60,7 +46,7 @@ typedef enum
  *
  * @returns status of the model
  */
-MODEL_STATUS load_model_struct(const uint8_t *model_struct_data, const size_t data_size);
+status_t load_model_struct(const uint8_t *model_struct_data, const size_t data_size);
 
 /**
  * Loads model weights from given buffer
@@ -70,7 +56,7 @@ MODEL_STATUS load_model_struct(const uint8_t *model_struct_data, const size_t da
  *
  * @returns status of the model
  */
-MODEL_STATUS load_model_weights(const uint8_t *model_weights_data, const size_t model_data_size);
+status_t load_model_weights(const uint8_t *model_weights_data, const size_t model_data_size);
 
 /**
  * Calculates model input size based on data from model struct
@@ -79,7 +65,7 @@ MODEL_STATUS load_model_weights(const uint8_t *model_weights_data, const size_t 
  *
  * @returns status of the model
  */
-MODEL_STATUS get_model_input_size(size_t *model_input_size);
+status_t get_model_input_size(size_t *model_input_size);
 
 /**
  * Loads model input from given buffer
@@ -89,14 +75,14 @@ MODEL_STATUS get_model_input_size(size_t *model_input_size);
  *
  * @returns status of the model
  */
-MODEL_STATUS load_model_input(const uint8_t *model_input, const size_t model_input_size);
+status_t load_model_input(const uint8_t *model_input, const size_t model_input_size);
 
 /**
  * Runs model inference
  *
  * @returns status of the model
  */
-MODEL_STATUS run_model();
+status_t run_model();
 
 /**
  * Writes model output to given buffer
@@ -107,13 +93,13 @@ MODEL_STATUS run_model();
  *
  * @returns status of the model
  */
-MODEL_STATUS get_model_output(const size_t buffer_size, uint8_t *model_output, size_t *model_output_size);
+status_t get_model_output(const size_t buffer_size, uint8_t *model_output, size_t *model_output_size);
 
 /**
  * Retrieves model statistics
  *
  * @returns status of the model
  */
-MODEL_STATUS get_statistics(const size_t statistics_buffer_size, uint8_t *statistics_buffer, size_t *statistics_size);
+status_t get_statistics(const size_t statistics_buffer_size, uint8_t *statistics_buffer, size_t *statistics_size);
 
 #endif // IREE_RUNTIME_UTIL_MODEL_H_
