@@ -4,7 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// this
 #include "../iree-runtime/utils/uart.h"
 #include "unity.h"
 
@@ -12,7 +11,7 @@
 
 #define TEST_CASE(...)
 
-uart_registers g_mock_uart_registers;
+uart_registers_t g_mock_uart_registers;
 uint32_t g_mock_csr = 0;
 extern uart_t g_uart;
 
@@ -26,7 +25,7 @@ void mock_csr_read_callback();
  *
  * @returns valid UART config
  */
-static uart_config get_valid_uart_config();
+static uart_config_t get_valid_uart_config_t();
 
 /**
  * Clears transmit FIFO full flag in UART flag register
@@ -55,6 +54,8 @@ static void set_RSRECR_ERR_flag();
 
 void setUp(void)
 {
+    g_uart.initialized = false;
+    memset(&g_mock_uart_registers, 0, sizeof(g_mock_uart_registers));
     clear_FR_RXFE_flag();
     clear_FR_TXFF_flag();
     clear_RSRECR_ERR_flag();
@@ -77,7 +78,7 @@ TEST_CASE(6, 2, 115200)
 void test_UARTInitShouldSucceedForValidConfig(uint8_t data_bits, uint8_t stop_bits, uint32_t baudrate)
 {
     status_t status = STATUS_OK;
-    uart_config config = get_valid_uart_config();
+    uart_config_t config = get_valid_uart_config_t();
 
     g_uart.initialized = false;
     config.data_bits = data_bits;
@@ -116,7 +117,7 @@ TEST_CASE(-1)
 void test_UARTInitShouldFailForInvalidDataBitsInConfig(uint8_t data_bits)
 {
     status_t status = STATUS_OK;
-    uart_config config = get_valid_uart_config();
+    uart_config_t config = get_valid_uart_config_t();
 
     g_uart.initialized = false;
     config.data_bits = data_bits;
@@ -138,7 +139,7 @@ TEST_CASE(-1)
 void test_UARTInitShouldFailForInvalidStopBitsInConfig(uint8_t stop_bits)
 {
     status_t status = STATUS_OK;
-    uart_config config = get_valid_uart_config();
+    uart_config_t config = get_valid_uart_config_t();
 
     g_uart.initialized = false;
     config.stop_bits = stop_bits;
@@ -158,7 +159,7 @@ TEST_CASE(-1)
 void test_UARTInitShouldFailForInvalidBaudrateConfig(uint32_t baudrate)
 {
     status_t status = STATUS_OK;
-    uart_config config = get_valid_uart_config();
+    uart_config_t config = get_valid_uart_config_t();
 
     g_uart.initialized = false;
     config.baudrate = baudrate;
@@ -294,9 +295,10 @@ TEST_CASE('\b')
 void test_UARTGetCharShouldReadDataFromDR(char c)
 {
     status_t status = STATUS_OK;
-    const uint32_t dr = 0xABCD;
+    const uint32_t dr = MASKED_OR_32(0xABCD, c, DR_DATA_MASK);
 
     g_uart.initialized = true;
+    g_mock_uart_registers.DR = dr;
 
     status = uart_getchar(&c);
 
@@ -314,6 +316,7 @@ void test_UARTGetCharShouldFailIfUARTIsNotInitialized(void)
     uint8_t c;
 
     g_uart.initialized = false;
+    g_mock_uart_registers.DR = dr;
 
     status = uart_getchar(&c);
 
@@ -331,6 +334,7 @@ void test_UARTGetCharShouldReturnNoDataIfRXFEFlagIsSet(void)
 
     set_FR_RXFE_flag();
     g_uart.initialized = true;
+    g_mock_uart_registers.DR = dr;
 
     status = uart_getchar(&c);
 
@@ -348,6 +352,7 @@ void test_UARTGetCharShouldFailWhenUARTIsNotInitializedAndRXFEFlagIsSet(void)
 
     set_FR_RXFE_flag();
     g_uart.initialized = false;
+    g_mock_uart_registers.DR = dr;
 
     status = uart_getchar(&c);
 
@@ -399,6 +404,7 @@ void test_UARTReadShouldReadDataFromDR(void)
     uint8_t data[8];
 
     g_uart.initialized = true;
+    g_mock_uart_registers.DR = dr;
 
     status = uart_read(data, sizeof(data));
 
@@ -495,9 +501,9 @@ void mock_csr_read_callback() { g_mock_csr += TIMER_CLOCK_FREQ >> 4; }
 // helper functions
 // ========================================================
 
-static uart_config get_valid_uart_config()
+static uart_config_t get_valid_uart_config_t()
 {
-    uart_config ret = {.data_bits = 8, .stop_bits = 1, .parity = false, .baudrate = 115200};
+    uart_config_t ret = {.data_bits = 8, .stop_bits = 1, .parity = false, .baudrate = 115200};
     return ret;
 }
 
