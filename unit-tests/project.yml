@@ -33,13 +33,14 @@
   :libraries: []
 
 :defines:
-  :common: &common_defines []
+  :common: &common_defines
+    - __UNIT_TEST__
+    - I2C_SENSOR
+    - I2C_ADXL345
   :test:
     - *common_defines
-    - __UNIT_TEST__
   :test_preprocess:
     - *common_defines
-    - __UNIT_TEST__
 
 :unity:
   :use_param_tests: true
@@ -51,6 +52,8 @@
   :plugins:
     - :ignore
     - :callback
+    - :ignore_arg
+    - :return_thru_ptr
   :treat_as:
     uint8:    HEX8
     uint16:   HEX16
@@ -78,6 +81,7 @@
   :load_paths:
     - "#{Ceedling.load_path}"
   :enabled:
+    - gcov
     - stdout_pretty_tests_report
     - module_generator
 ...
