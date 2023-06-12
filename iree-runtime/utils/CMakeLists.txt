@@ -63,6 +63,8 @@ iree_cc_library(
     ::utils
 )
 
+if (DEFINED I2C_ACCELEROMETER)
+
 iree_cc_library(
   NAME
     i2c
@@ -72,7 +74,6 @@ iree_cc_library(
     "i2c.c"
   DEPS
     ::utils
-    springbok
 )
 
 iree_cc_library(
@@ -85,7 +86,6 @@ iree_cc_library(
   DEPS
     ::utils
     ::i2c
-    springbok
 )
 
 iree_cc_library(
@@ -101,3 +101,5 @@ iree_cc_library(
     ::adxl345
     springbok
 )
+
+endif (DEFINED I2C_ACCELEROMETER)
