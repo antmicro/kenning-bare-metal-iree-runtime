@@ -58,14 +58,14 @@ typedef volatile struct __attribute__((packed, aligned(4)))
     uint32_t FBRD;          /* 0x28 Fractional baudrate register */
     uint32_t LCRH;          /* 0x2C Line control register */
     uint32_t CR;            /* 0x30 Control register */
-} uart_registers;
+} uart_registers_t;
 
 /**
  * A struct that contains UART informations
  */
 typedef struct
 {
-    uart_registers *registers;
+    uart_registers_t *registers;
     bool initialized;
 } uart_t;
 
@@ -78,14 +78,14 @@ typedef struct
     uint8_t stop_bits;
     bool parity;
     uint32_t baudrate;
-} uart_config;
+} uart_config_t;
 
 #define UART_TIMEOUT_S (1) /* UART read timeout (1 second) */
 
 #ifndef __UNIT_TEST__
 #define UART_ADDRESS (0x40000000) /* address of UART registers */
 #else                             // __UNIT_TEST_
-extern uart_registers g_mock_uart_registers;
+extern uart_registers_t g_mock_uart_registers;
 #define UART_ADDRESS (&g_mock_uart_registers)
 #endif                        // __UNIT_TEST_
 #define REF_CLOCK (24000000u) /* UART reference clock (24 MHz) */
@@ -110,14 +110,6 @@ extern uart_registers g_mock_uart_registers;
 #define LCRH_WLEN_7BITS (2u << 5u) /* 7 bit word length */
 #define LCRH_WLEN_8BITS (3u << 5u) /* 8 bit word length */
 
-/**
- * Initializes UART
- *
- * @param config UART configuration
- *
- * @returns status of initialization
- */
-status_t uart_init(const uart_config *config);
 /**
  * Writes single byte to UART
  *

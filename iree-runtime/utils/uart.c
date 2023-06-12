@@ -10,7 +10,7 @@ GENERATE_MODULE_STATUSES_STR(UART);
 
 ut_static uart_t g_uart = {.initialized = false};
 
-status_t uart_init(const uart_config *config)
+status_t uart_init(const uart_config_t *config)
 {
     if (g_uart.initialized)
     {
@@ -19,7 +19,7 @@ status_t uart_init(const uart_config *config)
 
     VALIDATE_POINTER(config, UART_STATUS_INV_PTR);
 
-    g_uart.registers = (uart_registers *)UART_ADDRESS;
+    g_uart.registers = (uart_registers_t *)UART_ADDRESS;
 
     if (config->data_bits < 5U || config->data_bits > 8U)
     {
