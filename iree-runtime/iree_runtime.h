@@ -31,14 +31,14 @@
         return RUNTIME_STATUS_INV_MSG_TYPE;                    \
     }
 
-#define CHECK_MODEL_STATUS_LOG(status, response, log_format, log_args...) \
-    if (STATUS_OK != status)                                              \
-    {                                                                     \
-        LOG_ERROR(log_format, ##log_args);                                \
-        status_t resp_status = prepare_failure_response(request);         \
-        RETURN_ON_ERROR(resp_status, resp_status);                        \
-        return status;                                                    \
-    }                                                                     \
+#define CHECK_STATUS_LOG(status, response, log_format, log_args...) \
+    if (STATUS_OK != status)                                        \
+    {                                                               \
+        LOG_ERROR(log_format, ##log_args);                          \
+        status_t resp_status = prepare_failure_response(request);   \
+        RETURN_ON_ERROR(resp_status, resp_status);                  \
+        return status;                                              \
+    }                                                               \
     LOG_DEBUG(log_format, ##log_args);
 
 /**
@@ -51,7 +51,7 @@ GENERATE_MODULE_STATUSES(RUNTIME);
 /**
  * Type of callback function
  */
-typedef status_t (*callback_ptr)(message **);
+typedef status_t (*callback_ptr)(message_t **);
 
 /**
  * List of callbacks for each message type

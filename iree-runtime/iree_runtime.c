@@ -30,14 +30,14 @@ static bool init_server();
  *
  * @returns true if message is received, false otherwise
  */
-static bool wait_for_message(message **msg);
+static bool wait_for_message(message_t **msg);
 
 /**
  * Handles received message
  *
  * @param msg pointer to the message
  */
-static void handle_message(message *msg);
+static void handle_message(message_t *msg);
 
 #ifndef __UNIT_TEST__
 /**
@@ -53,7 +53,7 @@ int main()
     // main runtime loop
     while (1)
     {
-        message *msg = NULL;
+        message_t *msg = NULL;
         if (wait_for_message(&msg))
         {
             handle_message(msg);
@@ -67,7 +67,7 @@ bool init_server()
 {
     status_t status = STATUS_OK;
 
-    uart_config config = {.data_bits = 8, .stop_bits = 1, .parity = false, .baudrate = 115200};
+    uart_config_t config = {.data_bits = 8, .stop_bits = 1, .parity = false, .baudrate = 115200};
     status = uart_init(&config);
     if (STATUS_OK != status)
     {
@@ -77,7 +77,7 @@ bool init_server()
     LOG_INFO("UART initialized");
 
 #ifdef __I2C__
-    i2c_config_t i2c_config = {.clock_period_nanos = 41};
+    i2c_config_t i2c_config = {.speed = I2C_SPEED_STANDARD, .clock_period_nanos = 41};
     status = i2c_init(&i2c_config);
     if (STATUS_OK != status)
     {
@@ -92,7 +92,7 @@ bool init_server()
     return true;
 }
 
-bool wait_for_message(message **msg)
+bool wait_for_message(message_t **msg)
 {
     status_t status = STATUS_OK;
 
@@ -118,7 +118,7 @@ bool wait_for_message(message **msg)
     return true;
 }
 
-void handle_message(message *msg)
+void handle_message(message_t *msg)
 {
     status_t status = STATUS_OK;
 
@@ -150,7 +150,7 @@ void handle_message(message *msg)
  *
  * @returns error status of the runtime
  */
-status_t ok_callback(message **request)
+status_t ok_callback(message_t **request)
 {
     VALIDATE_REQUEST(MESSAGE_TYPE_OK, request);
 
@@ -166,7 +166,7 @@ status_t ok_callback(message **request)
  *
  * @returns error status of the runtime
  */
-status_t error_callback(message **request)
+status_t error_callback(message_t **request)
 {
     VALIDATE_REQUEST(MESSAGE_TYPE_ERROR, request);
 
@@ -182,7 +182,7 @@ status_t error_callback(message **request)
  *
  * @returns error status of the runtime
  */
-status_t data_callback(message **request)
+status_t data_callback(message_t **request)
 {
     status_t status = STATUS_OK;
 
@@ -190,7 +190,7 @@ status_t data_callback(message **request)
 
     status = load_model_input((*request)->payload, MESSAGE_SIZE_PAYLOAD((*request)->message_size));
 
-    CHECK_MODEL_STATUS_LOG(status, request, "load_model_input returned 0x%x (%s)", status, get_status_str(status));
+    CHECK_STATUS_LOG(status, request, "load_model_input returned 0x%x (%s)", status, get_status_str(status));
 
     status = prepare_success_response(request);
     RETURN_ON_ERROR(status, status);
@@ -205,7 +205,7 @@ status_t data_callback(message **request)
  *
  * @returns error status of the runtime
  */
-status_t model_callback(message **request)
+status_t model_callback(message_t **request)
 {
     status_t status = STATUS_OK;
 
@@ -213,7 +213,7 @@ status_t model_callback(message **request)
 
     status = load_model_weights((*request)->payload, MESSAGE_SIZE_PAYLOAD((*request)->message_size));
 
-    CHECK_MODEL_STATUS_LOG(status, request, "load_model_weights returned 0x%x (%s)", status, get_status_str(status));
+    CHECK_STATUS_LOG(status, request, "load_model_weights returned 0x%x (%s)", status, get_status_str(status));
 
     status = prepare_success_response(request);
     RETURN_ON_ERROR(status, status);
@@ -228,7 +228,7 @@ status_t model_callback(message **request)
  *
  * @returns error status of the runtime
  */
-status_t process_callback(message **request)
+status_t process_callback(message_t **request)
 {
     status_t status = STATUS_OK;
 
@@ -236,7 +236,7 @@ status_t process_callback(message **request)
 
     status = run_model();
 
-    CHECK_MODEL_STATUS_LOG(status, request, "run_model returned 0x%x (%s)", status, get_status_str(status));
+    CHECK_STATUS_LOG(status, request, "run_model returned 0x%x (%s)", status, get_status_str(status));
 
     status = prepare_success_response(request);
     RETURN_ON_ERROR(status, status);
@@ -252,16 +252,16 @@ status_t process_callback(message **request)
  *
  * @returns error status of the runtime
  */
-status_t output_callback(message **request)
+status_t output_callback(message_t **request)
 {
     status_t status = STATUS_OK;
     size_t model_output_size = 0;
 
     VALIDATE_REQUEST(MESSAGE_TYPE_OUTPUT, request);
 
-    status = get_model_output(MAX_MESSAGE_SIZE_BYTES - sizeof(message), (*request)->payload, &model_output_size);
+    status = get_model_output(MAX_MESSAGE_SIZE_BYTES - sizeof(message_t), (*request)->payload, &model_output_size);
 
-    CHECK_MODEL_STATUS_LOG(status, request, "get_model_output returned 0x%x (%s)", status, get_status_str(status));
+    CHECK_STATUS_LOG(status, request, "get_model_output returned 0x%x (%s)", status, get_status_str(status));
 
     (*request)->message_size = model_output_size + sizeof(message_type_t);
     (*request)->message_type = MESSAGE_TYPE_OK;
@@ -277,7 +277,7 @@ status_t output_callback(message **request)
  *
  * @returns error status of the runtime
  */
-status_t stats_callback(message **request)
+status_t stats_callback(message_t **request)
 {
     status_t status = STATUS_OK;
     size_t statistics_length = 0;
@@ -285,9 +285,9 @@ status_t stats_callback(message **request)
     VALIDATE_REQUEST(MESSAGE_TYPE_STATS, request);
 
     status =
-        get_statistics(MAX_MESSAGE_SIZE_BYTES - sizeof(message), (uint8_t *)&(*request)->payload, &statistics_length);
+        get_statistics(MAX_MESSAGE_SIZE_BYTES - sizeof(message_t), (uint8_t *)&(*request)->payload, &statistics_length);
 
-    CHECK_MODEL_STATUS_LOG(status, request, "get_statistics returned 0x%x (%s)", status, get_status_str(status));
+    CHECK_STATUS_LOG(status, request, "get_statistics returned 0x%x (%s)", status, get_status_str(status));
 
     (*request)->message_size = statistics_length + sizeof(message_type_t);
     (*request)->message_type = MESSAGE_TYPE_OK;
@@ -302,7 +302,7 @@ status_t stats_callback(message **request)
  *
  * @returns error status of the runtime
  */
-status_t iospec_callback(message **request)
+status_t iospec_callback(message_t **request)
 {
     status_t status = STATUS_OK;
 
@@ -310,7 +310,7 @@ status_t iospec_callback(message **request)
 
     status = load_model_struct((*request)->payload, MESSAGE_SIZE_PAYLOAD((*request)->message_size));
 
-    CHECK_MODEL_STATUS_LOG(status, request, "load_model_struct returned 0x%x (%s)", status, get_status_str(status));
+    CHECK_STATUS_LOG(status, request, "load_model_struct returned 0x%x (%s)", status, get_status_str(status));
 
     status = prepare_success_response(request);
     RETURN_ON_ERROR(status, status);
