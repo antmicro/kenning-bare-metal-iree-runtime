@@ -6,8 +6,10 @@
 
 #include "../iree-runtime/iree_runtime.c"
 #include "../iree-runtime/iree_runtime.h"
+#include "mock_i2c.h"
 #include "mock_model.h"
 #include "mock_protocol.h"
+#include "mock_sensor.h"
 #include "mock_uart.h"
 #include "mock_utils.h"
 #include "unity.h"
@@ -39,7 +41,7 @@ void prepare_message(message_type_t msg_type, uint8_t *payload, size_t payload_s
  *
  * @returns status name as string
  */
-const char *mock_get_status_str(status_t status);
+const char *mock_get_status_str(status_t status, int num_calls);
 
 /**
  * Mock of receive message protocol function. Writes gp_message to output
@@ -129,6 +131,7 @@ void test_RuntimeInitServerShouldInitUART()
     bool status = true;
 
     uart_init_IgnoreAndReturn(STATUS_OK);
+    i2c_init_IgnoreAndReturn(STATUS_OK);
 
     status = init_server();
 
@@ -142,11 +145,29 @@ TEST_CASE(UART_STATUS_INV_PTR)
 /**
  * Tests if init server fails when UART init fails
  */
-void test_RuntimeInitServerShouldFailIfInitUARTFails(UART_STATUS uart_error)
+void test_RuntimeInitServerShouldFailIfInitUARTFails(status_t uart_error)
 {
     bool status = true;
 
     uart_init_IgnoreAndReturn(uart_error);
+    i2c_init_IgnoreAndReturn(STATUS_OK);
+
+    status = init_server();
+
+    TEST_ASSERT_FALSE(status);
+}
+
+TEST_CASE(I2C_STATUS_INV_PTR)
+TEST_CASE(I2C_STATUS_INV_ARG)
+/**
+ * Tests if init server fails when I2C init fails
+ */
+void test_RuntimeInitServerShouldFailIfInitI2CFails(status_t i2c_error)
+{
+    bool status = true;
+
+    uart_init_IgnoreAndReturn(STATUS_OK);
+    i2c_init_IgnoreAndReturn(i2c_error);
 
     status = init_server();
 
@@ -847,7 +868,7 @@ void test_RuntimeIOSpecCallbackShouldFailForInvalidMessageType(MESSAGE_TYPE mess
 // mocks
 // ========================================================
 
-const char *mock_get_status_str(status_t status) { return "STATUS_STR"; }
+const char *mock_get_status_str(status_t status, int num_calls) { return "STATUS_STR"; }
 
 status_t mock_receive_message(message **msg, int num_calls)
 {
