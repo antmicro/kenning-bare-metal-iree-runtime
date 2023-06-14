@@ -304,6 +304,8 @@ status_t get_output(uint8_t *model_output)
         memcpy(&model_output[model_output_idx], mapped_memory.contents.data,
                g_model_struct.output_size_bytes * g_model_struct.output_length[output_idx]);
 
+        model_output_idx += g_model_struct.output_size_bytes * g_model_struct.output_length[output_idx];
+
         iree_hal_buffer_unmap_range(&mapped_memory);
     }
 
