@@ -2,67 +2,94 @@ image: $CI_IMAGE
 
 variables:
     GIT_STRATEGY: clone
+    IREE_HOST_BIN_DIR: "/opt/iree_compiler/bin"
+    RISCV_TOOLCHAIN_ROOT: "/opt/toolchain_iree_rv32imf"
+    RENODE_PATH: "/opt/renode"
 
 stages:
     - lint
     - build
     - tests
 
-.build_prepare: &build_prepare
-    variables:
-        GIT_SUBMODULE_STRATEGY: recursive
-        GIT_SUBMODULE_DEPTH: 1
-        GIT_SUBMODULE_UPDATE_FLAGS: --jobs `nproc`
-    before_script:
-        - mkdir -p build
-        - ln -s /opt/toolchain_iree_rv32imf ./build/toolchain_iree_rv32imf
-        - ln -s /opt/iree_compiler ./build/iree_compiler
-        - export PATH=${HOME}/.local/bin:${PATH}
-        - build_tools/configure_cmake.sh -G Ninja
+.submodule_update_recursive: &submodule_update_recursive
+    GIT_SUBMODULE_STRATEGY: recursive
+    GIT_SUBMODULE_DEPTH: 1
+    GIT_SUBMODULE_UPDATE_FLAGS: --jobs `nproc`
 
-.minimal_build_prepare: &minimal_build_prepare
-    variables:
-        GIT_SUBMODULE_STRATEGY: none
-    before_script:
-        - cmake -B build/build-riscv -G Ninja -DMINIMAL_BUILD=True
+.submodule_update_normal: &submodule_update_normal
+    GIT_SUBMODULE_STRATEGY: normal
+
+.submodule_update_none: &submodule_update_none
+    GIT_SUBMODULE_STRATEGY: none
+
+.build_prepare: &build_prepare |-
+    build_tools/configure_cmake.sh -G Ninja
+
+.i2c_accelerometer_build_prepare: &i2c_accelerometer_build_prepare |-
+    build_tools/configure_cmake.sh -G Ninja -DI2C_ACCELEROMETER=True
+
+.minimal_build_prepare: &minimal_build_prepare |-
+    build_tools/configure_cmake.sh -G Ninja -DMINIMAL_BUILD=True
 
 clang_format:
     stage: lint
-    <<: *minimal_build_prepare
+    variables: *submodule_update_none
+    before_script:
+        - *minimal_build_prepare
     script:
         - cmake --build build/build-riscv --target clang-format
 
 clang_tidy:
     stage: lint
-    <<: *minimal_build_prepare
-    variables:
-        GIT_SUBMODULE_STRATEGY: normal
+    variables: *submodule_update_normal
+    before_script:
+        - *minimal_build_prepare
     script:
         - git -C third-party/iree-rv32-springbok submodule update --init
         - cmake --build build/build-riscv --target clang-tidy
 
 build:
     stage: build
-    <<: *build_prepare
+    variables: *submodule_update_recursive
+    before_script:
+        - *build_prepare
     script:
         - cmake --build build/build-riscv
     artifacts:
         paths:
         - build/build-riscv/iree-runtime/iree_runtime
+        when: always
+
+i2c_accelerometer_build:
+    stage: build
+    variables: *submodule_update_recursive
+    before_script:
+        - *i2c_accelerometer_build_prepare
+    script:
+        - cmake --build build/build-riscv
+    artifacts:
+        paths:
+        - build/build-riscv/iree-runtime/iree_runtime_i2c_accelerometer
+        when: always
 
 unit_tests:
     stage: tests
-    <<: *minimal_build_prepare
+    variables: *submodule_update_none
+    before_script:
+        - *minimal_build_prepare
     script:
-        - cmake --build build/build-riscv --target unit-tests
+        - cmake --build build/build-riscv --target unit-tests-coverage
+    artifacts:
+        paths:
+        - unit-tests/build/artifacts/gcov/*
+        when: always
 
 renode_tests:
     stage: tests
-    <<: *minimal_build_prepare
-    variables:
-        GIT_SUBMODULE_STRATEGY: normal
+    variables: *submodule_update_normal
+    before_script:
+        - *minimal_build_prepare
     script:
-        - ln -s /opt/renode ./build/renode
         - cmake --build build/build-riscv --target renode-tests
         - ./renode-tests/render_kenning_report.sh
     artifacts:
