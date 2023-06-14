@@ -12,17 +12,20 @@
 #include "mock_sensor.h"
 #include "mock_uart.h"
 #include "mock_utils.h"
+#include "mocks/sensor_mock.h"
 #include "unity.h"
 
 #define TEST_CASE(...)
 
-message *gp_message = NULL;
-message *gp_message_sent = NULL;
-message *gp_message_to_receive = NULL;
+message_t *gp_message = NULL;
+message_t *gp_message_sent = NULL;
+message_t *gp_message_to_receive = NULL;
 
 GENERATE_MODULE_STATUSES_STR(MODEL);
 GENERATE_MODULE_STATUSES_STR(PROTOCOL);
 const char *const MESSAGE_TYPE_STR[] = {MESSAGE_TYPES(GENERATE_STR)};
+
+#define SENSOR_DEFAULT_READ_DELAY (0.0001f)
 
 /**
  * Prepares message of given type and payload
@@ -32,7 +35,7 @@ const char *const MESSAGE_TYPE_STR[] = {MESSAGE_TYPES(GENERATE_STR)};
  * @param payload_size size of the payload
  * @param msg prepared message
  */
-void prepare_message(message_type_t msg_type, uint8_t *payload, size_t payload_size, message **msg);
+void prepare_message(message_type_t msg_type, uint8_t *payload, size_t payload_size, message_t **msg);
 
 /**
  * Mock of get status str
@@ -51,7 +54,7 @@ const char *mock_get_status_str(status_t status, int num_calls);
  *
  * @returns status of the server
  */
-status_t mock_receive_message(message **msg, int num_calls);
+status_t mock_receive_message(message_t **msg, int num_calls);
 
 /**
  * Mock of send message protocol function. Writes gp_message to output
@@ -61,42 +64,42 @@ status_t mock_receive_message(message **msg, int num_calls);
  *
  * @returns status of the server
  */
-status_t mock_send_message(const message *msg, int num_calls);
+status_t mock_send_message(const message_t *msg, int num_calls);
 
 /**
  * Mock of runtime callback without response
  *
  * @param request incoming message
  */
-RUNTIME_STATUS mock_callback_without_response(message **request);
+status_t mock_callback_without_response(message_t **request);
 
 /**
  * Mock of runtime callback with success response
  *
  * @param request incoming message
  */
-RUNTIME_STATUS mock_callback_with_ok_response(message **request);
+status_t mock_callback_with_ok_response(message_t **request);
 
 /**
  * Mock of runtime callback with error response
  *
  * @param request incoming message
  */
-RUNTIME_STATUS mock_callback_with_error_response(message **request);
+status_t mock_callback_with_error_response(message_t **request);
 
 /**
  * Mock of runtime callback with success response with payload
  *
  * @param request incoming message
  */
-RUNTIME_STATUS mock_callback_with_ok_response_with_payload(message **request);
+status_t mock_callback_with_ok_response_with_payload(message_t **request);
 
 /**
  * Mock of runtime callback that returns error
  *
  * @param request incoming message
  */
-RUNTIME_STATUS mock_callback_error(message **request);
+status_t mock_callback_error(message_t **request);
 
 void setUp(void) { get_status_str_StubWithCallback(mock_get_status_str); }
 
@@ -132,6 +135,7 @@ void test_RuntimeInitServerShouldInitUART()
 
     uart_init_IgnoreAndReturn(STATUS_OK);
     i2c_init_IgnoreAndReturn(STATUS_OK);
+    sensor_init_IgnoreAndReturn(STATUS_OK);
 
     status = init_server();
 
@@ -151,6 +155,7 @@ void test_RuntimeInitServerShouldFailIfInitUARTFails(status_t uart_error)
 
     uart_init_IgnoreAndReturn(uart_error);
     i2c_init_IgnoreAndReturn(STATUS_OK);
+    sensor_init_IgnoreAndReturn(STATUS_OK);
 
     status = init_server();
 
@@ -168,6 +173,25 @@ void test_RuntimeInitServerShouldFailIfInitI2CFails(status_t i2c_error)
 
     uart_init_IgnoreAndReturn(STATUS_OK);
     i2c_init_IgnoreAndReturn(i2c_error);
+    sensor_init_IgnoreAndReturn(STATUS_OK);
+
+    status = init_server();
+
+    TEST_ASSERT_FALSE(status);
+}
+
+TEST_CASE(SENSOR_STATUS_NO_SENSOR_AVAILABLE)
+TEST_CASE(SENSOR_STATUS_INV_SENSOR)
+/**
+ * Tests if init server fails when I2C init fails
+ */
+void test_RuntimeInitServerShouldFailIfInitSensorFails(status_t sensor_error)
+{
+    bool status = true;
+
+    uart_init_IgnoreAndReturn(STATUS_OK);
+    i2c_init_IgnoreAndReturn(STATUS_OK);
+    sensor_init_IgnoreAndReturn(sensor_error);
 
     status = init_server();
 
@@ -184,7 +208,7 @@ void test_RuntimeInitServerShouldFailIfInitI2CFails(status_t i2c_error)
 void test_RuntimeWaitForMessageShouldGetMessageFromProtocol()
 {
     bool status = true;
-    message *msg = NULL;
+    message_t *msg = NULL;
 
     prepare_message(MESSAGE_TYPE_OK, NULL, 0, &gp_message_to_receive);
     receive_message_StubWithCallback(mock_receive_message);
@@ -204,7 +228,7 @@ TEST_CASE(PROTOCOL_STATUS_CLIENT_DISCONNECTED)
 void test_RuntimeWaitForMessageShouldFailIfProtocolReceiveFails(status_t server_error)
 {
     bool status = true;
-    message *msg = NULL;
+    message_t *msg = NULL;
 
     prepare_message(MESSAGE_TYPE_OK, NULL, 0, &gp_message_to_receive);
     receive_message_ExpectAndReturn(&msg, server_error);
@@ -370,7 +394,7 @@ TEST_CASE(MESSAGE_TYPE_OUTPUT)
 TEST_CASE(MESSAGE_TYPE_STATS)
 TEST_CASE(MESSAGE_TYPE_IOSPEC)
 /**
- * Tests if ok callback fails for request message type
+ * Tests if ok callback fails for invalid request message type
  */
 void test_RuntimeOkCallbackShouldFailForInvalidMessageType(MESSAGE_TYPE message_type)
 {
@@ -422,7 +446,7 @@ TEST_CASE(MESSAGE_TYPE_OUTPUT)
 TEST_CASE(MESSAGE_TYPE_STATS)
 TEST_CASE(MESSAGE_TYPE_IOSPEC)
 /**
- * Tests if error callback fails for request message type
+ * Tests if error callback fails for ivalid request message type
  */
 void test_RuntimeErrorCallbackShouldFailForInvalidMessageType(MESSAGE_TYPE message_type)
 {
@@ -496,7 +520,7 @@ TEST_CASE(MESSAGE_TYPE_OUTPUT)
 TEST_CASE(MESSAGE_TYPE_STATS)
 TEST_CASE(MESSAGE_TYPE_IOSPEC)
 /**
- * Tests if data callback fails for request message type
+ * Tests if data callback fails for ivalid request message type
  */
 void test_RuntimeDataCallbackShouldFailForInvalidMessageType(MESSAGE_TYPE message_type)
 {
@@ -570,7 +594,7 @@ TEST_CASE(MESSAGE_TYPE_OUTPUT)
 TEST_CASE(MESSAGE_TYPE_STATS)
 TEST_CASE(MESSAGE_TYPE_IOSPEC)
 /**
- * Tests if model callback fails for request message type
+ * Tests if model callback fails for invalid request message type
  */
 void test_RuntimeModelCallbackShouldFailForInvalidMessageType(MESSAGE_TYPE message_type)
 {
@@ -641,7 +665,7 @@ TEST_CASE(MESSAGE_TYPE_OUTPUT)
 TEST_CASE(MESSAGE_TYPE_STATS)
 TEST_CASE(MESSAGE_TYPE_IOSPEC)
 /**
- * Tests if process callback fails for request message type
+ * Tests if process callback fails for invalid request message type
  */
 void test_RuntimeProcessCallbackShouldFailForInvalidMessageType(MESSAGE_TYPE message_type)
 {
@@ -712,7 +736,7 @@ TEST_CASE(MESSAGE_TYPE_PROCESS)
 TEST_CASE(MESSAGE_TYPE_STATS)
 TEST_CASE(MESSAGE_TYPE_IOSPEC)
 /**
- * Tests if output callback fails for request message type
+ * Tests if output callback fails for invalid request message type
  */
 void test_RuntimeOutputCallbackShouldFailForInvalidMessageType(MESSAGE_TYPE message_type)
 {
@@ -730,7 +754,7 @@ void test_RuntimeOutputCallbackShouldFailForInvalidMessageType(MESSAGE_TYPE mess
 // ========================================================
 
 /**
- * Tests if IO spec callback properly loads execution statistics
+ * Tests if stats callback properly loads execution statistics
  */
 void test_RuntimeStatsCallbackShouldLoadStats(void)
 {
@@ -747,7 +771,7 @@ void test_RuntimeStatsCallbackShouldLoadStats(void)
 }
 
 /**
- * Tests if IO spec callback fails if get statistics fails
+ * Tests if stats callback fails if get statistics fails
  */
 void test_RuntimeStatsCallbackShouldFailIfGetModelOutputFails(void)
 {
@@ -784,7 +808,7 @@ TEST_CASE(MESSAGE_TYPE_PROCESS)
 TEST_CASE(MESSAGE_TYPE_OUTPUT)
 TEST_CASE(MESSAGE_TYPE_IOSPEC)
 /**
- * Tests if stats callback fails for request message type
+ * Tests if stats callback fails for invalid request message type
  */
 void test_RuntimeStatsCallbackShouldFailForInvalidMessageType(MESSAGE_TYPE message_type)
 {
@@ -800,7 +824,11 @@ void test_RuntimeStatsCallbackShouldFailForInvalidMessageType(MESSAGE_TYPE messa
 // ========================================================
 // iospec_callback
 // ========================================================
-void test_RuntimeIOSpecCallbackShouldRunModel(void)
+
+/**
+ * Tests if IO spec callback load model struct
+ */
+void test_RuntimeIOSpecCallbackShouldLoadModelStruct(void)
 {
     status_t status = STATUS_OK;
     uint8_t data[] = "some data";
@@ -815,7 +843,10 @@ void test_RuntimeIOSpecCallbackShouldRunModel(void)
     TEST_ASSERT_EQUAL_UINT(STATUS_OK, status);
 }
 
-void test_RuntimeIOSpecCallbackShouldFailIfGetModelOutputFails(void)
+/**
+ * Tests if IO spec callback fails when struct loading fails
+ */
+void test_RuntimeIOSpecCallbackShouldFailIfStructLoadingFails(void)
 {
     status_t status = STATUS_OK;
     uint8_t data[] = "some data";
@@ -851,7 +882,7 @@ TEST_CASE(MESSAGE_TYPE_PROCESS)
 TEST_CASE(MESSAGE_TYPE_OUTPUT)
 TEST_CASE(MESSAGE_TYPE_STATS)
 /**
- * Tests if IO spec callback fails for request message type
+ * Tests if IO spec callback fails for invalid request message type
  */
 void test_RuntimeIOSpecCallbackShouldFailForInvalidMessageType(MESSAGE_TYPE message_type)
 {
@@ -870,14 +901,14 @@ void test_RuntimeIOSpecCallbackShouldFailForInvalidMessageType(MESSAGE_TYPE mess
 
 const char *mock_get_status_str(status_t status, int num_calls) { return "STATUS_STR"; }
 
-status_t mock_receive_message(message **msg, int num_calls)
+status_t mock_receive_message(message_t **msg, int num_calls)
 {
     *msg = gp_message_to_receive;
 
     return PROTOCOL_STATUS_DATA_READY;
 }
 
-status_t mock_send_message(const message *msg, int num_calls)
+status_t mock_send_message(const message_t *msg, int num_calls)
 {
     gp_message_sent = malloc(sizeof(message_size_t) + msg->message_size);
     memcpy(gp_message_sent, msg, sizeof(message_size_t) + msg->message_size);
@@ -885,14 +916,14 @@ status_t mock_send_message(const message *msg, int num_calls)
     return STATUS_OK;
 }
 
-RUNTIME_STATUS mock_callback_without_response(message **request)
+status_t mock_callback_without_response(message_t **request)
 {
     *request = NULL;
 
     return STATUS_OK;
 }
 
-RUNTIME_STATUS mock_callback_with_ok_response(message **request)
+status_t mock_callback_with_ok_response(message_t **request)
 {
     prepare_message(MESSAGE_TYPE_OK, NULL, 0, &gp_message_sent);
 
@@ -901,7 +932,7 @@ RUNTIME_STATUS mock_callback_with_ok_response(message **request)
     return STATUS_OK;
 }
 
-RUNTIME_STATUS mock_callback_with_error_response(message **request)
+status_t mock_callback_with_error_response(message_t **request)
 {
     prepare_message(MESSAGE_TYPE_ERROR, NULL, 0, &gp_message_sent);
 
@@ -910,7 +941,7 @@ RUNTIME_STATUS mock_callback_with_error_response(message **request)
     return STATUS_OK;
 }
 
-RUNTIME_STATUS mock_callback_with_ok_response_with_payload(message **request)
+status_t mock_callback_with_ok_response_with_payload(message_t **request)
 {
     uint8_t payload[512];
     prepare_message(MESSAGE_TYPE_OK, payload, sizeof(payload), &gp_message_sent);
@@ -920,7 +951,7 @@ RUNTIME_STATUS mock_callback_with_ok_response_with_payload(message **request)
     return STATUS_OK;
 }
 
-RUNTIME_STATUS mock_callback_error(message **request)
+status_t mock_callback_error(message_t **request)
 {
     prepare_message(MESSAGE_TYPE_ERROR, NULL, 0, request);
 
@@ -931,7 +962,7 @@ RUNTIME_STATUS mock_callback_error(message **request)
 // helper functions
 // ========================================================
 
-void prepare_message(message_type_t msg_type, uint8_t *payload, size_t payload_size, message **msg)
+void prepare_message(message_type_t msg_type, uint8_t *payload, size_t payload_size, message_t **msg)
 {
     if (IS_VALID_POINTER(*msg))
     {
