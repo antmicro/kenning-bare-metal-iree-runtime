@@ -31,7 +31,7 @@ extern MODEL_STATE g_model_state;
  */
 MlModel get_model_struct_data(char dtype[]);
 
-void setUp(void) {}
+void setUp(void) { g_model_struct = get_model_struct_data("f32"); }
 
 void tearDown(void) {}
 
@@ -310,6 +310,61 @@ void test_ModelLoadModelWeightsShouldFailIfCreateContextFails(void)
 
     TEST_ASSERT_EQUAL_UINT(IREE_WRAPPER_STATUS_ERROR, status);
     TEST_ASSERT_EQUAL_UINT(MODEL_STATE_STRUCT_LOADED, g_model_state);
+}
+
+// ========================================================
+// get_model_input_size
+// ========================================================
+
+TEST_CASE(1 /*MODEL_STATE_STRUCT_LOADED*/, 1, 1)
+TEST_CASE(2 /* MODEL_STATE_WEIGHTS_LOADED */, 2, 2)
+TEST_CASE(3 /* MODEL_STATE_INPUT_LOADED */, 4, 4)
+TEST_CASE(4 /* MODEL_STATE_INFERENCE_DONE */, 3, 128)
+/**
+ * Tests if get model input size properly computes the input size
+ */
+void test_ModelGetModelInputSizeShouldComputeInputSize(uint32_t model_state, size_t size_bytes, size_t input_length)
+{
+    status_t status = STATUS_OK;
+    size_t input_size = 0;
+
+    g_model_state = model_state;
+    g_model_struct.num_input = 1;
+    g_model_struct.input_size_bytes[0] = size_bytes;
+    g_model_struct.input_length[0] = input_length;
+
+    status = get_model_input_size(&input_size);
+
+    TEST_ASSERT_EQUAL_HEX(STATUS_OK, status);
+    TEST_ASSERT_EQUAL_UINT(size_bytes * input_length, input_size);
+}
+
+TEST_CASE(0) // MODEL_STATE_UNINITIALIZED
+/**
+ * Tests if get model input size fails when model is in invalid state
+ */
+void test_ModelGetModelInputSizeShouldFailWhenModelInInvalidState(uint32_t model_state)
+{
+    status_t status = STATUS_OK;
+    size_t input_size = 0;
+
+    g_model_state = model_state;
+
+    status = get_model_input_size(&input_size);
+
+    TEST_ASSERT_EQUAL_HEX(MODEL_STATUS_INV_STATE, status);
+}
+
+/**
+ * Tests if get model input size fails for invalid pointer
+ */
+void test_ModelGetModelInputSizeShouldFailForInvalidPointer(void)
+{
+    status_t status = STATUS_OK;
+
+    status = get_model_input_size(NULL);
+
+    TEST_ASSERT_EQUAL_HEX(MODEL_STATUS_INV_PTR, status);
 }
 
 // ========================================================
