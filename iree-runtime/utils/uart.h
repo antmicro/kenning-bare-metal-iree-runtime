@@ -80,7 +80,7 @@ typedef struct
     uint32_t baudrate;
 } uart_config_t;
 
-#define UART_TIMEOUT_S (1) /* UART read timeout (1 second) */
+#define UART_TIMEOUT_S (0.005F) /* UART read timeout (5 ms) */
 
 #ifndef __UNIT_TEST__
 #define UART_ADDRESS (0x40000000) /* address of UART registers */

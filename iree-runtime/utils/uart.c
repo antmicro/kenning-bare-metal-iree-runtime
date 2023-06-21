@@ -188,7 +188,7 @@ status_t uart_read(uint8_t *data, size_t data_length)
         {
             return UART_STATUS_RECV_ERROR;
         }
-        else if (end_timer - start_timer > UART_TIMEOUT_S * TIMER_CLOCK_FREQ)
+        else if (end_timer - start_timer > (int)(UART_TIMEOUT_S * TIMER_CLOCK_FREQ))
         {
             return UART_STATUS_TIMEOUT;
         }
