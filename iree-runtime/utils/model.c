@@ -12,6 +12,10 @@ MlModel g_model_struct;
 
 ut_static MODEL_STATE g_model_state = MODEL_STATE_UNINITIALIZED;
 
+MODEL_STATE get_model_state() { return g_model_state; }
+
+void reset_model_state() { g_model_state = MODEL_STATE_UNINITIALIZED; }
+
 status_t load_model_struct(const uint8_t *model_struct_data, const size_t data_size)
 {
     status_t status = STATUS_OK;

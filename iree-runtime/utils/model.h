@@ -8,7 +8,6 @@
 #define IREE_RUNTIME_UTIL_MODEL_H_
 
 #include "utils.h"
-#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -37,6 +36,18 @@ typedef enum
     MODEL_STATE_INPUT_LOADED = 3,
     MODEL_STATE_INFERENCE_DONE = 4,
 } MODEL_STATE;
+
+/**
+ * Returns current model state
+ *
+ * @returns model state
+ */
+MODEL_STATE get_model_state();
+
+/**
+ * Resets model state
+ */
+void reset_model_state();
 
 /**
  * Loads model struct from given buffer
