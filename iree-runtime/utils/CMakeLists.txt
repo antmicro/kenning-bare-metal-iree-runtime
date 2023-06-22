@@ -4,12 +4,22 @@
 
 iree_cc_library(
   NAME
+    utils
+  HDRS
+    "utils.h"
+  SRCS
+    "utils.c"
+)
+
+iree_cc_library(
+  NAME
     model
   HDRS
     "model.h"
   SRCS
     "model.c"
   DEPS
+    ::utils
     ::iree_wrapper
     springbok
 )
@@ -22,6 +32,7 @@ iree_cc_library(
   SRCS
     "iree_wrapper.c"
   DEPS
+    ::utils
     iree::hal::drivers::local_sync::sync_driver
     iree::hal::local::loaders::embedded_elf_loader
     iree::modules::hal
@@ -37,6 +48,7 @@ iree_cc_library(
   SRCS
     "protocol.c"
   DEPS
+    ::utils
     ::uart
 )
 
@@ -47,6 +59,8 @@ iree_cc_library(
     "uart.h"
   SRCS
     "uart.c"
+  DEPS
+    ::utils
 )
 
 iree_cc_library(
@@ -57,6 +71,7 @@ iree_cc_library(
   SRCS
     "i2c.c"
   DEPS
+    ::utils
     springbok
 )
 
@@ -68,6 +83,7 @@ iree_cc_library(
   SRCS
     "adxl345.c"
   DEPS
+    ::utils
     ::i2c
     springbok
 )
@@ -80,6 +96,7 @@ iree_cc_library(
   SRCS
     "sensor.c"
   DEPS
+    ::utils
     ::i2c
     ::adxl345
     springbok
