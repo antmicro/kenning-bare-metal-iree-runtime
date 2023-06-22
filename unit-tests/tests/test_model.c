@@ -36,6 +36,50 @@ void setUp(void) { g_model_struct = get_model_struct_data("f32"); }
 void tearDown(void) {}
 
 // ========================================================
+// get_model_state
+// ========================================================
+
+TEST_CASE(0 /* MODEL_STATE_UNINITIALIZED */)
+TEST_CASE(1 /* MODEL_STATE_STRUCT_LOADED */)
+TEST_CASE(2 /* MODEL_STATE_WEIGHTS_LOADED */)
+TEST_CASE(3 /* MODEL_STATE_INPUT_LOADED */)
+TEST_CASE(4 /* MODEL_STATE_INFERENCE_DONE */)
+/**
+ * Tests if model state getter returns proper model state
+ */
+void test_GetModelStateShouldReturnModelState(uint32_t model_state)
+{
+    MODEL_STATE ret_model_state = MODEL_STATE_UNINITIALIZED;
+
+    g_model_state = model_state;
+
+    ret_model_state = get_model_state();
+
+    TEST_ASSERT_EQUAL_UINT(model_state, ret_model_state);
+}
+
+// ========================================================
+// reset_model_state
+// ========================================================
+
+TEST_CASE(0 /* MODEL_STATE_UNINITIALIZED */)
+TEST_CASE(1 /* MODEL_STATE_STRUCT_LOADED */)
+TEST_CASE(2 /* MODEL_STATE_WEIGHTS_LOADED */)
+TEST_CASE(3 /* MODEL_STATE_INPUT_LOADED */)
+TEST_CASE(4 /* MODEL_STATE_INFERENCE_DONE */)
+/**
+ * Tests if model state reset sets model state to uninitialized
+ */
+void test_ResetModelStateShouldSetModelStateToUninitialized(uint32_t model_state)
+{
+    g_model_state = model_state;
+
+    reset_model_state();
+
+    TEST_ASSERT_EQUAL_UINT(MODEL_STATE_UNINITIALIZED, g_model_state);
+}
+
+// ========================================================
 // load_model_struct
 // ========================================================
 
