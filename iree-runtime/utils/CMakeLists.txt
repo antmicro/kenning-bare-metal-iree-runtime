@@ -37,7 +37,6 @@ iree_cc_library(
     iree::hal::local::loaders::embedded_elf_loader
     iree::modules::hal
     iree::vm::bytecode_module
-    springbok
 )
 
 iree_cc_library(
@@ -48,7 +47,6 @@ iree_cc_library(
   SRCS
     "protocol.c"
   DEPS
-    ::utils
     ::uart
 )
 
@@ -63,8 +61,6 @@ iree_cc_library(
     ::utils
 )
 
-if (DEFINED I2C_ACCELEROMETER)
-
 iree_cc_library(
   NAME
     i2c
@@ -76,30 +72,58 @@ iree_cc_library(
     ::utils
 )
 
-iree_cc_library(
-  NAME
-    adxl345
-  HDRS
-    "adxl345.h"
-  SRCS
-    "adxl345.c"
-  DEPS
-    ::utils
-    ::i2c
-)
+if (DEFINED I2C_ACCELEROMETER)
 
-iree_cc_library(
-  NAME
-    sensor
-  HDRS
-    "sensor.h"
-  SRCS
-    "sensor.c"
-  DEPS
-    ::utils
-    ::i2c
-    ::adxl345
-    springbok
-)
+  iree_cc_library(
+    NAME
+      adxl345
+    HDRS
+      "adxl345.h"
+    SRCS
+      "adxl345.c"
+    DEPS
+      ::utils
+      ::i2c
+  )
+
+  iree_cc_library(
+    NAME
+      sensor
+    HDRS
+      "sensor.h"
+    SRCS
+      "sensor.c"
+    DEPS
+      ::utils
+      ::i2c
+      ::adxl345
+      springbok
+  )
+
+  iree_cc_library(
+    NAME
+      sensor_input_reader
+    HDRS
+      "input_reader.h"
+    SRCS
+      "sensor_input_reader.c"
+    DEPS
+      ::utils
+      ::model
+      ::sensor
+  )
+
+else (DEFINED I2C_ACCELEROMETER)
+
+  iree_cc_library(
+    NAME
+      base_input_reader
+    HDRS
+      "input_reader.h"
+    SRCS
+      "base_input_reader.c"
+    DEPS
+      ::utils
+  )
 
 endif (DEFINED I2C_ACCELEROMETER)
