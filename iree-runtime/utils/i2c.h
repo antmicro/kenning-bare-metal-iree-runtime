@@ -216,15 +216,6 @@ extern i2c_registers_t g_mock_i2c_registers;
 #endif // __UNIT_TEST_
 
 /**
- * Initializes I2C
- *
- * @param config I2C configuration
- *
- * @returns status of the I2C
- */
-status_t i2c_init(const i2c_config_t *config);
-
-/**
  * Reads I2C status
  *
  * @param status output status
