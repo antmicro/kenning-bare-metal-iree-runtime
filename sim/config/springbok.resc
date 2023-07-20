@@ -1,11 +1,9 @@
 mach create "springbok"
 
 EnsureTypeIsLoaded "Antmicro.Renode.Peripherals.CPU.RiscV32"
-include $ORIGIN/../../third-party/iree-rv32-springbok/sim/config/infrastructure/SpringbokRiscV32.cs
+include $springbokriscv32_cs
 
-$platformfile?=$ORIGIN/platforms/springbok.repl
-
-machine LoadPlatformDescription $platformfile
+machine LoadPlatformDescription $springbok_repl
 
 sysbus.cpu EnableRiscvOpcodesCounting
 
