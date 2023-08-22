@@ -9,14 +9,18 @@ Test Teardown   Test Teardown
 Resource        ${RENODEKEYWORDS}
 
 *** Variables ***
-${UART}                 sysbus.uart0
-${RUNTIME_BINARY_PATH}  ${CURDIR}/../build/build-riscv/iree-runtime/iree_runtime
+${UART}                         sysbus.uart0
+${RUNTIME_BINARY_PATH}          ${CURDIR}/../build/build-riscv/iree-runtime/iree_runtime
+${SPRINGBOKRISCV32_CS_PATH}     ${CURDIR}/../third-party/iree-rv32-springbok/sim/config/infrastructure/SpringbokRiscV32.cs
+${SPRINGBOK_REPL_PATH}          ${CURDIR}/../sim/config/platforms/springbok.repl
 
 *** Test Cases ***
 Runtime Init Test
     [Documentation]     Starts IREE bare-metal runtime and checks if it is initialized correctly
     # start the IREE runtime
                         Execute Command                 $bin=@${RUNTIME_BINARY_PATH}
+                        Execute Command                 $springbokriscv32_cs=@${SPRINGBOKRISCV32_CS_PATH}
+                        Execute Command                 $springbok_repl=@${SPRINGBOK_REPL_PATH}
                         Execute Command                 i @${CURDIR}/../sim/config/springbok.resc
                         Execute Command                 start
                         Execute Command                 sysbus.vec_controlblock WriteDoubleWord 0xc 0
@@ -32,6 +36,8 @@ Inference Test
                         Log To File                     ${CURDIR}/results/runtime_log.txt
                         ...                             flushAfterEveryWrite=${True}
                         Execute Command                 $bin=@${RUNTIME_BINARY_PATH}
+                        Execute Command                 $springbokriscv32_cs=@${SPRINGBOKRISCV32_CS_PATH}
+                        Execute Command                 $springbok_repl=@${SPRINGBOK_REPL_PATH}
                         Execute Command                 i @${CURDIR}/../sim/config/springbok.resc
                         Execute Command                 start
                         Execute Command                 sysbus.vec_controlblock WriteDoubleWord 0xc 0
