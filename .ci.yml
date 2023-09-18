@@ -1,5 +1,13 @@
 image: $CI_IMAGE
 
+.ace: &ace
+    tags: ['ace-x86_64']
+
+.common_only: &common_only
+    only:
+        - main
+        - merge_requests
+
 variables:
     GIT_STRATEGY: clone
     IREE_HOST_BIN_DIR: "/opt/iree_compiler/bin"
@@ -32,6 +40,8 @@ stages:
     build_tools/configure_cmake.sh -G Ninja -DMINIMAL_BUILD=True
 
 clang_format:
+    <<: *ace
+    <<: *common_only
     stage: lint
     variables: *submodule_update_none
     before_script:
@@ -40,6 +50,8 @@ clang_format:
         - cmake --build build/build-riscv --target clang-format
 
 clang_tidy:
+    <<: *ace
+    <<: *common_only
     stage: lint
     variables: *submodule_update_normal
     before_script:
@@ -49,6 +61,8 @@ clang_tidy:
         - cmake --build build/build-riscv --target clang-tidy
 
 build:
+    <<: *ace
+    <<: *common_only
     stage: build
     variables: *submodule_update_recursive
     before_script:
@@ -61,6 +75,8 @@ build:
         when: always
 
 i2c_accelerometer_build:
+    <<: *ace
+    <<: *common_only
     stage: build
     variables: *submodule_update_recursive
     before_script:
@@ -73,6 +89,8 @@ i2c_accelerometer_build:
         when: always
 
 unit_tests:
+    <<: *ace
+    <<: *common_only
     stage: tests
     variables: *submodule_update_none
     before_script:
@@ -85,10 +103,13 @@ unit_tests:
         when: always
 
 renode_tests:
+    <<: *ace
+    <<: *common_only
     stage: tests
     variables: *submodule_update_normal
     before_script:
         - *minimal_build_prepare
+        - git -C third-party/kenning lfs pull
     script:
         - cmake --build build/build-riscv --target renode-tests
         - ./renode-tests/render_kenning_report.sh
