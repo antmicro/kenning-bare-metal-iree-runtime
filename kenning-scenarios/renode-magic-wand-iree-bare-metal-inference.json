@@ -9,13 +9,13 @@
     "model_wrapper": {
         "type": "kenning.modelwrappers.classification.tflite_magic_wand.MagicWandModelWrapper",
         "parameters": {
-            "model_path": "third-party/kenning/kenning/resources/models/classification/magic_wand.h5"
+            "model_path": "kenning:///models/classification/magic_wand.h5"
         }
     },
     "optimizers":
     [
         {
-            "type": "kenning.compilers.iree.IREECompiler",
+            "type": "kenning.optimizers.iree.IREECompiler",
             "parameters":
             {
                 "compiled_model_path": "./build/tflite-magic-wand.vmfb",
@@ -37,11 +37,16 @@
         "type": "kenning.runtimes.renode.RenodeRuntime",
         "parameters": {
             "runtime_binary_path": "build/build-riscv/iree-runtime/iree_runtime",
-            "platform_resc_path": "sim/config/springbok.resc"
+            "platform_resc_path": "sim/config/springbok.resc",
+            "resc_dependencies": [
+                "sim/config/platforms/springbok.repl",
+                "third-party/iree-rv32-springbok/sim/config/infrastructure/SpringbokRiscV32.cs"
+            ],
+            "profiler_dump_path": "build/profiler.dump"
         }
     },
-    "runtime_protocol": {
-        "type": "kenning.runtimeprotocols.uart.UARTProtocol",
+    "protocol": {
+        "type": "kenning.protocols.uart.UARTProtocol",
         "parameters": {
             "port": "/tmp/uart",
             "baudrate": 115200,
