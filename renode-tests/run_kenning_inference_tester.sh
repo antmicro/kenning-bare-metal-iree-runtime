@@ -12,6 +12,11 @@ export PATH=${PROJECT_DIR}/build/iree_compiler/bin:$PATH
 export IREE_TOOL_PATH=${PROJECT_DIR}/build/iree_compiler/bin
 
 cd $PROJECT_DIR/third-party/kenning
-python3 -m kenning.scenarios.json_inference_tester \
-    ./scripts/jsonconfigs/iree-bare-metal-inference.json \
-    $SCRIPT_DIR/results/kenning_output.json
+kenning optimize test report \
+    --json-cfg ./scripts/jsonconfigs/iree-bare-metal-inference.json \
+    --measurements $SCRIPT_DIR/results/kenning_output.json \
+    --report-name 'iree-runtime' \
+    --report-path $SCRIPT_DIR/results/benchmarks/iree-runtime.md \
+    --root-dir $SCRIPT_DIR/results/benchmarks \
+    --report-types performance classification \
+    --verbosity INFO
