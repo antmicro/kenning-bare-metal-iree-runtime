@@ -110,9 +110,9 @@ renode_tests:
     before_script:
         - *minimal_build_prepare
         - git -C third-party/kenning lfs pull
+        - python3 -m pip install ./third-party/kenning
     script:
         - cmake --build build/build-riscv --target renode-tests
-        - ./renode-tests/render_kenning_report.sh
     artifacts:
         paths:
         - renode-tests/results/robot_output.xml
