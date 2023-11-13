@@ -21,7 +21,7 @@ WORKDIR /build_tools
 RUN $PIPINST pip setuptools wheel
 RUN $PIPINST -r requirements.txt
 
-RUN ./install_toolchain.sh
+RUN ./install_toolchain.sh toolchain_backups/toolchain_iree_rv32_20220307.tar.gz
 RUN ./download_iree_compiler.py
 RUN ./download_renode.py
 
@@ -34,6 +34,8 @@ FROM ubuntu:22.04
 ENV INST 'apt-get install -y --no-install-recommends'
 ENV PIPINST 'python3 -m pip install --no-cache-dir --upgrade'
 
+ENV DEBIAN_FRONTEND noninteractive
+
 RUN apt-get update && $INST \
     build-essential \
     cmake \
@@ -43,8 +45,10 @@ RUN apt-get update && $INST \
     libglfw3 \
     libglfw3-dev \
     libglib2.0-0 \
+    libtinfo5 \
     ninja-build \
     python3 \
+    python3-dev \
     python3-pip \
     python3-venv \
     ruby \
