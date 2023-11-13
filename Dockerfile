@@ -46,6 +46,7 @@ RUN apt-get update && $INST \
     libglfw3-dev \
     libglib2.0-0 \
     libtinfo5 \
+    mono-complete=6.8.0.105+dfsg-3.2 \
     ninja-build \
     python3 \
     python3-dev \
