@@ -37,10 +37,10 @@
         "type": "kenning.runtimes.renode.RenodeRuntime",
         "parameters": {
             "runtime_binary_path": "kenning:///renode/springbok/iree_runtime",
-            "platform_resc_path": "gh://antmicro:kenning-bare-metal-iree-runtime/sim/config/springbok.resc;branch=main",
+            "platform_resc_path": "./sim/config/springbok.resc",
             "resc_dependencies": [
-                "gh://antmicro:kenning-bare-metal-iree-runtime/sim/config/platforms/springbok.repl;branch=main",
-                "gh://antmicro:iree-rv32-springbok/sim/config/infrastructure/SpringbokRiscV32.cs;branch=24140ce0"
+                "./sim/config/platforms/springbok.repl",
+                "./third-party/iree-rv32-springbok/sim/config/infrastructure/SpringbokRiscV32.cs"
             ],
             "profiler_dump_path": "build/profiler.dump"
         }
