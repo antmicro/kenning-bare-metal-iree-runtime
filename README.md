@@ -55,13 +55,13 @@ For details on what is happening here check [Evaluating the model and accelerato
 ```
 kenning test report \
     --json-cfg kenning-scenarios/renode-magic-wand-iree-bare-metal-inference-prebuilt.json \
-    --measurements ./results.json
+    --measurements ./results.json \
     --report-types performance classification renode_stats \
     --report-path springbok-magic-wand/report.md \
     --report-name v-extensions-riscv \
     --model-names magic_wand_fp32 \
     --verbosity INFO \
-    --to-html
+    --to-html report-html
 ```
 
 The generated report will be available under `springbok-magic-wand/report/report.html`.
@@ -302,7 +302,7 @@ kenning report \
     --model-names magic_wand_fp32 \
     --measurements results.json \
     --verbosity INFO \
-    --to-html
+    --to-html report-html
 ```
 
 This command:
