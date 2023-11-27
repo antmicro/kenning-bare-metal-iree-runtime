@@ -6,10 +6,11 @@ ENV PIPINST 'python3 -m pip install --no-cache-dir --upgrade'
 RUN apt-get update && $INST \
     build-essential \
     git \
-    wget \
+    libpython3-dev \
     python3 \
     python3-dev \
     python3-pip \
+    wget \
     && apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 COPY ./third-party/iree-rv32-springbok/build_tools /build_tools
@@ -45,6 +46,7 @@ RUN apt-get update && $INST \
     libglfw3 \
     libglfw3-dev \
     libglib2.0-0 \
+    libpython3-dev \
     libtinfo5 \
     mono-complete=6.8.0.105+dfsg-3.2 \
     ninja-build \
