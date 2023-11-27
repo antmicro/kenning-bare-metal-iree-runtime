@@ -53,7 +53,7 @@ To evaluate the model and render the report with performance and quality metrics
 
 For details on what is happening here check [Evaluating the model and accelerator in Renode environment](#evaluating-the-model-and-accelerator-in-simulation).
 ```
-kenning test report \
+kenning optimize test report \
     --json-cfg kenning-scenarios/renode-magic-wand-iree-bare-metal-inference-prebuilt.json \
     --measurements ./results.json \
     --report-types performance classification renode_stats \
@@ -287,7 +287,7 @@ Once the scenario is started:
 To evaluate the model, run:
 
 ```bash
-kenning test \
+kenning optimize test \
     --json-cfg kenning-scenarios/renode-magic-wand-iree-bare-metal-inference.json \
     --measurements ./results.json
 ```
@@ -310,23 +310,8 @@ This command:
 * Creates a `springbok-magic-wand` directory with the report
 * Creates plots and summaries regarding overall performance, classification quality and Renode profiler metrics, such as used instructions, memory accesses and more
 * Saves plots in `springbok-magic-wand/img` directory
-* Creates a MyST-based Markdown file with report summary.
-
-In the end, the report can be converted to HTML using Jupyter Book.
-It can be installed with:
-
-```bash
-python3 -m pip install install jupyter-book
-```
-
-Later, to build the HTML, run:
-
-```bash
-jupyter-book build springbok-magic-wand/report.md
-```
-
-It uses (_config.yml)[./_config.yml] to configure the build.
-It adds usage of `kenning.utils.sphinx_html_as_figure` Sphinx extension to allow using HTML with plots as figures in the rendered report.
+* Creates a MyST-based Markdown file with report summary
+* Creates an HTML version of the report built from the above MyST-based Markdown under `report-html` directory.
 
 ## Running Kenning with existing Renode session.
 
@@ -358,7 +343,7 @@ Instead of using Renode to run the bare metal application, Kenning assumes commu
 In `runtime`, the default `IREERuntime` block is used to mark that IREE is used on target device.
 
 ```
-kenning test \
+kenning optimize test \
     --json-cfg third-party/kenning/scripts/jsonconfigs/iree-bare-metal-inference.json \
     --measurements ./results.json
 ```
