@@ -101,6 +101,7 @@ sudo apt-get install -qqy --no-install-recommends \
     g++ \
     git \
     git-lfs \
+    libncurses5 \
     ninja-build \
     python3 \
     python3-dev \
@@ -151,7 +152,7 @@ To download it, scripts included in `iree-rv32-springbok` submodule located in `
 To do so, run the following commands in the project's root directory:
 
 ```bash
-./third-party/iree-rv32-springbok/build_tools/install_toolchain.sh
+./third-party/iree-rv32-springbok/build_tools/install_toolchain.sh toolchain_backups/toolchain_iree_rv32_20220307.tar.gz
 ./third-party/iree-rv32-springbok/build_tools/download_iree_compiler.py
 ```
 
