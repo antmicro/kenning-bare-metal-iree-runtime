@@ -27,7 +27,6 @@ jobs:
             - name: Run README.md snippets
               run: |
                   ./.github/scripts/readme-tests.sh
-                  mv _build/_page/springbok-magic-wand-report/html report-html
             - name: Upload artifacts
               uses: actions/upload-artifact@v3
               with:
