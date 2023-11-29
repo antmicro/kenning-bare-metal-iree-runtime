@@ -24,11 +24,8 @@ RUN $PIPINST -r requirements.txt
 
 RUN ./install_toolchain.sh toolchain_backups/toolchain_iree_rv32_20220307.tar.gz
 RUN ./download_iree_compiler.py
-RUN ./download_renode.py
 
 RUN pip3 install /build_tools/kenning[tensorflow,reports,uart,renode,object_detection]
-
-RUN $PIPINST -r build/renode/tests/requirements.txt
 
 FROM ubuntu:22.04
 
@@ -59,12 +56,12 @@ RUN apt-get update && $INST \
     xxd \
     && apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /build_tools/build/renode/renode /usr/bin/renode
 COPY --from=builder /build_tools/build/iree_compiler/ /usr/local/iree_compiler
 COPY --from=builder /build_tools/build/toolchain_iree_rv32imf /usr/local/toolchain_iree_rv32imf
 COPY --from=builder /usr/local /usr/local
 
 RUN $PIPINST \
+    git+https://github.com/antmicro/renode-run \
     iree-compiler~=20230209.425 \
     iree-runtime~=20230209.425 \
     iree-tools-tf~=20230209.425 \
