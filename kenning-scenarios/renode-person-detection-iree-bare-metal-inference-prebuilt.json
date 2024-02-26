@@ -2,8 +2,7 @@
     "dataset": {
         "type": "kenning.datasets.visual_wake_words_dataset.VisualWakeWordsDataset",
         "parameters": {
-            "dataset_root": "./build/COCODataset2017",
-            "download_dataset": true
+            "dataset_root": "./build/COCODataset2017"
         }
     },
     "model_wrapper": {
@@ -42,6 +41,10 @@
                 "./sim/config/platforms/springbok.repl",
                 "./third-party/iree-rv32-springbok/sim/config/infrastructure/SpringbokRiscV32.cs"
             ],
+            "post_start_commands": [
+                "sysbus.vec_controlblock WriteDoubleWord 0xc 0"
+            ],
+            "runtime_log_init_msg": "Runtime started",
             "profiler_dump_path": "build/profiler.dump"
         }
     },
