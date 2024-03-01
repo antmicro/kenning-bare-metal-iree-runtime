@@ -90,7 +90,7 @@ docker pull ghcr.io/antmicro/kenning-bare-metal-iree-runtime:latest
 
 ### Installing the dependencies in the system
 
-To be able to build the project, several dependencies need to be installed - `cmake`, `git`, `git-lfs`, `ninja-build`, `python3`, `python3-pip`, `wget` and `xxd`.
+To be able to build the project, several dependencies need to be installed - `cmake`, `git`, `git-lfs`, `ninja-build`, `python3`, `python3-pip`, `wget`, `mono-complete` and `xxd`.
 
 In Debian-based distros they can be installed with:
 
@@ -102,6 +102,7 @@ sudo apt-get install -qqy --no-install-recommends \
     git \
     git-lfs \
     libncurses5 \
+    mono-complete \
     ninja-build \
     python3 \
     python3-dev \
@@ -284,6 +285,14 @@ Once the scenario is started:
 * Kenning evaluates the model, and Renode profiles the application
 * Kenning collects runtime metrics and stores evaluation and benchmark results in `results.json`
 * Kenning parses profiling results from Renode and adds them to benchmark results in `results.json`
+
+The [pyrenode3](https://github.com/antmicro/pyrenode3/) module requires installing Renode to work.
+The easiest way is to use the latest Renode package and store its location in `PYRENODE_PKG`:
+
+```bash
+wget https://builds.renode.io/renode-latest.pkg.tar.xz
+export PYRENODE_PKG=`pwd`/renode-latest.pkg.tar.xz
+```
 
 To evaluate the model, run:
 
