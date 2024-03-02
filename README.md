@@ -97,7 +97,10 @@ In Debian-based distros they can be installed with:
 ```bash
 sudo apt-get update
 sudo apt-get install -qqy --no-install-recommends \
+    ca-certificates \
     cmake \
+    curl \
+    fonts-lato \
     g++ \
     git \
     git-lfs \
@@ -129,13 +132,14 @@ To create a virtual environment run the following commands:
 ```bash
 python3 -m venv venv                       # create venv
 source ./venv/bin/activate                 # activate it
-python3 -m pip install -r requirements.txt # install dependencies
+python3 -m pip install --upgrade pip       # install dependencies
+python3 -m pip install -r requirements.txt
 ```
 
 To install additional python packages required to run Kenning compilation, inference and report rendering, run the following command:
 
 ```bash
-python3 -m pip install third-party/kenning[tensorflow,reports,uart,renode,object_detection]
+python3 -m pip install third-party/kenning[tensorflow,reports,uart,renode]
 ```
 
 For installing IREE Python modules for compiling models in Kenning, either follow [Building IREE from source](https://openxla.github.io/iree/building-from-source/#reference-pages) instructions to build Python bindings from `third-party/iree-rv32-springbok/third_party/iree/` directory, or install the available Python modules using `pip`:
@@ -299,7 +303,7 @@ To evaluate the model, run:
 ```bash
 kenning optimize test \
     --json-cfg kenning-scenarios/renode-magic-wand-iree-bare-metal-inference.json \
-    --measurements ./results.json
+    --measurements ./results.json --verbosity INFO
 ```
 
 To render the report with performance and quality metrics (including Renode performance metrics), run:
@@ -355,7 +359,7 @@ In `runtime`, the default `IREERuntime` block is used to mark that IREE is used 
 ```
 kenning optimize test \
     --json-cfg third-party/kenning/scripts/jsonconfigs/iree-bare-metal-inference.json \
-    --measurements ./results.json
+    --measurements ./results.json --verbosity INFO
 ```
 
 This flow, however, won't collect inference information necessary to plot the performance metrics collected during Renode simulation.
