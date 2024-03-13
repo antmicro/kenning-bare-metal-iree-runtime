@@ -27,31 +27,37 @@ Follow links in instructions to get an explanation for every step.
 In this section we will use prebuilt binaries.
 If you want to build the runtime yourself, please take a look at [Building the project](#building-the-project).
 
-First, install `git` and `git-lfs`.
-Secondly, clone the repository:
+The fastest way to obtain all of the necessary dependencies is to [pull the Docker image and run the container](#using-the-docker-environment) with all the dependencies for the project:
 
 ```
-git clone --recursive https://github.com/antmicro/kenning-bare-metal-iree-runtime
-cd kenning-bare-metal-iree-runtime
-git lfs install
-git lfs pull
-```
-
-The fastest way to obtain all of the necessary dependencies is to [pull the Docker image](#using-the-docker-environment) with all the dependencies for the project:
-
-```
-docker pull ghcr.io/antmicro/kenning-bare-metal-iree-runtime:latest
-```
-
-and enter it using:
-
-```
+mkdir workspace && cd workspace
 docker run --rm -v $(pwd):/data -w /data -it ghcr.io/antmicro/kenning-bare-metal-iree-runtime:latest /bin/bash
 ```
 
-To evaluate the model and render the report with performance and quality metrics (including Renode performance metrics), run:
+From this point, you can either run scenario for optimizing and evaluating model on RISC-V accelerator without cloning this repository with:
 
-For details on what is happening here check [Evaluating the model and accelerator in Renode environment](#evaluating-the-model-and-accelerator-in-simulation).
+```
+kenning optimize test report \
+    --json-cfg "gh://antmicro:kenning-bare-metal-iree-runtime/kenning-scenarios/renode-magic-wand-iree-bare-metal-inference-prebuilt.json;branch=main" \
+    --measurements ./results.json \
+    --report-types performance classification renode_stats \
+    --report-path springbok-magic-wand/report.md \
+    --report-name v-extensions-riscv \
+    --model-names magic_wand_fp32 \
+    --verbosity INFO \
+    --to-html report-html
+```
+
+You can also clone a repository (either inside or outside the container):
+
+```
+git clone https://github.com/antmicro/kenning-bare-metal-iree-runtime
+cd kenning-bare-metal-iree-runtime
+```
+
+(please note that for development purposes described in [Building the project](#building-the-project) a recursive clone is necessary)
+After cloning the repository, we can run the same scenario using locally cloned file instead of a URL:
+
 ```
 kenning optimize test report \
     --json-cfg kenning-scenarios/renode-magic-wand-iree-bare-metal-inference-prebuilt.json \
@@ -64,7 +70,9 @@ kenning optimize test report \
     --to-html report-html
 ```
 
-The generated report will be available under `springbok-magic-wand/report/report.html`.
+The `kenning optimize test report` commands load the [optimizanion scenario described in JSON format](./kenning-scenarios/renode-magic-wand-iree-bare-metal-inference-prebuilt.json),  evaluate the model and render the report with performance and quality metrics (including Renode performance metrics) in Markdown (`./springbok-magic-wand/report.md`) and HTML.
+
+The generated HTML report will be available under `springbok-magic-wand/report/report.html` in the created workspace directory.
 
 The HTML report will contain such information as:
 
@@ -90,7 +98,7 @@ docker pull ghcr.io/antmicro/kenning-bare-metal-iree-runtime:latest
 
 ### Installing the dependencies in the system
 
-To be able to build the project, several dependencies need to be installed - `cmake`, `git`, `git-lfs`, `ninja-build`, `python3`, `python3-pip`, `wget`, `mono-complete` and `xxd`.
+To be able to build the project, several dependencies need to be installed - `cmake`, `git`, `ninja-build`, `python3`, `python3-pip`, `wget`, `mono-complete` and `xxd`.
 
 In Debian-based distros they can be installed with:
 
@@ -103,7 +111,6 @@ sudo apt-get install -qqy --no-install-recommends \
     fonts-lato \
     g++ \
     git \
-    git-lfs \
     libncurses5 \
     mono-complete \
     ninja-build \
@@ -121,8 +128,6 @@ After installation, clone the repository with submodules and go to the created d
 ```
 git clone --recursive https://github.com/antmicro/kenning-bare-metal-iree-runtime
 cd kenning-bare-metal-iree-runtime
-git lfs install
-git lfs pull
 ```
 
 The Python packages required to run below scripts are listed in `requirements.txt`.
