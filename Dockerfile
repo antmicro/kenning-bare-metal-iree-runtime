@@ -69,3 +69,8 @@ RUN $PIPINST \
     jupyter-book
 
 RUN gem install ceedling
+
+RUN mkdir -p /opt/renode && \
+    wget -O /opt/renode/renode-latest.pkg.tar.gz https://builds.renode.io/renode-latest.pkg.tar.xz
+
+ENV PYRENODE_PKG /opt/renode/renode-latest.pkg.tar.gz
