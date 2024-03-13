@@ -56,6 +56,7 @@ cd kenning-bare-metal-iree-runtime
 ```
 
 (please note that for development purposes described in [Building the project](#building-the-project) a recursive clone is necessary)
+
 After cloning the repository, we can run the same scenario using locally cloned file instead of a URL:
 
 ```
