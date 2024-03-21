@@ -1,6 +1,6 @@
 # Bare-metal IREE runtime for Kenning
 
-Copyright (c) 2023 [Antmicro](https://www.antmicro.com)
+Copyright (c) 2023-2024 [Antmicro](https://www.antmicro.com)
 
 This repository contains a bare metal implementation of `Runtime` and UART `Protocol` for [Kenning](https://github.com/antmicro/kenning), tested with [Renode](https://github.com/antmicro/renode).
 
