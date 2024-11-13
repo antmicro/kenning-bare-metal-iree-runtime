@@ -158,6 +158,13 @@ python3 -m pip install iree-compiler~=20230209.425 iree-runtime~=20230209.425 ir
 
 ### Building the runtime
 
+> **NOTE:** Some of the repositories used as submodules were moved.
+> As the used IREE version have old URLs, it is required to add URL rewrites to git.
+> This can be done with prepared bash script:
+> ```bash
+> ./build_tools/configure_git_url_rewrite.sh
+> ```
+
 Before building the binary, download a pre-compiled RV32 LLVM toolchain and IREE compiler.
 To download it, scripts included in `iree-rv32-springbok` submodule located in `third-party/iree-rv32-springbok/build_tools` directory can be used.
 To do so, run the following commands in the project's root directory:

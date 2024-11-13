@@ -10,6 +10,8 @@ image: $CI_IMAGE
 
 variables:
     GIT_STRATEGY: clone
+    GIT_SUBMODULE_STRATEGY: none
+    GIT_SUBMODULE_UPDATE_FLAGS: --jobs `nproc`
     IREE_HOST_BIN_DIR: "/opt/iree_compiler/bin"
     RISCV_TOOLCHAIN_ROOT: "/opt/toolchain_iree_rv32imf"
     RENODE_PATH: "/opt/renode"
@@ -19,16 +21,13 @@ stages:
     - build
     - tests
 
-.submodule_update_recursive: &submodule_update_recursive
-    GIT_SUBMODULE_STRATEGY: recursive
-    GIT_SUBMODULE_DEPTH: 1
-    GIT_SUBMODULE_UPDATE_FLAGS: --jobs `nproc`
+.prepare_submodules_recursive: &prepare_submodules_recursive |-
+    build_tools/configure_git_url_rewrite.sh
+    git submodule update --init --recursive
 
-.submodule_update_normal: &submodule_update_normal
-    GIT_SUBMODULE_STRATEGY: normal
-
-.submodule_update_none: &submodule_update_none
-    GIT_SUBMODULE_STRATEGY: none
+.prepare_submodules_normal: &prepare_submodules_normal |-
+    build_tools/configure_git_url_rewrite.sh
+    git submodule update --init
 
 .build_prepare: &build_prepare |-
     build_tools/configure_cmake.sh -G Ninja
@@ -43,7 +42,6 @@ clang_format:
     <<: *ace
     <<: *common_only
     stage: lint
-    variables: *submodule_update_none
     before_script:
         - *minimal_build_prepare
     script:
@@ -53,8 +51,8 @@ clang_tidy:
     <<: *ace
     <<: *common_only
     stage: lint
-    variables: *submodule_update_normal
     before_script:
+        - *prepare_submodules_normal
         - *minimal_build_prepare
     script:
         - git -C third-party/iree-rv32-springbok submodule update --init
@@ -64,8 +62,8 @@ build:
     <<: *ace
     <<: *common_only
     stage: build
-    variables: *submodule_update_recursive
     before_script:
+        - *prepare_submodules_recursive
         - *build_prepare
     script:
         - cmake --build build/build-riscv
@@ -78,8 +76,8 @@ i2c_accelerometer_build:
     <<: *ace
     <<: *common_only
     stage: build
-    variables: *submodule_update_recursive
     before_script:
+        - *prepare_submodules_recursive
         - *i2c_accelerometer_build_prepare
     script:
         - cmake --build build/build-riscv
@@ -92,7 +90,6 @@ unit_tests:
     <<: *ace
     <<: *common_only
     stage: tests
-    variables: *submodule_update_none
     before_script:
         - *minimal_build_prepare
     script:
@@ -106,8 +103,8 @@ renode_tests:
     <<: *ace
     <<: *common_only
     stage: tests
-    variables: *submodule_update_normal
     before_script:
+        - *prepare_submodules_normal
         - *minimal_build_prepare
         - git -C third-party/kenning lfs pull
         - python3 -m pip install ./third-party/kenning
