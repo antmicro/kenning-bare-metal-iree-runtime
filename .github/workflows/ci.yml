@@ -2,9 +2,9 @@ name: Kenning bare-metal IREE runtime tests
 
 on:
     push:
-        branches: [main]
+        branches: [main, fix-gha]
     pull_request:
-        branches: [main]
+        branches: [main, fix-gha]
 
 jobs:
     cancel-previous-job:
@@ -30,6 +30,7 @@ jobs:
                   lfs: true
             - name: Update submodules
               run: |
+                  git config --global --add safe.directory $(pwd)
                   ./build_tools/configure_git_url_rewrite.sh
                   git submodule update --init --recursive
             - name: Run README.md snippets
