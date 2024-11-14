@@ -30,6 +30,7 @@ jobs:
                   lfs: true
             - name: Update submodules
               run: |
+                  git config --global --add safe.directory $(pwd)
                   ./build_tools/configure_git_url_rewrite.sh
                   git submodule update --init --recursive
             - name: Run README.md snippets
