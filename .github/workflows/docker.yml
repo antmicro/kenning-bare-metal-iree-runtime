@@ -20,8 +20,11 @@ jobs:
             - name: Checkout sources
               uses: actions/checkout@v3
               with:
-                  submodules: 'recursive'
                   lfs: false
+            - name: Update submodules
+              run: |
+                  ./build_tools/configure_git_url_rewrite.sh
+                  git submodule update --init --recursive
             - name: Build Docker image
               run: docker build . --tag ghcr.io/antmicro/kenning-bare-metal-iree-runtime:latest
             - name: Login to registry

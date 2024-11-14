@@ -27,8 +27,11 @@ jobs:
             - name: Checkout sources
               uses: actions/checkout@v4
               with:
-                  submodules: 'recursive'
                   lfs: true
+            - name: Update submodules
+              run: |
+                  ./build_tools/configure_git_url_rewrite.sh
+                  git submodule update --init --recursive
             - name: Run README.md snippets
               run: |
                   ./.github/scripts/readme-tests.sh
