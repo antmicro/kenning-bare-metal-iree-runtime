@@ -117,7 +117,8 @@ add_custom_target(unit-tests
     WORKING_DIRECTORY ${UNIT_TESTS_DIR}
 )
 add_custom_target(unit-tests-coverage
-    COMMAND bash -c "ceedling gcov:all utils:gcov"
+    COMMAND bash -c "ceedling gcov:all || exit 0"
+    COMMAND bash -c "ceedling utils:gcov"
     USES_TERMINAL
     VERBATIM
     USES_TERMINAL

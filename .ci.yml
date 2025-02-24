@@ -14,7 +14,7 @@ variables:
     GIT_SUBMODULE_UPDATE_FLAGS: --jobs `nproc`
     IREE_HOST_BIN_DIR: "/opt/iree_compiler/bin"
     RISCV_TOOLCHAIN_ROOT: "/opt/toolchain_iree_rv32imf"
-    RENODE_PATH: "/opt/renode"
+    RENODE_PATH: "/usr/bin"
 
 stages:
     - lint
@@ -93,6 +93,7 @@ unit_tests:
     before_script:
         - *minimal_build_prepare
     script:
+        - cmake --build build/build-riscv --target unit-tests
         - cmake --build build/build-riscv --target unit-tests-coverage
     artifacts:
         paths:
