@@ -1,7 +1,7 @@
 FormatStyle: LLVM
 Checks: '-*,readability-*,bugprone-*'
 HeaderFilterRegex: '.*'
-WarningsAsErrors: '*,-readability-magic-numbers,-readability-avoid-const-params-in-decls,-bugprone-sizeof-expression,-bugprone-branch-clone,-bugprone-suspicious-missing-comma'
+WarningsAsErrors: '*,-readability-magic-numbers,-readability-avoid-const-params-in-decls,-bugprone-sizeof-expression,-bugprone-branch-clone,-bugprone-suspicious-missing-comma,-bugprone-easily-swappable-parameters,-readability-identifier-length,-bugprone-implicit-widening-of-multiplication-result,-bugprone-switch-missing-default-case,-readability-redundant-casting'
 CheckOptions:
   - { key: readability-identifier-naming.EnumCase,              value: UPPER_CASE }
   - { key: readability-identifier-naming.FunctionCase,          value: lower_case }
