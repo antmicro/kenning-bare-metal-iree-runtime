@@ -13,7 +13,7 @@ export IREE_TOOL_PATH=${PROJECT_DIR}/build/iree_compiler/bin
 
 cd $PROJECT_DIR/third-party/kenning
 kenning optimize test report \
-    --json-cfg ./scripts/jsonconfigs/iree-bare-metal-inference.json \
+    --json-cfg $SCRIPT_DIR/../kenning-scenarios/renode-magic-wand-iree-bare-metal-inference.json \
     --measurements $SCRIPT_DIR/results/kenning_output.json \
     --report-name 'iree-runtime' \
     --report-path $SCRIPT_DIR/results/benchmarks/iree-runtime.md \
