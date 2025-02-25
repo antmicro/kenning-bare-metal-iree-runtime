@@ -406,19 +406,18 @@ The [Ceedling](https://github.com/ThrowTheSwitch/Ceedling) framework was used fo
 Ruby and Gem are necessary for this framework, for Debian-based distributions you can use:
 
 ```bash
-sudo apt-get install -qqy --no-install-recommends ruby build-essential
-sudo gem install ceedling
+apt-get install -qqy --no-install-recommends build-essential
+curl -sSL https://get.rvm.io | bash -s stable
+bash -lc "rvm pkg install openssl"
+bash -lc "rvm install ruby-2.7.7 --with-openssl-dir=/usr/local/rvm/usr"
+export PATH=$PATH:/usr/local/rvm/rubies/ruby-2.7.7/bin
+gem install ceedling -v 0.31.1
 ```
+
+`NOTE:`: Provided `ghcr.io/antmicro/kenning-bare-metal-iree-runtime:latest` Docker image has all necessary dependencies provided
 
 To run the tests you use custom `cmake` target `unit-tests` as follows:
 
 ```bash
 cmake --build build/build-riscv --target unit-tests
-```
-
-Or run them directly with `ceedling`:
-
-```bash
-cd unit-tests
-ceedling test:all
 ```
