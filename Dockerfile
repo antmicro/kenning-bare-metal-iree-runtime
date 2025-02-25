@@ -37,6 +37,7 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && $INST \
     build-essential \
     cmake \
+    curl \
     fonts-lato \
     git \
     git-lfs \
@@ -51,7 +52,6 @@ RUN apt-get update && $INST \
     python3-dev \
     python3-pip \
     python3-venv \
-    ruby \
     wget \
     xxd \
     && apt-get autoremove && apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -68,7 +68,13 @@ RUN $PIPINST \
     iree-tools-tflite~=20230209.425 \
     jupyter-book
 
-RUN gem install ceedling
+RUN curl -sSL https://get.rvm.io | bash -s stable
+RUN bash -lc "rvm pkg install openssl"
+RUN bash -lc "rvm install ruby-2.7.7 --with-openssl-dir=/usr/local/rvm/usr"
+
+ENV PATH "$PATH:/usr/local/rvm/rubies/ruby-2.7.7/bin"
+
+RUN gem install ceedling -v 0.31.1
 
 RUN mkdir -p /opt/renode && \
     wget -O /opt/renode/renode-latest.pkg.tar.gz https://builds.renode.io/renode-latest.pkg.tar.xz
