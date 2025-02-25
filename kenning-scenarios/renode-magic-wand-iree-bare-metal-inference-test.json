@@ -3,7 +3,7 @@
         "type": "BareMetalPlatform",
         "parameters": {
             "name": "rv32-springbok",
-            "simulated": true,
+            "simulated": false,
             "profiler_dump_path": "build/profiler.dump",
             "uart_port": "/tmp/uart",
             "runtime_binary_path": "build/build-riscv/iree-runtime/iree_runtime",
